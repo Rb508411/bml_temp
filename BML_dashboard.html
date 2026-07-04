@@ -4,22 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard อุณหภูมิและความชื้น</title>
+    <!-- โหลด Libraries ที่จำเป็น -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { width: 100%; max-width: 900px; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        .container { width: 100%; max-width: 900px; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h1 { text-align: center; color: #2c3e50; margin-top: 0; }
-        .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; background-color: #ecf0f1; padding: 15px; border-radius: 8px; }
-        select { padding: 10px; border-radius: 5px; border: 1px solid #bdc3c7; font-size: 1rem; flex: 1; min-width: 200px; }
-        .chart-container { position: relative; height: 60vh; width: 100%; }
+        
+        .controls, .export-controls { display: flex; gap: 15px; flex-wrap: wrap; background-color: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; align-items: center; }
+        select, input[type="email"] { padding: 10px; border-radius: 5px; border: 1px solid #bdc3c7; font-size: 1rem; flex: 1; min-width: 150px; }
+        .btn-export { background-color: #27ae60; color: white; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        .btn-export:hover { background-color: #219150; }
+        
+        .chart-container { position: relative; height: 50vh; width: 100%; margin-bottom: 20px; }
         #loading { text-align: center; color: #e67e22; font-weight: bold; font-size: 1.2rem; display: none; margin: 20px 0; }
+        
+        /* สไตล์ตารางข้อมูลดิบ */
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; text-align: center; }
+        .data-table th { background-color: #34495e; color: white; padding: 10px; border: 1px solid #bdc3c7; }
+        .data-table td { padding: 8px; border: 1px solid #bdc3c7; }
+        .data-table tr:nth-child(even) { background-color: #f9f9f9; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📊 Dashboard ประวัติอุณหภูมิ</h1>
+    <h1>📊 Dashboard อุณหภูมิและความชื้น</h1>
     
+    <!-- ส่วนเลือกข้อมูล -->
     <div class="controls">
         <select id="viewType" onchange="updateSubFilter()">
             <option value="room">🌡️ ดูอุณหภูมิ/ความชื้นห้อง</option>
@@ -31,14 +45,35 @@
         </select>
     </div>
 
-    <div id="loading">⏳ กำลังดึงข้อมูลจากฐานข้อมูล...</div>
+    <!-- ส่วน Export Data -->
+    <div class="export-controls">
+        <h4 style="margin:0; color:#34495e;">📤 ส่งออก:</h4>
+        <select id="export-format">
+            <option value="pdf">PDF (กราฟ + ตาราง)</option>
+            <option value="excel">Excel (ตารางอย่างเดียว)</option>
+        </select>
+        <select id="export-method" onchange="toggleEmail()">
+            <option value="download">📥 บันทึกลงเครื่อง</option>
+            <option value="email">📧 ส่งผ่านอีเมล</option>
+        </select>
+        <input type="email" id="export-email" placeholder="ระบุอีเมลผู้รับ..." style="display:none;">
+        <button class="btn-export" onclick="handleExport()">ส่งออกข้อมูล</button>
+    </div>
+
+    <div id="loading">⏳ กำลังประมวลผล...</div>
     
-    <div class="chart-container">
-        <canvas id="myChart"></canvas>
+    <!-- พื้นที่ที่จะถูกปริ้นท์เป็น PDF -->
+    <div id="export-content" style="padding: 10px; background: white;">
+        <h3 id="report-title" style="text-align: center; display: none; color: #2c3e50;">รายงานข้อมูล</h3>
+        <div class="chart-container">
+            <canvas id="myChart"></canvas>
+        </div>
+        <div id="data-table-container"></div>
     </div>
 </div>
 
 <script>
+    // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
     
     let rawData = [];
@@ -46,16 +81,23 @@
     let equipments = new Set();
     let myChart = null;
 
+    // ตัวแปรพักข้อมูลไว้สำหรับ Export
+    let currentLabels = [];
+    let currentData1 = [];
+    let currentData2 = [];
+    let currentLabel1 = "";
+    let currentLabel2 = "";
+
     async function loadData() {
-        document.getElementById('loading').style.display = 'block';
+        showLoading("กำลังดึงข้อมูลจากฐานข้อมูล...");
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getDashboardData`);
             rawData = await res.json();
             processFilters();
         } catch (e) {
-            alert("ดึงข้อมูลไม่สำเร็จ");
+            alert("ดึงข้อมูลไม่สำเร็จ กรุณาลองใหม่ครับ");
         }
-        document.getElementById('loading').style.display = 'none';
+        hideLoading();
     }
 
     function processFilters() {
@@ -82,12 +124,7 @@
         const subFilter = document.getElementById('subFilter');
         subFilter.innerHTML = '';
 
-        let options = [];
-        if (viewType === 'room') {
-            options = Array.from(rooms).sort();
-        } else {
-            options = Array.from(equipments).sort();
-        }
+        let options = viewType === 'room' ? Array.from(rooms).sort() : Array.from(equipments).sort();
 
         options.forEach(opt => {
             const el = document.createElement('option');
@@ -104,24 +141,22 @@
         const selectedTarget = document.getElementById('subFilter').value;
         if (!selectedTarget) return;
 
-        let labels = [];
-        let dataset1 = [];
-        let dataset2 = [];
-        let label1 = '';
-        let label2 = '';
+        currentLabels = [];
+        currentData1 = [];
+        currentData2 = [];
 
         if (viewType === 'room') {
-            label1 = 'อุณหภูมิห้อง (°C)';
-            label2 = 'ความชื้น (%)';
+            currentLabel1 = 'อุณหภูมิห้อง (°C)';
+            currentLabel2 = 'ความชื้น (%)';
             rawData.forEach(row => {
                 if (row.room === selectedTarget) {
-                    labels.push(row.timestamp);
-                    dataset1.push(row.rTemp);
-                    dataset2.push(row.rHum);
+                    currentLabels.push(row.timestamp);
+                    currentData1.push(row.rTemp);
+                    currentData2.push(row.rHum);
                 }
             });
         } else {
-            label1 = `อุณหภูมิ ${selectedTarget} (°C)`;
+            currentLabel1 = `อุณหภูมิ ${selectedTarget} (°C)`;
             rawData.forEach(row => {
                 if (row.equipments && row.equipments.includes(selectedTarget)) {
                     let items = row.equipments.split(',');
@@ -131,8 +166,8 @@
                             let valStr = parts[1].replace('°C', '').trim();
                             let val = parseFloat(valStr);
                             if (!isNaN(val)) {
-                                labels.push(row.timestamp);
-                                dataset1.push(val);
+                                currentLabels.push(row.timestamp);
+                                currentData1.push(val);
                             }
                         }
                     });
@@ -140,16 +175,18 @@
             });
         }
 
-        drawChart(labels, dataset1, dataset2, label1, label2, viewType);
+        drawChart(viewType);
+        renderDataTable(viewType);
+        document.getElementById('report-title').innerText = `รายงานผล: ${selectedTarget}`;
     }
 
-    function drawChart(labels, data1, data2, label1, label2, type) {
+    function drawChart(type) {
         const ctx = document.getElementById('myChart').getContext('2d');
         if (myChart) myChart.destroy();
 
         const datasets = [{
-            label: label1,
-            data: data1,
+            label: currentLabel1,
+            data: currentData1,
             borderColor: '#e74c3c',
             backgroundColor: 'rgba(231, 76, 60, 0.1)',
             borderWidth: 2,
@@ -159,8 +196,8 @@
 
         if (type === 'room') {
             datasets.push({
-                label: label2,
-                data: data2,
+                label: currentLabel2,
+                data: currentData2,
                 borderColor: '#3498db',
                 backgroundColor: 'rgba(52, 152, 219, 0.1)',
                 borderWidth: 2,
@@ -171,15 +208,130 @@
 
         myChart = new Chart(ctx, {
             type: 'line',
-            data: { labels: labels, datasets: datasets },
+            data: { labels: currentLabels, datasets: datasets },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                    x: { ticks: { maxRotation: 45, minRotation: 45 } }
-                }
+                scales: { x: { ticks: { maxRotation: 45, minRotation: 45 } } },
+                animation: false // ปิด Animation เพื่อให้ถ่ายรูปทำ PDF ได้ทันที
             }
         });
+    }
+
+    // สร้างตารางข้อมูลดิบเพื่อแสดงใน PDF
+    function renderDataTable(type) {
+        let tableHTML = '<table class="data-table">';
+        tableHTML += `<tr><th>เวลา (Timestamp)</th><th>${currentLabel1}</th>`;
+        if (type === 'room') tableHTML += `<th>${currentLabel2}</th>`;
+        tableHTML += '</tr>';
+
+        for (let i = 0; i < currentLabels.length; i++) {
+            tableHTML += `<tr><td>${currentLabels[i]}</td><td>${currentData1[i]}</td>`;
+            if (type === 'room') tableHTML += `<td>${currentData2[i]}</td>`;
+            tableHTML += '</tr>';
+        }
+        tableHTML += '</table>';
+        document.getElementById('data-table-container').innerHTML = tableHTML;
+    }
+
+    function toggleEmail() {
+        const method = document.getElementById('export-method').value;
+        const emailInput = document.getElementById('export-email');
+        emailInput.style.display = method === 'email' ? 'block' : 'none';
+    }
+
+    // ================= ระบบ Export และบันทึก Log =================
+    async function handleExport() {
+        const format = document.getElementById('export-format').value;
+        const method = document.getElementById('export-method').value;
+        const email = document.getElementById('export-email').value;
+        const target = document.getElementById('subFilter').value;
+
+        if (method === 'email' && !email) {
+            alert("กรุณาระบุอีเมลปลายทางที่ต้องการให้ระบบส่งไฟล์ไปครับ");
+            return;
+        }
+
+        showLoading("กำลังสร้างไฟล์และบันทึกประวัติ...");
+        try {
+            if (format === 'pdf') {
+                document.getElementById('report-title').style.display = 'block'; // แสดงหัวข้อรายงานเฉพาะตอนปริ้น
+                const element = document.getElementById('export-content');
+                const opt = {
+                    margin: 0.5,
+                    filename: `Report_${target}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+
+                if (method === 'download') {
+                    await html2pdf().set(opt).from(element).save();
+                    await sendLogToBackend(target, format, method, "");
+                } else {
+                    const pdfBase64 = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+                    const b64Data = pdfBase64.split(',')[1];
+                    await sendLogToBackend(target, format, method, email, b64Data, "application/pdf", `Report_${target}.pdf`);
+                }
+                document.getElementById('report-title').style.display = 'none';
+
+            } else if (format === 'excel') {
+                let ws_data = [];
+                const viewType = document.getElementById('viewType').value;
+                
+                if (viewType === 'room') {
+                    ws_data.push(["เวลา (Timestamp)", "อุณหภูมิห้อง (°C)", "ความชื้น (%)"]);
+                    for(let i=0; i<currentLabels.length; i++) ws_data.push([currentLabels[i], currentData1[i], currentData2[i]]);
+                } else {
+                    ws_data.push(["เวลา (Timestamp)", currentLabel1]);
+                    for(let i=0; i<currentLabels.length; i++) ws_data.push([currentLabels[i], currentData1[i]]);
+                }
+
+                var ws = XLSX.utils.aoa_to_sheet(ws_data);
+                var wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Data");
+
+                if (method === 'download') {
+                    XLSX.writeFile(wb, `Report_${target}.xlsx`);
+                    await sendLogToBackend(target, format, method, "");
+                } else {
+                    const excelBase64 = XLSX.write(wb, {type: 'base64', bookType: 'xlsx'});
+                    await sendLogToBackend(target, format, method, email, excelBase64, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", `Report_${target}.xlsx`);
+                }
+            }
+            alert("✅ ดำเนินการส่งออกข้อมูลเรียบร้อยแล้วครับ");
+        } catch(e) {
+            alert("เกิดข้อผิดพลาดในการส่งออก: " + e.message);
+        }
+        hideLoading();
+    }
+
+    async function sendLogToBackend(target, format, method, email, fileBase64 = null, mimeType = null, fileName = null) {
+        const payload = {
+            action: "exportLog",
+            target: target,
+            format: format,
+            method: method,
+            email: email,
+            fileBase64: fileBase64,
+            mimeType: mimeType,
+            fileName: fileName
+        };
+
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    }
+
+    function showLoading(text) {
+        const loader = document.getElementById('loading');
+        loader.innerText = text;
+        loader.style.display = 'block';
+    }
+    
+    function hideLoading() {
+        document.getElementById('loading').style.display = 'none';
     }
 
     window.onload = loadData;
