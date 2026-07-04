@@ -185,12 +185,17 @@
                     <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
                 </div>
                 
-                <h3 style="margin-top:0;">เลือกห้องปฏิบัติการ</h3>
+                <!-- เพิ่มปุ่มลิงก์ไป Dashboard ตรงนี้ -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #8e44ad;">
+                    <h3 style="margin-top:0; margin-bottom:0; color: #2c3e50;">เลือกห้องปฏิบัติการ</h3>
+                    <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" style="background-color: #8e44ad; color: white; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 0.95rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: background-color 0.3s;">
+                        📊 ดู Dashboard กราฟ
+                    </a>
+                </div>
                 <div class="grid-container" id="room-grid">
                     <!-- จะถูกสร้างด้วย JavaScript -->
                 </div>
             </div>
-
             <!-- ================= VIEW 3: ROOM FORM ================= -->
             <div id="view-room">
                 <div class="room-header">
@@ -319,6 +324,12 @@
                 currentSessionName = null;
                 banner.innerText = "🚫 นอกเวลาการบันทึก (รับเฉพาะ 06-11 น. และ 15-22 น.)";
                 banner.className = "session-banner inactive";
+                
+                // ระบบล็อกแบบ Strict: หากหมดเวลาแล้วมีคนค้างอยู่ในห้อง จะเตะออกและปลดล็อกอัตโนมัติ
+                if (currentEditingRoom) {
+                    alert("⏰ หมดเวลารับข้อมูลของรอบนี้แล้ว ระบบจะปิดฟอร์มและกลับสู่หน้าหลักอัตโนมัติครับ");
+                    cancelRoom(); 
+                }
             }
         }
 
@@ -429,6 +440,12 @@
         }
 
         async function requestLockRoom(roomName) {
+
+            if (!currentSessionName) {
+                alert("🚫 อยู่นอกเวลาการบันทึกผล ไม่สามารถเข้าห้องได้ครับ");
+                return;
+            }
+
             showOverlay(`กำลังเปิดห้อง...`);
             try {
                 const url = `${SCRIPT_URL}?action=lock&room=${encodeURIComponent(roomName)}&user=${encodeURIComponent(currentUser)}&session=${currentSessionName}`;
@@ -535,6 +552,12 @@
         }
 
         async function saveRoom() {
+
+            if (!currentSessionName) {
+                alert("🚫 หมดเวลาการบันทึกแล้ว ไม่สามารถส่งข้อมูลได้ครับ");
+                return;
+            }
+
             const rTemp = document.getElementById('room-temp').value;
             const rHum = document.getElementById('room-hum').value;
             
