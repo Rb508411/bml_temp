@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบบันทึก Lab อัจฉริยะ (Multi-user)</title>
+    <title>ระบบบันทึก Lab อัจฉริยะ</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -50,52 +50,47 @@
             flex-grow: 1;
         }
 
-        .recorder-info {
-            background-color: #ecf0f1;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        /* ----- Login ----- */
+        #view-login {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 40px 20px; text-align: center;
         }
-        .recorder-info input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #bdc3c7;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 1rem;
-            margin-top: 5px;
+        #view-login h2 { color: #2c3e50; margin-bottom: 10px; }
+        .login-input {
+            width: 100%; max-width: 300px; padding: 15px; font-size: 1.2rem;
+            text-align: center; border: 2px solid #bdc3c7; border-radius: 8px; margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        .login-input:focus { border-color: #3498db; outline: none; }
+        .btn-login {
+            width: 100%; max-width: 300px; background-color: #3498db; color: white;
+            border: none; padding: 15px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+        }
+        .btn-login:hover { background-color: #2980b9; }
+
+        /* ----- Dashboard ----- */
+        .recorder-info {
+            background-color: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .recorder-name { font-size: 1.1rem; font-weight: bold; color: #2c3e50; }
+        .btn-logout {
+            background-color: #e74c3c; color: white; border: none; padding: 6px 12px;
+            border-radius: 5px; cursor: pointer; font-size: 0.85rem;
         }
 
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         
         .room-card {
-            background-color: #fff;
-            border: 2px solid #bdc3c7;
-            border-radius: 10px;
-            padding: 15px 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            background-color: #fff; border: 2px solid #bdc3c7; border-radius: 10px;
+            padding: 15px 10px; text-align: center; cursor: pointer; transition: all 0.2s;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .room-card:hover:not(.disabled) {
-            border-color: #3498db;
-            background-color: #ebf5fb;
-            transform: translateY(-3px);
-        }
+        .room-card:hover:not(.disabled) { border-color: #3498db; background-color: #ebf5fb; transform: translateY(-3px); }
         .room-card.disabled { cursor: not-allowed; opacity: 0.8; }
-        
         .room-card.completed { border-color: #2ecc71; background-color: #eafaf1; }
         .room-card.completed h3 { color: #27ae60; }
         .room-card.completed .status-badge { background-color: #2ecc71; }
-        
         .room-card.locked { border-color: #e67e22; background-color: #fdf2e9; }
         .room-card.locked h3 { color: #d35400; }
         .room-card.locked .status-badge { background-color: #e67e22; }
@@ -103,54 +98,43 @@
         .room-icon { font-size: 1.8rem; margin-bottom: 8px; }
         .room-card h3 { margin: 0; font-size: 1rem; color: #2c3e50; line-height: 1.3;}
         .status-badge {
-            font-size: 0.8rem;
-            margin-top: 8px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            background-color: #bdc3c7;
-            color: white;
-            line-height: 1.2;
+            font-size: 0.8rem; margin-top: 8px; padding: 4px 10px;
+            border-radius: 12px; background-color: #bdc3c7; color: white; line-height: 1.2;
         }
 
-        #view-room { display: none; }
-        .back-btn {
-            background: none; border: none; color: #3498db; font-size: 1rem;
-            font-weight: bold; cursor: pointer; padding: 0; margin-bottom: 15px;
-        }
-        .back-btn:hover { text-decoration: underline; }
+        #view-dashboard, #view-room { display: none; }
         
         .room-header {
             font-size: 1.3rem; color: #2c3e50; border-bottom: 2px solid #3498db;
-            padding-bottom: 10px; margin-bottom: 20px;
-            display: flex; justify-content: space-between; align-items: center; font-weight:bold;
+            padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; font-weight:bold;
         }
 
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #34495e; }
         .form-group input {
             width: 100%; padding: 10px; border: 1px solid #ccc;
-            border-radius: 6px; box-sizing: border-box; font-size: 1rem;
+            border-radius: 6px; box-sizing: border-box; font-size: 1rem; transition: background-color 0.3s;
         }
         
+        /* สไตล์แจ้งเตือนตอนกรอกค่า Validations */
+        .input-warning { background-color: #ffb3b3 !important; color: black !important; }
+        .input-error { background-color: #000000 !important; color: #ffffff !important; }
+
         .section-title {
-            background-color: #ecf0f1; padding: 8px 10px;
-            border-left: 4px solid #e67e22; margin: 25px 0 15px 0;
-            font-weight: bold; color: #d35400;
-            display: flex; justify-content: space-between; align-items: center;
+            background-color: #ecf0f1; padding: 8px 10px; border-left: 4px solid #e67e22; margin: 25px 0 15px 0;
+            font-weight: bold; color: #d35400; display: flex; justify-content: space-between; align-items: center;
         }
 
         .add-equip-btn {
             background-color: #f39c12; color: white; border: none; padding: 6px 12px;
             border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.85rem;
         }
-        .add-equip-btn:hover { background-color: #e67e22; }
         
         .equip-row { display: flex; gap: 8px; margin-bottom: 10px; }
         .btn-remove-eq {
             background: #e74c3c; color: white; border: none; border-radius: 5px;
             cursor: pointer; padding: 0 12px; font-size: 1.2rem; display:flex; align-items:center; justify-content:center;
         }
-        .btn-remove-eq:hover { background: #c0392b; }
 
         .action-buttons { display: flex; gap: 10px; margin-top: 30px; }
         .btn-save { flex: 2; background-color: #2ecc71; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
@@ -159,19 +143,14 @@
         #overlay {
             position: absolute; top:0; left:0; width:100%; height:100%;
             background: rgba(255,255,255,0.9); display: none;
-            justify-content: center; align-items: center; flex-direction: column;
-            z-index: 9999;
+            justify-content: center; align-items: center; flex-direction: column; z-index: 9999;
         }
         .spinner {
             border: 5px solid #f3f3f3; border-top: 5px solid #3498db;
-            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite;
-            margin-bottom: 15px;
+            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        @media (max-width: 400px) {
-            .grid-container { grid-template-columns: 1fr; }
-        }
+        @media (max-width: 400px) { .grid-container { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -179,7 +158,7 @@
     <div class="app-container">
         <div id="overlay">
             <div class="spinner"></div>
-            <h2 id="overlay-text" style="color:#2c3e50;">กำลังเชื่อมต่อเซิร์ฟเวอร์...</h2>
+            <h2 id="overlay-text" style="color:#2c3e50;">กำลังประมวลผล...</h2>
         </div>
 
         <div class="header">
@@ -188,11 +167,22 @@
         <div id="session-banner" class="session-banner">กำลังตรวจสอบเวลา...</div>
 
         <div class="content">
-            <!-- ================= VIEW 1: DASHBOARD ================= -->
+            <!-- ================= VIEW 1: LOGIN ================= -->
+            <div id="view-login">
+                <h2>🔐 เข้าสู่ระบบ</h2>
+                <p>กรุณากรอกรหัสพนักงาน 6 หลัก เพื่อเริ่มบันทึก</p>
+                <input type="text" id="empId" class="login-input" maxlength="6" placeholder="รหัสพนักงาน">
+                <button class="btn-login" onclick="login()">เข้าสู่ระบบ</button>
+            </div>
+
+            <!-- ================= VIEW 2: DASHBOARD ================= -->
             <div id="view-dashboard">
                 <div class="recorder-info">
-                    <label style="font-weight:bold; color:#2c3e50;">👤 ชื่อผู้รับผิดชอบ (บังคับกรอก):</label>
-                    <input type="text" id="recorderName" placeholder="ระบุชื่อเจ้าหน้าที่" onchange="saveRecorderName()">
+                    <div>
+                        <span style="color:#7f8c8d; font-size:0.9rem;">ผู้บันทึกข้อมูล:</span><br>
+                        <span id="display-recorder-name" class="recorder-name">ชื่อ นามสกุล</span>
+                    </div>
+                    <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
                 </div>
                 
                 <h3 style="margin-top:0;">เลือกห้องปฏิบัติการ</h3>
@@ -201,7 +191,7 @@
                 </div>
             </div>
 
-            <!-- ================= VIEW 2: ROOM FORM ================= -->
+            <!-- ================= VIEW 3: ROOM FORM ================= -->
             <div id="view-room">
                 <div class="room-header">
                     <span id="room-title">Lab X</span>
@@ -223,11 +213,8 @@
                         <button type="button" class="add-equip-btn" onclick="addEquipField()">+ เพิ่มเครื่อง</button>
                     </div>
                     
-                    <div id="equip-container">
-                        <!-- กล่องใส่เครื่องมือแบบไดนามิก จะถูกสร้างตาม LAB_CONFIG -->
-                    </div>
+                    <div id="equip-container"></div>
                     
-                    <!-- ส่วนแจ้งเตือนการแก้ไข (Out of range) -->
                     <div class="form-group" style="margin-top: 20px; background-color: #fdf2e9; padding: 15px; border-radius: 8px; border-left: 4px solid #e67e22;">
                         <label style="color: #d35400;">⚠️ ค่าเกินเกณฑ์ที่ยอมรับหรือไม่? (ถ้าเกินระบุการแก้ไข)</label>
                         <input type="text" id="room-action" placeholder="เช่น อุณหภูมิตู้เย็นเกินเกณฑ์ -> ปรับอุณหภูมิและแจ้งช่าง">
@@ -243,15 +230,12 @@
     </div>
 
     <script>
-        // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***exec
+        // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
 
-        // =========================================================================
-        // 🛠️ ตั้งค่าเครื่องมือประจำห้อง (สามารถเพิ่มแก้ไขชื่อเครื่องมือในแต่ละห้องได้ที่นี่)
-        // =========================================================================
         const LAB_CONFIG = {
-            "Cobas 4800 Zone": ["ตู้เย็น (BML-MOL-139)"],
-            "Post PCR Room": [], // ถ้าไม่มี ให้เว้นว่างไว้แบบนี้
+            "Cobas 4800 Zone": ["ตู้เย็น -20 (BML-MOL-139)", "ตู้แช่แข็ง -70"], 
+            "Post PCR Room": [], 
             "PCR Room I (หน้าห้อง Post PCR)": [],
             "PCR Mix Room": [],
             "PCR Room I (หน้าห้อง MMX)": [],
@@ -265,13 +249,13 @@
             "Sequencing Room": [],
             "Analysis Room": []
         };
-        // =========================================================================
 
         let currentSessionName = null;
         let currentEditingRoom = null;
         let refreshInterval = null;
         let lockTimer = null;
-        let sessionData = {}; // เก็บข้อมูลจำในเครื่องเผื่อเปิดดูอีกรอบ
+        let sessionData = {}; 
+        let currentUser = "";
         
         function showOverlay(text) {
             document.getElementById('overlay-text').innerText = text;
@@ -280,6 +264,43 @@
         function hideOverlay() {
             document.getElementById('overlay').style.display = 'none';
         }
+
+        // ================= Validation Rules =================
+        function getValidationRules(name) {
+            const lowerName = name.toLowerCase();
+            if (lowerName.includes("-70")) return { minAllow: -85, maxAllow: 0, minNorm: -75, maxNorm: -65 };
+            if (lowerName.includes("-20")) return { minAllow: -50, maxAllow: 0, minNorm: -35, maxNorm: -15 };
+            if (lowerName.includes("-30")) return { minAllow: -50, maxAllow: 0, minNorm: -40, maxNorm: -20 };
+            if (lowerName.includes("2-8")) return { minAllow: 0, maxAllow: 20, minNorm: 2, maxNorm: 8 };
+            return null; // ไม่มีเกณฑ์
+        }
+
+        function validateEquip(tempInputEl) {
+            const row = tempInputEl.parentElement;
+            const nameInputEl = row.querySelector('.eq-name');
+            const eqName = nameInputEl.value;
+            const tempValStr = tempInputEl.value;
+            
+            // เคลียร์สีเดิม
+            tempInputEl.classList.remove('input-warning', 'input-error');
+            
+            if (tempValStr === '') return;
+            
+            const rules = getValidationRules(eqName);
+            if (!rules) return;
+
+            const val = parseFloat(tempValStr);
+
+            // เช็คว่าอยู่นอกช่วงบังคับไหม (ห้ามบันทึก -> สีดำ)
+            if (val < rules.minAllow || val > rules.maxAllow) {
+                tempInputEl.classList.add('input-error');
+            } 
+            // เช็คว่าอยู่นอกช่วงปกติไหม (บันทึกได้ -> สีชมพู)
+            else if (val < rules.minNorm || val > rules.maxNorm) {
+                tempInputEl.classList.add('input-warning');
+            }
+        }
+        // ====================================================
 
         function checkSession() {
             const now = new Date();
@@ -301,6 +322,56 @@
             }
         }
 
+        async function login() {
+            const empId = document.getElementById('empId').value.trim();
+            if (!empId) {
+                alert("กรุณากรอกรหัสพนักงาน");
+                return;
+            }
+            showOverlay("กำลังตรวจสอบรหัส...");
+            try {
+                const url = `${SCRIPT_URL}?action=login&empId=${encodeURIComponent(empId)}`;
+                const response = await fetch(url);
+                const result = await response.json();
+                if (result.success) {
+                    currentUser = result.name;
+                    localStorage.setItem('lab_logged_in_user', currentUser);
+                    showDashboard();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+            }
+            hideOverlay();
+        }
+
+        function logout() {
+            if(confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
+                localStorage.removeItem('lab_logged_in_user');
+                currentUser = "";
+                clearInterval(refreshInterval);
+                document.getElementById('view-dashboard').style.display = 'none';
+                document.getElementById('view-login').style.display = 'flex';
+                document.getElementById('empId').value = '';
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('display-recorder-name').innerText = currentUser;
+            document.getElementById('view-login').style.display = 'none';
+            document.getElementById('view-room').style.display = 'none';
+            document.getElementById('view-dashboard').style.display = 'block';
+            
+            fetchRoomStatus();
+            if(!refreshInterval) {
+                refreshInterval = setInterval(() => {
+                    checkSession();
+                    fetchRoomStatus();
+                }, 3000);
+            }
+        }
+
         async function fetchRoomStatus() {
             if (!currentSessionName) return; 
             try {
@@ -309,7 +380,7 @@
                 const statusData = await response.json();
                 renderGrid(statusData);
             } catch (error) {
-                console.error("Error fetching status", error);
+                console.error("Error fetching status");
             }
         }
 
@@ -357,21 +428,10 @@
             }
         }
 
-        function saveRecorderName() {
-            localStorage.setItem('lab_recorder_name', document.getElementById('recorderName').value);
-        }
-
         async function requestLockRoom(roomName) {
-            const userName = document.getElementById('recorderName').value.trim();
-            if (!userName) {
-                alert("กรุณากรอกชื่อผู้รับผิดชอบก่อนกดเข้าห้องครับ");
-                document.getElementById('recorderName').focus();
-                return;
-            }
-            
             showOverlay(`กำลังเปิดห้อง...`);
             try {
-                const url = `${SCRIPT_URL}?action=lock&room=${encodeURIComponent(roomName)}&user=${encodeURIComponent(userName)}&session=${currentSessionName}`;
+                const url = `${SCRIPT_URL}?action=lock&room=${encodeURIComponent(roomName)}&user=${encodeURIComponent(currentUser)}&session=${currentSessionName}`;
                 const response = await fetch(url);
                 const result = await response.text();
                 
@@ -387,23 +447,32 @@
             hideOverlay();
         }
 
-        function addEquipField(name = '', temp = '') {
+        // เพิ่มพารามิเตอร์ isDefault เพื่อแยกว่าเครื่องมือไหนมาจากลิสต์บังคับ
+        function addEquipField(name = '', temp = '', isDefault = false) {
             const container = document.getElementById('equip-container');
             const div = document.createElement('div');
             div.className = 'equip-row';
+            
+            // ถ้าเป็นเครื่องมือจากลิสต์ บังคับแก้ไขชื่อไม่ได้ และปิดปุ่มลบ
+            const nameAttr = isDefault ? `readonly style="flex: 3; background-color: #ecf0f1; cursor: not-allowed; border-color: #bdc3c7;"` : `style="flex: 3;"`;
+            const btnHtml = isDefault ? `<div style="width: 32px; visibility: hidden;"></div>` : `<button type="button" class="btn-remove-eq" onclick="this.parentElement.remove()">✖</button>`;
+
             div.innerHTML = `
-                <input type="text" placeholder="ชื่อเครื่อง" value="${name}" class="eq-name" style="flex: 3;">
-                <input type="number" step="0.1" placeholder="°C" value="${temp}" class="eq-temp" style="flex: 2;">
-                <button type="button" class="btn-remove-eq" onclick="this.parentElement.remove()">✖</button>
+                <input type="text" placeholder="ชื่อเครื่อง" value="${name}" class="eq-name" oninput="validateEquip(this.nextElementSibling)" ${nameAttr}>
+                <input type="number" step="0.1" placeholder="°C" value="${temp}" class="eq-temp" oninput="validateEquip(this)" style="flex: 2;">
+                ${btnHtml}
             `;
             container.appendChild(div);
+            
+            // สั่งตรวจสอบสีทันทีถ้ามีค่าอยู่แล้ว
+            const tempInput = div.querySelector('.eq-temp');
+            if(temp) validateEquip(tempInput);
         }
 
         function openRoomForm(roomName) {
             currentEditingRoom = roomName;
             document.getElementById('room-title').innerText = `${roomName}`;
             
-            // โหลดข้อมูลเก่าที่จำไว้ในเครื่อง หรือเคลียร์ให้ว่าง
             const data = sessionData[roomName] || {};
             document.getElementById('room-temp').value = data.rTemp || '';
             document.getElementById('room-hum').value = data.rHum || '';
@@ -412,14 +481,18 @@
             const container = document.getElementById('equip-container');
             container.innerHTML = '';
             
-            // ผสมรายชื่อเครื่องมือเริ่มต้นจาก Config เข้ากับที่คนอาจจะแอบกดเพิ่มไว้
             const savedEquips = data.equips || {};
             const defaultEquips = LAB_CONFIG[roomName] || [];
             
-            let equipNames = Array.from(new Set([...defaultEquips, ...Object.keys(savedEquips)]));
+            // โหลดเครื่องมือจากลิสต์ตายตัวก่อน (isDefault = true)
+            defaultEquips.forEach(eqName => {
+                addEquipField(eqName, savedEquips[eqName] || '', true);
+                delete savedEquips[eqName]; // ลบออกจาก saved list เพื่อไม่ให้ซ้ำ
+            });
             
-            equipNames.forEach(eqName => {
-                addEquipField(eqName, savedEquips[eqName] || '');
+            // โหลดเครื่องมืออื่นๆ ที่พนักงานกด Add เพิ่มเอง
+            Object.keys(savedEquips).forEach(eqName => {
+                addEquipField(eqName, savedEquips[eqName] || '', false);
             });
 
             document.getElementById('view-dashboard').style.display = 'none';
@@ -454,15 +527,11 @@
             try {
                 const url = `${SCRIPT_URL}?action=unlock&room=${encodeURIComponent(currentEditingRoom)}&session=${currentSessionName}`;
                 await fetch(url);
-            } catch(e) { console.error(e); }
+            } catch(e) {}
             
             currentEditingRoom = null;
-            document.getElementById('view-room').style.display = 'none';
-            document.getElementById('view-dashboard').style.display = 'block';
-            
+            showDashboard();
             hideOverlay();
-            fetchRoomStatus();
-            refreshInterval = setInterval(fetchRoomStatus, 3000);
         }
 
         async function saveRoom() {
@@ -476,14 +545,47 @@
 
             let equipsData = {};
             let equipStrings = [];
+            
+            let isMissingValue = false;
+            let isInvalidValue = false;
+
             document.querySelectorAll('.equip-row').forEach(row => {
-                let n = row.querySelector('.eq-name').value.trim();
-                let t = row.querySelector('.eq-temp').value;
+                let nameInput = row.querySelector('.eq-name');
+                let tempInput = row.querySelector('.eq-temp');
+                let n = nameInput.value.trim();
+                let t = tempInput.value;
+                
                 if (n) {
-                    equipsData[n] = t;
-                    equipStrings.push(`${n}=${t ? t + '°C' : '-'}`);
+                    if (t === '') {
+                        isMissingValue = true;
+                        tempInput.style.border = "2px solid red"; // แจ้งเตือนว่าลืมกรอก
+                    } else {
+                        tempInput.style.border = "1px solid #ccc";
+                        equipsData[n] = t;
+                        equipStrings.push(`${n}=${t}°C`);
+                        
+                        // ตรวจสอบว่าอยู่นอกระยะอนุญาตหรือไม่ (ถ้าช่องเป็นสีดำ ห้ามบันทึก)
+                        const rules = getValidationRules(n);
+                        if (rules) {
+                            const val = parseFloat(t);
+                            if (val < rules.minAllow || val > rules.maxAllow) {
+                                isInvalidValue = true;
+                            }
+                        }
+                    }
                 }
             });
+
+            if (isMissingValue) {
+                alert("คุณยังกรอกอุณหภูมิเครื่องมือไม่ครบทุกชิ้น กรุณาตรวจสอบและกรอกให้ครบครับ");
+                return;
+            }
+
+            if (isInvalidValue) {
+                alert("มีอุณหภูมิเครื่องมืออยู่นอกช่วงที่อนุญาต (ช่องสีดำ) กรุณาตรวจสอบความถูกต้องและห้ามบันทึกครับ");
+                return;
+            }
+
             const actionText = document.getElementById('room-action').value.trim();
 
             clearInterval(lockTimer);
@@ -491,7 +593,7 @@
             
             const payload = {
                 room: currentEditingRoom,
-                user: document.getElementById('recorderName').value,
+                user: currentUser,
                 session: currentSessionName,
                 rTemp: rTemp,
                 rHum: rHum,
@@ -499,7 +601,6 @@
                 remark: actionText
             };
 
-            // จำข้อมูลไว้ในเครื่องเผื่อเน็ตหลุด
             sessionData[currentEditingRoom] = {
                 rTemp: rTemp, rHum: rHum, equips: equipsData, action: actionText
             };
@@ -512,10 +613,7 @@
                 if(result === "Success") {
                     alert("✅ บันทึกข้อมูลสำเร็จ!");
                     currentEditingRoom = null;
-                    document.getElementById('view-room').style.display = 'none';
-                    document.getElementById('view-dashboard').style.display = 'block';
-                    fetchRoomStatus();
-                    refreshInterval = setInterval(fetchRoomStatus, 3000);
+                    showDashboard();
                 } else {
                     alert("บันทึกไม่สำเร็จ: " + result);
                 }
@@ -526,15 +624,16 @@
         }
 
         window.onload = function() {
-            document.getElementById('recorderName').value = localStorage.getItem('lab_recorder_name') || '';
             checkSession();
-            renderGrid();
-            fetchRoomStatus(); 
             
-            refreshInterval = setInterval(() => {
-                checkSession();
-                fetchRoomStatus();
-            }, 3000);
+            const savedUser = localStorage.getItem('lab_logged_in_user');
+            if (savedUser) {
+                currentUser = savedUser;
+                showDashboard();
+            } else {
+                document.getElementById('view-login').style.display = 'flex';
+                document.getElementById('view-dashboard').style.display = 'none';
+            }
         };
     </script>
 </body>
