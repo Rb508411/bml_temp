@@ -75,7 +75,8 @@
 <script>
     // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
-    
+    let currentUser = localStorage.getItem('lab_logged_in_user') || "ไม่ระบุตัวตน";
+
     let rawData = [];
     let rooms = new Set();
     let equipments = new Set();
@@ -309,6 +310,7 @@
     async function sendLogToBackend(target, format, method, email, fileBase64 = null, mimeType = null, fileName = null) {
         const payload = {
             action: "exportLog",
+            user: currentUser,  // <--- เพิ่มบรรทัดนี้ เพื่อส่งชื่อ User ไปให้ Google Sheets
             target: target,
             format: format,
             method: method,
