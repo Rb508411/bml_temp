@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard อุณหภูมิและความชื้น</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 900px; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #2c3e50; margin-top: 0; }
+        .controls { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; background-color: #ecf0f1; padding: 15px; border-radius: 8px; }
+        select { padding: 10px; border-radius: 5px; border: 1px solid #bdc3c7; font-size: 1rem; flex: 1; min-width: 200px; }
+        .chart-container { position: relative; height: 60vh; width: 100%; }
+        #loading { text-align: center; color: #e67e22; font-weight: bold; font-size: 1.2rem; display: none; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📊 Dashboard ประวัติอุณหภูมิ</h1>
+    
+    <div class="controls">
+        <select id="viewType" onchange="updateSubFilter()">
+            <option value="room">🌡️ ดูอุณหภูมิ/ความชื้นห้อง</option>
+            <option value="equip">🔬 ดูอุณหภูมิเครื่องมือ (แยกรุ่น)</option>
+        </select>
+        
+        <select id="subFilter" onchange="renderChart()">
+            <option value="">-- กรุณารอโหลดข้อมูล --</option>
+        </select>
+    </div>
+
+    <div id="loading">⏳ กำลังดึงข้อมูลจากฐานข้อมูล...</div>
+    
+    <div class="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+
+<script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
+    
+    let rawData = [];
+    let rooms = new Set();
+    let equipments = new Set();
+    let myChart = null;
+
+    async function loadData() {
+        document.getElementById('loading').style.display = 'block';
+        try {
+            const res = await fetch(`${SCRIPT_URL}?action=getDashboardData`);
+            rawData = await res.json();
+            processFilters();
+        } catch (e) {
+            alert("ดึงข้อมูลไม่สำเร็จ");
+        }
+        document.getElementById('loading').style.display = 'none';
+    }
+
+    function processFilters() {
+        rooms.clear();
+        equipments.clear();
+        
+        rawData.forEach(row => {
+            if (row.room) rooms.add(row.room);
+            if (row.equipments) {
+                let items = row.equipments.split(',');
+                items.forEach(item => {
+                    let parts = item.split('=');
+                    if (parts.length === 2) {
+                        equipments.add(parts[0].trim());
+                    }
+                });
+            }
+        });
+        updateSubFilter();
+    }
+
+    function updateSubFilter() {
+        const viewType = document.getElementById('viewType').value;
+        const subFilter = document.getElementById('subFilter');
+        subFilter.innerHTML = '';
+
+        let options = [];
+        if (viewType === 'room') {
+            options = Array.from(rooms).sort();
+        } else {
+            options = Array.from(equipments).sort();
+        }
+
+        options.forEach(opt => {
+            const el = document.createElement('option');
+            el.value = opt;
+            el.innerText = opt;
+            subFilter.appendChild(el);
+        });
+
+        if (options.length > 0) renderChart();
+    }
+
+    function renderChart() {
+        const viewType = document.getElementById('viewType').value;
+        const selectedTarget = document.getElementById('subFilter').value;
+        if (!selectedTarget) return;
+
+        let labels = [];
+        let dataset1 = [];
+        let dataset2 = [];
+        let label1 = '';
+        let label2 = '';
+
+        if (viewType === 'room') {
+            label1 = 'อุณหภูมิห้อง (°C)';
+            label2 = 'ความชื้น (%)';
+            rawData.forEach(row => {
+                if (row.room === selectedTarget) {
+                    labels.push(row.timestamp);
+                    dataset1.push(row.rTemp);
+                    dataset2.push(row.rHum);
+                }
+            });
+        } else {
+            label1 = `อุณหภูมิ ${selectedTarget} (°C)`;
+            rawData.forEach(row => {
+                if (row.equipments && row.equipments.includes(selectedTarget)) {
+                    let items = row.equipments.split(',');
+                    items.forEach(item => {
+                        let parts = item.split('=');
+                        if (parts.length === 2 && parts[0].trim() === selectedTarget) {
+                            let valStr = parts[1].replace('°C', '').trim();
+                            let val = parseFloat(valStr);
+                            if (!isNaN(val)) {
+                                labels.push(row.timestamp);
+                                dataset1.push(val);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        drawChart(labels, dataset1, dataset2, label1, label2, viewType);
+    }
+
+    function drawChart(labels, data1, data2, label1, label2, type) {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        if (myChart) myChart.destroy();
+
+        const datasets = [{
+            label: label1,
+            data: data1,
+            borderColor: '#e74c3c',
+            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+            borderWidth: 2,
+            tension: 0.3,
+            fill: true
+        }];
+
+        if (type === 'room') {
+            datasets.push({
+                label: label2,
+                data: data2,
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            });
+        }
+
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: labels, datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { maxRotation: 45, minRotation: 45 } }
+                }
+            }
+        });
+    }
+
+    window.onload = loadData;
+</script>
+</body>
+</html>
