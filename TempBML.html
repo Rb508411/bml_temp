@@ -117,7 +117,7 @@
         }
         
         /* สไตล์แจ้งเตือนตอนกรอกค่า Validations */
-        .input-warning { background-color: #ffb3b3 !important; color: black !important; }
+        .input-warning { background-color: #ffb3b3 !important; color: #d35400 !important; }
         .input-error { background-color: #000000 !important; color: #ffffff !important; }
 
         .section-title {
@@ -197,6 +197,8 @@
                 </div>
             </div>
             <!-- ================= VIEW 3: ROOM FORM ================= -->
+
+
             <div id="view-room">
                 <div class="room-header">
                     <span id="room-title">Lab X</span>
@@ -206,11 +208,13 @@
                 <form id="room-form">
                     <div class="form-group">
                         <label>🌡️ อุณหภูมิห้อง (°C) <span style="color:red;">*</span></label>
-                        <input type="number" id="room-temp" step="0.1" required>
+                        <!-- เพิ่ม oninput -->
+                        <input type="number" id="room-temp" step="0.1" oninput="validateRoom(this, 'temp')" required>
                     </div>
                     <div class="form-group">
                         <label>💧 ความชื้นห้อง (%) <span style="color:red;">*</span></label>
-                        <input type="number" id="room-hum" step="0.1" required>
+                        <!-- เพิ่ม oninput -->
+                        <input type="number" id="room-hum" step="0.1" oninput="validateRoom(this, 'hum')" required>
                     </div>
 
                     <div class="section-title">
@@ -239,14 +243,35 @@
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
 
         const LAB_CONFIG = {
-            "Cobas 4800 Zone": ["ตู้เย็น -20 (BML-MOL-139)", "ตู้แช่แข็ง -70"], 
+            "Cobas 4800 Zone": [
+                "ตู้เย็น (BML-MOL-139)"
+            ], 
             "Post PCR Room": [], 
-            "PCR Room I (หน้าห้อง Post PCR)": [],
+            "PCR Room I (หน้าห้อง Post PCR)": [
+                "ตู้เย็น (BML-MOL-211)"
+            ],
             "PCR Mix Room": [],
-            "PCR Room I (หน้าห้อง MMX)": [],
-            "MMX Room": [],
-            "Sample Preparation Room": [],
-            "BSL-2 Room": [],
+            "PCR Room I (หน้าห้อง MMX)": [
+                "ตู้เย็น (NML00013)",
+                "ตู้เย็น -20 °C (NML00443)",
+                "ตู้เย็น -20 °C (NML00007)",
+                "ตู้เย็น -20 °C (NML00006)",
+                "ตู้เย็น -70 °C (BML-MOL-220)"
+            ],
+            "MMX Room": [
+                "ตู้เย็น (NML00009)",
+                "ตู้เย็น -20 °C (NML00009)"
+            ],
+            "Sample Preparation Room": [
+                "ตู้เย็น (NML00011)",
+                "ตู้เย็น (NML00442)",
+                "ตู้เย็น -20 °C (NML00442)",
+                "ตู้เย็น -30 °C (NML00004)"
+            ],
+            "BSL-2 Room": [
+                "ตู้เย็น -70 °C (BML-MOL-125)",
+                "ตู้เย็น -70 °C (BML-MOL-124)"
+            ],
             "Stock Room": [],
             "PCR Room II": [],
             "Cobas 6800 Room": [],
@@ -276,18 +301,45 @@
             if (lowerName.includes("-70")) return { minAllow: -85, maxAllow: 0, minNorm: -75, maxNorm: -65 };
             if (lowerName.includes("-20")) return { minAllow: -50, maxAllow: 0, minNorm: -35, maxNorm: -15 };
             if (lowerName.includes("-30")) return { minAllow: -50, maxAllow: 0, minNorm: -40, maxNorm: -20 };
-            if (lowerName.includes("2-8")) return { minAllow: 0, maxAllow: 20, minNorm: 2, maxNorm: 8 };
+            if (lowerName.includes("ตู้เย็น")) return { minAllow: 0, maxAllow: 20, minNorm: 2, maxNorm: 8 };
+
             return null; // ไม่มีเกณฑ์
         }
 
+        const ROOM_CRITERIA = {
+                temp: { minAllow: 10, maxAllow: 50, minNorm: 18, maxNorm: 25 }, // อุณหภูมิห้อง
+                hum:  { minAllow: 10, maxAllow: 100, minNorm: 20, maxNorm: 60 }  // ความชื้นห้อง
+            };
+
+        function validateRoom(inputEl, type) {
+
+            inputEl.classList.remove('input-warning', 'input-error');
+            const valStr = inputEl.value;
+            if (valStr === '') return;
+
+            const val = parseFloat(valStr);
+            const rules = ROOM_CRITERIA[type];
+
+            if (val < rules.minAllow || val > rules.maxAllow) {
+                inputEl.classList.add('input-error'); // หลุดเกณฑ์บังคับ -> สีดำ
+            } else if (val < rules.minNorm || val > rules.maxNorm) {
+                inputEl.classList.add('input-warning'); // หลุดเกณฑ์ปกติ -> สีชมพู
+            }
+        }
+
+
         function validateEquip(tempInputEl) {
+
             const row = tempInputEl.parentElement;
             const nameInputEl = row.querySelector('.eq-name');
             const eqName = nameInputEl.value;
             const tempValStr = tempInputEl.value;
-            
+
+
             // เคลียร์สีเดิม
             tempInputEl.classList.remove('input-warning', 'input-error');
+            
+
             
             if (tempValStr === '') return;
             
@@ -305,6 +357,10 @@
                 tempInputEl.classList.add('input-warning');
             }
         }
+
+        
+
+
         // ====================================================
 
         function checkSession() {
@@ -314,11 +370,11 @@
             
             if (hour >= 6 && hour < 12) {
                 currentSessionName = "MORN";
-                banner.innerText = "☀️ เปิดรับข้อมูลรอบ 06:00 - 11:59 น.";
+                banner.innerText = "☀️ เปิดรับข้อมูลรอบเช้า 06:00 - 11:59 น.";
                 banner.className = "session-banner active-morn";
             } else if (hour >= 15 && hour < 23) {
                 currentSessionName = "EVE";
-                banner.innerText = "🌙 เปิดรับข้อมูลรอบ 15:00 - 22:59 น.";
+                banner.innerText = "🌙 เปิดรับข้อมูลรอบเย็น 15:00 - 22:59 น.";
                 banner.className = "session-banner active-eve";
             } else {
                 currentSessionName = null;
@@ -558,16 +614,33 @@
                 return;
             }
 
-            const rTemp = document.getElementById('room-temp').value;
-            const rHum = document.getElementById('room-hum').value;
+            const rTempEl = document.getElementById('room-temp');
+            const rHumEl = document.getElementById('room-hum');
+            
+            const rTemp = rTempEl.value;
+            const rHum = rHumEl.value;
             
             if (!rTemp || !rHum) {
                 alert("กรุณากรอก อุณหภูมิ และ ความชื้นของห้องให้ครบถ้วนครับ");
                 return;
             }
 
+            // --- โค้ดที่เพิ่มใหม่: เช็คว่าช่องห้องเป็นสีดำหรือไม่ ---
+            if (rTempEl.classList.contains('input-error') || rHumEl.classList.contains('input-error')) {
+                alert("อุณหภูมิ หรือ ความชื้นของห้อง อยู่นอกช่วงที่อนุญาต (ช่องสีดำ) กรุณาตรวจสอบและห้ามบันทึกครับ");
+                return;
+            }
+            
+            if (!rTemp || !rHum) {
+                alert("กรุณากรอก อุณหภูมิ และ ความชื้นของห้องให้ครบถ้วนครับ");
+                return;
+            }
+
+
+            
+
             let equipsData = {};
-            let equipStrings = [];
+            let equipArray = []; // เปลี่ยนจาก String เป็น Array เพื่อส่งไปแยกแถว
             
             let isMissingValue = false;
             let isInvalidValue = false;
@@ -581,13 +654,12 @@
                 if (n) {
                     if (t === '') {
                         isMissingValue = true;
-                        tempInput.style.border = "2px solid red"; // แจ้งเตือนว่าลืมกรอก
+                        tempInput.style.border = "2px solid red";
                     } else {
                         tempInput.style.border = "1px solid #ccc";
                         equipsData[n] = t;
-                        equipStrings.push(`${n}=${t}°C`);
+                        equipArray.push({ name: n, temp: t }); // เก็บเป็น Object ลง Array
                         
-                        // ตรวจสอบว่าอยู่นอกระยะอนุญาตหรือไม่ (ถ้าช่องเป็นสีดำ ห้ามบันทึก)
                         const rules = getValidationRules(n);
                         if (rules) {
                             const val = parseFloat(t);
@@ -620,9 +692,11 @@
                 session: currentSessionName,
                 rTemp: rTemp,
                 rHum: rHum,
-                equipments: equipStrings.join(', '), 
+                equipments: equipArray, // ส่งข้อมูลเป็น Array
                 remark: actionText
             };
+
+            // โค้ดส่ง fetch ด้านล่างปล่อยไว้เหมือนเดิมครับ ...
 
             sessionData[currentEditingRoom] = {
                 rTemp: rTemp, rHum: rHum, equips: equipsData, action: actionText
