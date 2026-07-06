@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard อุณหภูมิและความชื้น</title>
-    <!-- โหลด Libraries ที่จำเป็น -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -18,10 +17,10 @@
         .btn-export { background-color: #27ae60; color: white; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 5px; cursor: pointer; transition: 0.3s; }
         .btn-export:hover { background-color: #219150; }
         
-        .chart-container { position: relative; height: 50vh; width: 100%; margin-bottom: 20px; }
+        /* ปรับความสูงกราฟจาก 50vh เป็น 65vh */
+        .chart-container { position: relative; height: 65vh; width: 100%; margin-bottom: 20px; }
         #loading { text-align: center; color: #e67e22; font-weight: bold; font-size: 1.2rem; display: none; margin: 20px 0; }
         
-        /* สไตล์ตารางข้อมูลดิบ */
         .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; text-align: center; }
         .data-table th { background-color: #34495e; color: white; padding: 10px; border: 1px solid #bdc3c7; }
         .data-table td { padding: 8px; border: 1px solid #bdc3c7; }
@@ -33,11 +32,13 @@
 <div class="container">
     <h1>📊 Dashboard อุณหภูมิและความชื้น</h1>
     
-    <!-- ส่วนเลือกข้อมูล -->
     <div class="controls">
         <select id="viewType" onchange="updateSubFilter()">
-            <option value="room">🌡️ ดูอุณหภูมิ/ความชื้นห้อง</option>
-            <option value="equip">🔬 ดูอุณหภูมิเครื่องมือ (แยกรุ่น)</option>
+            <!-- แยกอุณหภูมิและความชื้นห้องออกจากกัน -->
+            <option value="room_temp">🌡️ ดูอุณหภูมิห้อง (รายห้อง)</option>
+            <option value="room_hum">💧 ดูความชื้นห้อง (รายห้อง)</option>
+            <option value="equip">🔬 ดูอุณหภูมิเครื่องมือ (รายรุ่น)</option>
+            <option value="group" style="font-weight:bold; color:#d35400;">📁 ดูแบบกลุ่ม (เปรียบเทียบหลายเครื่อง)</option>
         </select>
         
         <select id="subFilter" onchange="renderChart()">
@@ -45,12 +46,11 @@
         </select>
     </div>
 
-    <!-- ส่วน Export Data -->
     <div class="export-controls">
         <h4 style="margin:0; color:#34495e;">📤 ส่งออก:</h4>
         <select id="export-format">
-            <option value="pdf">PDF (กราฟ + ตาราง)</option>
-            <option value="excel">Excel (ตารางอย่างเดียว)</option>
+            <option value="pdf">PDF (Chart and Raw data)</option>
+            <option value="excel">Excel (Raw data)</option>
         </select>
         <select id="export-method" onchange="toggleEmail()">
             <option value="download">📥 บันทึกลงเครื่อง</option>
@@ -62,13 +62,12 @@
 
     <div id="loading">⏳ กำลังประมวลผล...</div>
     
-    <!-- พื้นที่ที่จะถูกปริ้นท์เป็น PDF -->
     <div id="export-content" style="padding: 10px; background: white;">
         <h3 id="report-title" style="text-align: center; display: none; color: #2c3e50;">รายงานข้อมูล</h3>
         <div class="chart-container">
             <canvas id="myChart"></canvas>
         </div>
-        <div id="data-table-container"></div>
+        <div id="data-table-container" style="overflow-x: auto;"></div>
     </div>
 </div>
 
@@ -76,18 +75,16 @@
     // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
     let currentUser = localStorage.getItem('lab_logged_in_user') || "ไม่ระบุตัวตน";
-
+    
     let rawData = [];
     let rooms = new Set();
     let equipments = new Set();
     let myChart = null;
 
-    // ตัวแปรพักข้อมูลไว้สำหรับ Export
     let currentLabels = [];
-    let currentData1 = [];
-    let currentData2 = [];
-    let currentLabel1 = "";
-    let currentLabel2 = "";
+    let activeDatasets = [];
+    
+    const colorPalette = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#34495e', '#ff6b81', '#7bed9f'];
 
     async function loadData() {
         showLoading("กำลังดึงข้อมูลจากฐานข้อมูล...");
@@ -125,7 +122,15 @@
         const subFilter = document.getElementById('subFilter');
         subFilter.innerHTML = '';
 
-        let options = viewType === 'room' ? Array.from(rooms).sort() : Array.from(equipments).sort();
+        let options = [];
+        // ใช้ชุดข้อมูลห้องเดียวกันทั้งอุณหภูมิและความชื้น
+        if (viewType === 'room_temp' || viewType === 'room_hum') {
+            options = Array.from(rooms).sort();
+        } else if (viewType === 'equip') {
+            options = Array.from(equipments).sort();
+        } else if (viewType === 'group') {
+            options = ["อุณหภูมิห้องทั้งหมด", "ความชื้นห้องทั้งหมด", "ตู้เย็น (2-8 °C)", "ตู้เย็น -20 °C", "ตู้เย็น -30 °C", "ตู้เย็น -70 °C"];
+        }
 
         options.forEach(opt => {
             const el = document.createElement('option');
@@ -143,92 +148,190 @@
         if (!selectedTarget) return;
 
         currentLabels = [];
-        currentData1 = [];
-        currentData2 = [];
+        activeDatasets = [];
+        
+        let tempTimestamps = new Set();
+        let groupedData = {}; 
 
-        if (viewType === 'room') {
-            currentLabel1 = 'อุณหภูมิห้อง (°C)';
-            currentLabel2 = 'ความชื้น (%)';
+        // 1. กำหนดเกณฑ์ (Limit) กลาง สำหรับประเภทกราฟที่เลือก
+        let globalLimits = null;
+        let lowerTarget = selectedTarget.toLowerCase();
+        
+        if (viewType === 'room_temp' || selectedTarget === "อุณหภูมิห้องทั้งหมด") globalLimits = { min: 18, max: 25 };
+        else if (viewType === 'room_hum' || selectedTarget === "ความชื้นห้องทั้งหมด") globalLimits = { min: 20, max: 60 };
+        else if (lowerTarget.includes("-70")) globalLimits = { min: -75, max: -65 };
+        else if (lowerTarget.includes("-20")) globalLimits = { min: -35, max: -15 };
+        else if (lowerTarget.includes("-30")) globalLimits = { min: -40, max: -20 };
+        else if (lowerTarget.includes("ตู้เย็น")) globalLimits = { min: 2, max: 8 };
+
+        // 2. ดึงข้อมูล
+        if (viewType === 'room_temp') {
             rawData.forEach(row => {
                 if (row.room === selectedTarget) {
-                    currentLabels.push(row.timestamp);
-                    currentData1.push(row.rTemp);
-                    currentData2.push(row.rHum);
+                    tempTimestamps.add(row.timestamp);
+                    if (!groupedData['อุณหภูมิห้อง (°C)']) groupedData['อุณหภูมิห้อง (°C)'] = {};
+                    groupedData['อุณหภูมิห้อง (°C)'][row.timestamp] = row.rTemp;
                 }
             });
-        } else {
-            currentLabel1 = `อุณหภูมิ ${selectedTarget} (°C)`;
+        } 
+        else if (viewType === 'room_hum') {
+            rawData.forEach(row => {
+                if (row.room === selectedTarget) {
+                    tempTimestamps.add(row.timestamp);
+                    if (!groupedData['ความชื้น (%)']) groupedData['ความชื้น (%)'] = {};
+                    groupedData['ความชื้น (%)'][row.timestamp] = row.rHum;
+                }
+            });
+        }
+        else if (viewType === 'equip') {
             rawData.forEach(row => {
                 if (row.equipments && row.equipments.includes(selectedTarget)) {
                     let items = row.equipments.split(',');
                     items.forEach(item => {
                         let parts = item.split('=');
                         if (parts.length === 2 && parts[0].trim() === selectedTarget) {
-                            let valStr = parts[1].replace('°C', '').trim();
-                            let val = parseFloat(valStr);
+                            let val = parseFloat(parts[1].replace('°C', '').trim());
                             if (!isNaN(val)) {
-                                currentLabels.push(row.timestamp);
-                                currentData1.push(val);
+                                tempTimestamps.add(row.timestamp);
+                                let colName = `อุณหภูมิ ${selectedTarget} (°C)`;
+                                if (!groupedData[colName]) groupedData[colName] = {};
+                                groupedData[colName][row.timestamp] = val;
                             }
                         }
                     });
                 }
             });
-        }
+        } 
+        else if (viewType === 'group') {
+            rawData.forEach(row => {
+                let ts = row.timestamp;
+                if (selectedTarget === "อุณหภูมิห้องทั้งหมด") {
+                    tempTimestamps.add(ts);
+                    if (!groupedData[row.room]) groupedData[row.room] = {};
+                    groupedData[row.room][ts] = row.rTemp;
+                } 
+                else if (selectedTarget === "ความชื้นห้องทั้งหมด") {
+                    tempTimestamps.add(ts);
+                    if (!groupedData[row.room]) groupedData[row.room] = {};
+                    groupedData[row.room][ts] = row.rHum;
+                } 
+                else {
+                    if (row.equipments) {
+                        let items = row.equipments.split(',');
+                        items.forEach(item => {
+                            let parts = item.split('=');
+                            if (parts.length === 2) {
+                                let eqName = parts[0].trim();
+                                let val = parseFloat(parts[1].replace('°C', '').trim());
+                                let isMatch = false;
 
-        drawChart(viewType);
-        renderDataTable(viewType);
-        document.getElementById('report-title').innerText = `รายงานผล: ${selectedTarget}`;
-    }
+                                if (selectedTarget === "ตู้เย็น (2-8 °C)" && eqName.includes("ตู้เย็น") && !eqName.includes("-")) isMatch = true;
+                                else if (selectedTarget === "ตู้เย็น -20 °C" && eqName.includes("-20")) isMatch = true;
+                                else if (selectedTarget === "ตู้เย็น -30 °C" && eqName.includes("-30")) isMatch = true;
+                                else if (selectedTarget === "ตู้เย็น -70 °C" && eqName.includes("-70")) isMatch = true;
 
-    function drawChart(type) {
-        const ctx = document.getElementById('myChart').getContext('2d');
-        if (myChart) myChart.destroy();
-
-        const datasets = [{
-            label: currentLabel1,
-            data: currentData1,
-            borderColor: '#e74c3c',
-            backgroundColor: 'rgba(231, 76, 60, 0.1)',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: true
-        }];
-
-        if (type === 'room') {
-            datasets.push({
-                label: currentLabel2,
-                data: currentData2,
-                borderColor: '#3498db',
-                backgroundColor: 'rgba(52, 152, 219, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true
+                                if (isMatch && !isNaN(val)) {
+                                    tempTimestamps.add(ts);
+                                    let colName = `${row.room}: ${eqName}`;
+                                    if (!groupedData[colName]) groupedData[colName] = {};
+                                    groupedData[colName][ts] = val;
+                                }
+                            }
+                        });
+                    }
+                }
             });
         }
 
+        currentLabels = Array.from(tempTimestamps).sort((a,b) => new Date(a) - new Date(b));
+
+        let colorIdx = 0;
+        for (let label in groupedData) {
+            let dataArray = currentLabels.map(ts => groupedData[label][ts] !== undefined ? groupedData[label][ts] : null);
+            let c = colorPalette[colorIdx % colorPalette.length];
+            
+            activeDatasets.push({
+                label: label,
+                data: dataArray,
+                borderColor: c,
+                backgroundColor: c + '20',
+                borderWidth: 2,
+                tension: 0.3,
+                spanGaps: true,
+                isLimitLine: false,
+                limitRange: globalLimits // ส่งค่าเกณฑ์ติดไปกับ Data เพื่อใช้เช็คตอนสร้างตาราง
+            });
+            colorIdx++;
+        }
+
+        // 3. วาดเส้นเกณฑ์ (Upper/Lower) ถ้ามี
+        let limitsToAdd = [];
+        if (globalLimits) {
+            limitsToAdd.push({ label: `Upper Limit (${globalLimits.max})`, val: globalLimits.max, color: '#000000' });
+            limitsToAdd.push({ label: `Lower Limit (${globalLimits.min})`, val: globalLimits.min, color: '#000000' });
+        }
+
+        limitsToAdd.forEach(limit => {
+            let limitDataArray = currentLabels.map(() => limit.val);
+            activeDatasets.push({
+                label: limit.label,
+                data: limitDataArray,
+                borderColor: limit.color,
+                borderWidth: 2,
+                borderDash: [5, 5],
+                pointRadius: 0,     
+                fill: false,
+                isLimitLine: true   
+            });
+        });
+
+        drawChart();
+        renderDataTable();
+        document.getElementById('report-title').innerText = `รายงานผล: ${selectedTarget}`;
+    }
+
+    function drawChart() {
+        const ctx = document.getElementById('myChart').getContext('2d');
+        if (myChart) myChart.destroy();
+
         myChart = new Chart(ctx, {
             type: 'line',
-            data: { labels: currentLabels, datasets: datasets },
+            data: { labels: currentLabels, datasets: activeDatasets },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: { x: { ticks: { maxRotation: 45, minRotation: 45 } } },
-                animation: false // ปิด Animation เพื่อให้ถ่ายรูปทำ PDF ได้ทันที
+                animation: false
             }
         });
     }
 
-    // สร้างตารางข้อมูลดิบเพื่อแสดงใน PDF
-    function renderDataTable(type) {
-        let tableHTML = '<table class="data-table">';
-        tableHTML += `<tr><th>เวลา (Timestamp)</th><th>${currentLabel1}</th>`;
-        if (type === 'room') tableHTML += `<th>${currentLabel2}</th>`;
+    function renderDataTable() {
+        let dataDatasets = activeDatasets.filter(ds => !ds.isLimitLine);
+        let tableHTML = '<table class="data-table"><tr><th>เวลา (Timestamp)</th>';
+        
+        dataDatasets.forEach(ds => { tableHTML += `<th>${ds.label}</th>`; });
         tableHTML += '</tr>';
 
         for (let i = 0; i < currentLabels.length; i++) {
-            tableHTML += `<tr><td>${currentLabels[i]}</td><td>${currentData1[i]}</td>`;
-            if (type === 'room') tableHTML += `<td>${currentData2[i]}</td>`;
+            tableHTML += `<tr><td>${currentLabels[i]}</td>`;
+            dataDatasets.forEach(ds => {
+                let val = ds.data[i] !== null ? ds.data[i] : '-';
+                let styleStr = '';
+
+                // ตรวจสอบว่าค่าออกนอกเกณฑ์หรือไม่ (ถ้าหลุดให้เปลี่ยนฟอนต์เป็นสีแดง 255,0,0)
+                if (val !== '-' && ds.limitRange) {
+                    if (val < ds.limitRange.min) {
+                        styleStr = 'color: rgb(0,0,255); font-weight: bold;';
+                    }
+                    else if (val > ds.limitRange.max) {
+                        styleStr = 'color: rgb(255,0,0); font-weight: bold;';
+                    }
+
+                }
+                
+                tableHTML += `<td style="${styleStr}">${val}</td>`;
+            });
             tableHTML += '</tr>';
         }
         tableHTML += '</table>';
@@ -241,7 +344,6 @@
         emailInput.style.display = method === 'email' ? 'block' : 'none';
     }
 
-    // ================= ระบบ Export และบันทึก Log =================
     async function handleExport() {
         const format = document.getElementById('export-format').value;
         const method = document.getElementById('export-method').value;
@@ -256,14 +358,14 @@
         showLoading("กำลังสร้างไฟล์และบันทึกประวัติ...");
         try {
             if (format === 'pdf') {
-                document.getElementById('report-title').style.display = 'block'; // แสดงหัวข้อรายงานเฉพาะตอนปริ้น
+                document.getElementById('report-title').style.display = 'block';
                 const element = document.getElementById('export-content');
                 const opt = {
                     margin: 0.5,
                     filename: `Report_${target}.pdf`,
                     image: { type: 'jpeg', quality: 0.98 },
                     html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } 
                 };
 
                 if (method === 'download') {
@@ -277,15 +379,17 @@
                 document.getElementById('report-title').style.display = 'none';
 
             } else if (format === 'excel') {
+                let dataDatasets = activeDatasets.filter(ds => !ds.isLimitLine);
+
                 let ws_data = [];
-                const viewType = document.getElementById('viewType').value;
+                let headers = ["เวลา (Timestamp)"];
+                dataDatasets.forEach(ds => headers.push(ds.label));
+                ws_data.push(headers);
                 
-                if (viewType === 'room') {
-                    ws_data.push(["เวลา (Timestamp)", "อุณหภูมิห้อง (°C)", "ความชื้น (%)"]);
-                    for(let i=0; i<currentLabels.length; i++) ws_data.push([currentLabels[i], currentData1[i], currentData2[i]]);
-                } else {
-                    ws_data.push(["เวลา (Timestamp)", currentLabel1]);
-                    for(let i=0; i<currentLabels.length; i++) ws_data.push([currentLabels[i], currentData1[i]]);
+                for(let i=0; i<currentLabels.length; i++) {
+                    let row = [currentLabels[i]];
+                    dataDatasets.forEach(ds => row.push(ds.data[i] !== null ? ds.data[i] : ''));
+                    ws_data.push(row);
                 }
 
                 var ws = XLSX.utils.aoa_to_sheet(ws_data);
@@ -310,7 +414,7 @@
     async function sendLogToBackend(target, format, method, email, fileBase64 = null, mimeType = null, fileName = null) {
         const payload = {
             action: "exportLog",
-            user: currentUser,  // <--- เพิ่มบรรทัดนี้ เพื่อส่งชื่อ User ไปให้ Google Sheets
+            user: currentUser,
             target: target,
             format: format,
             method: method,
