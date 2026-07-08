@@ -187,13 +187,11 @@
         reportTitle.innerText = `รายงานผลการตรวจสอบประจำวันที่ ${selectedDateStr} (${sessionText})`;
 
         let roomStatus = {};
-        
-        // เตรียมตัวแปรสำหรับตรวจเช็คการ "ขาดบันทึก" (อ้างอิงจาก LAB_CONFIG)
         let missingData = {};
         for (let room in LAB_CONFIG) {
             missingData[room] = { 
                 roomRecorded: false, 
-                expectedEquips: [...LAB_CONFIG[room]] // คัดลอกรายชื่อเครื่องมือที่ต้องจด
+                expectedEquips: [...LAB_CONFIG[room]]
             };
         }
 
@@ -211,7 +209,6 @@
             if (rowDate === selectedDateStr && (selectedSession === "ALL" || selectedSession === rowSession)) {
                 let room = row.room;
                 
-                // สำหรับเช็คผิดปกติ/ปกติ
                 if (!roomStatus[room]) roomStatus[room] = { isNormal: true, issues: [], timesChecked: 0 };
                 roomStatus[room].timesChecked++;
                 let timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
@@ -222,38 +219,45 @@
                 if (tempIssue) { roomStatus[room].isNormal = false; roomStatus[room].issues.push(`[${timeStr}] ${tempIssue}`); }
                 if (humIssue) { roomStatus[room].isNormal = false; roomStatus[room].issues.push(`[${timeStr}] ${humIssue}`); }
 
-                // อัปเดตข้อมูลการเข้าจดให้ระบบ Missing ทราบ
                 if (missingData[room]) {
                     missingData[room].roomRecorded = true;
                 }
 
-                if (row.equipments) {
-                    let items = row.equipments.split(',');
-                    items.forEach(item => {
-                        let parts = item.split('=');
-                        if (parts.length === 2) {
-                            let eqName = parts[0].trim();
-                            let eqVal = parseFloat(parts[1].replace('°C', '').trim());
-                            let limits = getLimits(eqName);
-                            
-                            // เช็คผิดปกติของเครื่องมือ
-                            if (limits) {
-                                let eqIssue = checkAnomaly(eqVal, limits.min, limits.max, eqName);
-                                if (eqIssue) {
-                                    roomStatus[room].isNormal = false;
-                                    roomStatus[room].issues.push(`[${timeStr}] ${eqIssue}`);
-                                }
-                            }
-                            
-                            // หักล้างรายชื่อเครื่องมือใน Missing Data (ถ้าเจอแปลว่าจดแล้ว)
-                            if (missingData[room]) {
-                                let idx = missingData[room].expectedEquips.indexOf(eqName);
-                                if (idx > -1) {
-                                    missingData[room].expectedEquips.splice(idx, 1);
-                                }
+                if (row.equipments && row.equipments !== '-') {
+                    let processEquip = (eqName, eqValStr) => {
+                        let eqVal = parseFloat(String(eqValStr).replace('°C', '').trim());
+                        let limits = getLimits(eqName);
+                        
+                        if (limits && !isNaN(eqVal)) {
+                            let eqIssue = checkAnomaly(eqVal, limits.min, limits.max, eqName);
+                            if (eqIssue) {
+                                roomStatus[room].isNormal = false;
+                                roomStatus[room].issues.push(`[${timeStr}] ${eqIssue}`);
                             }
                         }
-                    });
+                        
+                        if (missingData[room]) {
+                            let idx = missingData[room].expectedEquips.indexOf(eqName);
+                            if (idx > -1) {
+                                missingData[room].expectedEquips.splice(idx, 1);
+                            }
+                        }
+                    };
+
+                    if (row.equipments.includes('=')) {
+                        // รูปแบบเก่า
+                        let items = row.equipments.split(',');
+                        items.forEach(item => {
+                            let parts = item.split('=');
+                            if (parts.length === 2) processEquip(parts[0].trim(), parts[1]);
+                        });
+                    } else {
+                        // รูปแบบใหม่ (แยกคอลัมน์)
+                        let rawVal = row.equipTemp || row['Equipments Temp'] || row.equipmentsTemp;
+                        if (rawVal !== undefined && rawVal !== '') {
+                            processEquip(row.equipments.trim(), rawVal);
+                        }
+                    }
                 }
             }
         });
@@ -271,7 +275,6 @@
         let hasMissing = false;
         let hasNormal = false;
 
-        // วาดกล่อง แดง (ผิดปกติ) และ เขียว (ปกติ)
         for (let room in roomStatus) {
             let status = roomStatus[room];
             let box = document.createElement('div');
@@ -294,7 +297,6 @@
             }
         }
 
-        // วาดกล่อง เทา (ขาดการบันทึก)
         for (let room in missingData) {
             let m = missingData[room];
             let missingList = [];
@@ -302,7 +304,6 @@
             if (!m.roomRecorded) {
                 missingList.push("ไม่มีข้อมูลการจดบันทึกของห้องนี้เลย");
             } else if (m.expectedEquips.length > 0) {
-                // ถ้าห้องถูกจด แต่มีเครื่องมือบางชิ้นหายไป
                 m.expectedEquips.forEach(eq => missingList.push(`ขาดบันทึกเครื่องมือ: ${eq}`));
             }
 
@@ -318,7 +319,6 @@
             }
         }
 
-        // ข้อความกรณีที่แต่ละหมวดไม่มีข้อมูล
         if (!hasAbnormal) abnormalCont.innerHTML = '<div class="no-data">ไม่พบห้องที่ผิดปกติในรอบเวลานี้ครับ 🎉</div>';
         if (!hasMissing) missingCont.innerHTML = '<div class="no-data">บันทึกข้อมูลครบถ้วนทุกห้องและทุกเครื่องมือครับ ✅</div>';
         if (!hasNormal && !hasAbnormal && !hasMissing) normalCont.innerHTML = '<div class="no-data">ไม่มีข้อมูลการบันทึกในรอบเวลานี้ครับ</div>';

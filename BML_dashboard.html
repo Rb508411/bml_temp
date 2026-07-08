@@ -111,20 +111,25 @@
         hideLoading();
     }
 
-    function processFilters() {
+function processFilters() {
         rooms.clear();
         equipments.clear();
         
         rawData.forEach(row => {
             if (row.room) rooms.add(row.room);
-            if (row.equipments) {
-                let items = row.equipments.split(',');
-                items.forEach(item => {
-                    let parts = item.split('=');
-                    if (parts.length === 2) {
-                        equipments.add(parts[0].trim());
-                    }
-                });
+            // ดักจับข้อมูลที่ไม่ใช่ค่าว่าง หรือเครื่องหมาย -
+            if (row.equipments && row.equipments !== '-' && row.equipments.trim() !== '') {
+                if (row.equipments.includes('=')) {
+                    // รองรับข้อมูลรูปแบบเก่า
+                    let items = row.equipments.split(',');
+                    items.forEach(item => {
+                        let parts = item.split('=');
+                        if (parts.length === 2) equipments.add(parts[0].trim());
+                    });
+                } else {
+                    // รองรับข้อมูลรูปแบบใหม่ (แยกคอลัมน์)
+                    equipments.add(row.equipments.trim());
+                }
             }
         });
         updateSubFilter();
@@ -166,7 +171,6 @@
         let tempTimestamps = new Set();
         let groupedData = {}; 
 
-        // 1. กำหนดเกณฑ์ (Limit) กลาง สำหรับประเภทกราฟที่เลือก
         let globalLimits = null;
         let lowerTarget = selectedTarget.toLowerCase();
         
@@ -177,7 +181,6 @@
         else if (lowerTarget.includes("-30")) globalLimits = { min: -40, max: -20 };
         else if (lowerTarget.includes("ตู้เย็น")) globalLimits = { min: 2, max: 8 };
 
-        // 2. ดึงข้อมูล
         if (viewType === 'room_temp') {
             rawData.forEach(row => {
                 if (row.room === selectedTarget) {
@@ -198,20 +201,31 @@
         }
         else if (viewType === 'equip') {
             rawData.forEach(row => {
-                if (row.equipments && row.equipments.includes(selectedTarget)) {
-                    let items = row.equipments.split(',');
-                    items.forEach(item => {
-                        let parts = item.split('=');
-                        if (parts.length === 2 && parts[0].trim() === selectedTarget) {
-                            let val = parseFloat(parts[1].replace('°C', '').trim());
-                            if (!isNaN(val)) {
-                                tempTimestamps.add(row.timestamp);
-                                let colName = `อุณหภูมิ ${selectedTarget} (°C)`;
-                                if (!groupedData[colName]) groupedData[colName] = {};
-                                groupedData[colName][row.timestamp] = val;
+                if (row.equipments && row.equipments !== '-') {
+                    if (row.equipments.includes('=')) {
+                        let items = row.equipments.split(',');
+                        items.forEach(item => {
+                            let parts = item.split('=');
+                            if (parts.length === 2 && parts[0].trim() === selectedTarget) {
+                                let val = parseFloat(parts[1].replace('°C', '').trim());
+                                if (!isNaN(val)) {
+                                    tempTimestamps.add(row.timestamp);
+                                    let colName = `อุณหภูมิ ${selectedTarget} (°C)`;
+                                    if (!groupedData[colName]) groupedData[colName] = {};
+                                    groupedData[colName][row.timestamp] = val;
+                                }
                             }
+                        });
+                    } else if (row.equipments.trim() === selectedTarget) {
+                        let rawVal = row.equipTemp || row['Equipments Temp'] || row.equipmentsTemp;
+                        let val = parseFloat(rawVal);
+                        if (!isNaN(val)) {
+                            tempTimestamps.add(row.timestamp);
+                            let colName = `อุณหภูมิ ${selectedTarget} (°C)`;
+                            if (!groupedData[colName]) groupedData[colName] = {};
+                            groupedData[colName][row.timestamp] = val;
                         }
-                    });
+                    }
                 }
             });
         } 
@@ -229,28 +243,36 @@
                     groupedData[row.room][ts] = row.rHum;
                 } 
                 else {
-                    if (row.equipments) {
-                        let items = row.equipments.split(',');
-                        items.forEach(item => {
-                            let parts = item.split('=');
-                            if (parts.length === 2) {
-                                let eqName = parts[0].trim();
-                                let val = parseFloat(parts[1].replace('°C', '').trim());
-                                let isMatch = false;
+                    if (row.equipments && row.equipments !== '-') {
+                        let processGroupEquip = (eqName, eqValStr) => {
+                            let val = parseFloat(String(eqValStr).replace('°C', '').trim());
+                            let isMatch = false;
 
-                                if (selectedTarget === "ตู้เย็น (2-8 °C)" && eqName.includes("ตู้เย็น") && !eqName.includes("-")) isMatch = true;
-                                else if (selectedTarget === "ตู้เย็น -20 °C" && eqName.includes("-20")) isMatch = true;
-                                else if (selectedTarget === "ตู้เย็น -30 °C" && eqName.includes("-30")) isMatch = true;
-                                else if (selectedTarget === "ตู้เย็น -70 °C" && eqName.includes("-70")) isMatch = true;
+                            if (selectedTarget === "ตู้เย็น (2-8 °C)" && eqName.includes("ตู้เย็น") && !eqName.includes("-")) isMatch = true;
+                            else if (selectedTarget === "ตู้เย็น -20 °C" && eqName.includes("-20")) isMatch = true;
+                            else if (selectedTarget === "ตู้เย็น -30 °C" && eqName.includes("-30")) isMatch = true;
+                            else if (selectedTarget === "ตู้เย็น -70 °C" && eqName.includes("-70")) isMatch = true;
 
-                                if (isMatch && !isNaN(val)) {
-                                    tempTimestamps.add(ts);
-                                    let colName = `${row.room}: ${eqName}`;
-                                    if (!groupedData[colName]) groupedData[colName] = {};
-                                    groupedData[colName][ts] = val;
-                                }
+                            if (isMatch && !isNaN(val)) {
+                                tempTimestamps.add(ts);
+                                let colName = `${row.room}: ${eqName}`;
+                                if (!groupedData[colName]) groupedData[colName] = {};
+                                groupedData[colName][ts] = val;
                             }
-                        });
+                        };
+
+                        if (row.equipments.includes('=')) {
+                            let items = row.equipments.split(',');
+                            items.forEach(item => {
+                                let parts = item.split('=');
+                                if (parts.length === 2) processGroupEquip(parts[0].trim(), parts[1]);
+                            });
+                        } else {
+                            let rawVal = row.equipTemp || row['Equipments Temp'] || row.equipmentsTemp;
+                            if (rawVal !== undefined && rawVal !== '') {
+                                processGroupEquip(row.equipments.trim(), rawVal);
+                            }
+                        }
                     }
                 }
             });
@@ -272,12 +294,11 @@
                 tension: 0.3,
                 spanGaps: true,
                 isLimitLine: false,
-                limitRange: globalLimits // ส่งค่าเกณฑ์ติดไปกับ Data เพื่อใช้เช็คตอนสร้างตาราง
+                limitRange: globalLimits
             });
             colorIdx++;
         }
 
-        // 3. วาดเส้นเกณฑ์ (Upper/Lower) ถ้ามี
         let limitsToAdd = [];
         if (globalLimits) {
             limitsToAdd.push({ label: `Upper Limit (${globalLimits.max})`, val: globalLimits.max, color: '#000000' });
@@ -302,6 +323,7 @@
         renderDataTable();
         document.getElementById('report-title').innerText = `รายงานผล: ${selectedTarget}`;
     }
+
 
     function drawChart() {
         const ctx = document.getElementById('myChart').getContext('2d');
