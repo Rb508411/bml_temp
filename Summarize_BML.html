@@ -30,10 +30,17 @@
         /* สไตล์กล่องรายงาน */
         .report-section { margin-top: 20px; }
         .box { padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid; }
+        .box h3 { margin-top: 0; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        
+        /* กล่อง 3 สถานะ: แดง (ผิดปกติ) เขียว (ปกติ) เทา (ขาดบันทึก) */
         .box-abnormal { background-color: #fdf2e9; border-color: #e74c3c; }
         .box-normal { background-color: #eafaf1; border-color: #2ecc71; }
-        .box h3 { margin-top: 0; margin-bottom: 10px; display: flex; justify-content: space-between; }
-        .issue-list { margin: 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
+        .box-missing { background-color: #f4f6f6; border-color: #95a5a6; } /* สีเทา */
+        .box-missing h3 { color: #7f8c8d; }
+        
+        .issue-list { margin: 0; padding-left: 20px; font-weight: bold; }
+        .issue-red { color: #c0392b; }
+        .issue-gray { color: #7f8c8d; }
         .issue-list li { margin-bottom: 5px; }
         
         .no-data { text-align: center; color: #7f8c8d; font-style: italic; padding: 20px; }
@@ -88,6 +95,13 @@
                 <div class="no-data">-- กรุณากดปุ่มสรุปข้อมูล --</div>
             </div>
         </div>
+        
+        <div class="report-section">
+            <h3 style="color: #7f8c8d;">⚪ ห้องหรือเครื่องมือที่ขาดการบันทึก</h3>
+            <div id="missing-container">
+                <div class="no-data">-- กรุณากดปุ่มสรุปข้อมูล --</div>
+            </div>
+        </div>
 
         <div class="report-section">
             <h3 style="color: #27ae60;">✅ ห้องที่สถานะปกติ (ผ่านเกณฑ์ทั้งหมด)</h3>
@@ -106,6 +120,24 @@
     let rawData = [];
     let reportDataForExcel = []; // เก็บข้อมูลตารางสำหรับทำ Excel
 
+    // โครงสร้างมาตรฐาน (นำมาจากหน้าบันทึก เพื่อใช้ตรวจหาของที่หายไป)
+    const LAB_CONFIG = {
+        "Cobas 4800 Zone": ["ตู้เย็น (BML-MOL-139)"], 
+        "Post PCR Room": [], 
+        "PCR Room I (หน้าห้อง Post PCR)": ["ตู้เย็น (BML-MOL-211)"],
+        "PCR Mix Room": [],
+        "PCR Room I (หน้าห้อง MMX)": ["ตู้เย็น (NML00013)", "ตู้เย็น -20 °C (NML00443)", "ตู้เย็น -20 °C (NML00007)", "ตู้เย็น -20 °C (NML00006)", "ตู้เย็น -70 °C (BML-MOL-220)"],
+        "MMX Room": ["ตู้เย็น (NML00009)", "ตู้เย็น -20 °C (NML00009)"],
+        "Sample Preparation Room": ["ตู้เย็น (NML00011)", "ตู้เย็น (NML00442)", "ตู้เย็น -20 °C (NML00442)", "ตู้เย็น -30 °C (NML00004)"],
+        "BSL-2 Room": ["ตู้เย็น -70 °C (BML-MOL-125)", "ตู้เย็น -70 °C (BML-MOL-124)"],
+        "Stock Room": [],
+        "PCR Room II": [],
+        "Cobas 6800 Room": [],
+        "Library Preparation": [],
+        "Sequencing Room": [],
+        "Analysis Room": []
+    };
+
     // โหลดข้อมูลทั้งหมดเมื่อเปิดหน้าเว็บ
     async function loadData() {
         showLoading("กำลังโหลดฐานข้อมูล...");
@@ -113,7 +145,6 @@
             const res = await fetch(`${SCRIPT_URL}?action=getDashboardData`);
             rawData = await res.json();
             
-            // ตั้งค่า Datepicker เป็นวันนี้อัตโนมัติ
             const today = new Date();
             const yyyy = today.getFullYear();
             const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -126,7 +157,6 @@
         hideLoading();
     }
 
-    // ฟังก์ชันตรวจสอบเกณฑ์ของเครื่องมือแต่ละประเภท
     function getLimits(name) {
         let lower = name.toLowerCase();
         if (lower.includes("-70")) return { min: -75, max: -65 };
@@ -136,7 +166,6 @@
         return null;
     }
 
-    // ฟังก์ชันตรวจสอบค่าที่ผิดปกติ
     function checkAnomaly(val, min, max, label) {
         if (val === null || isNaN(val)) return null;
         if (val < min) return `${label}: ${val} (ต่ำกว่าเกณฑ์ ${min})`;
@@ -158,6 +187,16 @@
         reportTitle.innerText = `รายงานผลการตรวจสอบประจำวันที่ ${selectedDateStr} (${sessionText})`;
 
         let roomStatus = {};
+        
+        // เตรียมตัวแปรสำหรับตรวจเช็คการ "ขาดบันทึก" (อ้างอิงจาก LAB_CONFIG)
+        let missingData = {};
+        for (let room in LAB_CONFIG) {
+            missingData[room] = { 
+                roomRecorded: false, 
+                expectedEquips: [...LAB_CONFIG[room]] // คัดลอกรายชื่อเครื่องมือที่ต้องจด
+            };
+        }
+
         reportDataForExcel = [];
 
         // 1. กรองและวิเคราะห์ข้อมูล
@@ -167,24 +206,27 @@
             let d = new Date(row.timestamp);
             let rowDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             let hour = d.getHours();
-            let rowSession = (hour >= 6 && hour < 14) ? "MORN" : "EVE"; // แบ่งรอบตามเวลาจริง
+            let rowSession = (hour >= 6 && hour < 14) ? "MORN" : "EVE";
 
-            // ตรวจสอบเงื่อนไขตัวกรอง
             if (rowDate === selectedDateStr && (selectedSession === "ALL" || selectedSession === rowSession)) {
                 let room = row.room;
-                if (!roomStatus[room]) roomStatus[room] = { isNormal: true, issues: [], timesChecked: 0 };
                 
+                // สำหรับเช็คผิดปกติ/ปกติ
+                if (!roomStatus[room]) roomStatus[room] = { isNormal: true, issues: [], timesChecked: 0 };
                 roomStatus[room].timesChecked++;
                 let timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
                 
-                // ตรวจสอบอุณหภูมิและความชื้นห้อง (Temp: 18-25, Hum: 20-60)
                 let tempIssue = checkAnomaly(row.rTemp, 18, 25, "อุณหภูมิห้อง");
                 let humIssue = checkAnomaly(row.rHum, 20, 60, "ความชื้นห้อง");
                 
                 if (tempIssue) { roomStatus[room].isNormal = false; roomStatus[room].issues.push(`[${timeStr}] ${tempIssue}`); }
                 if (humIssue) { roomStatus[room].isNormal = false; roomStatus[room].issues.push(`[${timeStr}] ${humIssue}`); }
 
-                // ตรวจสอบเครื่องมือในห้อง
+                // อัปเดตข้อมูลการเข้าจดให้ระบบ Missing ทราบ
+                if (missingData[room]) {
+                    missingData[room].roomRecorded = true;
+                }
+
                 if (row.equipments) {
                     let items = row.equipments.split(',');
                     items.forEach(item => {
@@ -194,11 +236,20 @@
                             let eqVal = parseFloat(parts[1].replace('°C', '').trim());
                             let limits = getLimits(eqName);
                             
+                            // เช็คผิดปกติของเครื่องมือ
                             if (limits) {
                                 let eqIssue = checkAnomaly(eqVal, limits.min, limits.max, eqName);
                                 if (eqIssue) {
                                     roomStatus[room].isNormal = false;
                                     roomStatus[room].issues.push(`[${timeStr}] ${eqIssue}`);
+                                }
+                            }
+                            
+                            // หักล้างรายชื่อเครื่องมือใน Missing Data (ถ้าเจอแปลว่าจดแล้ว)
+                            if (missingData[room]) {
+                                let idx = missingData[room].expectedEquips.indexOf(eqName);
+                                if (idx > -1) {
+                                    missingData[room].expectedEquips.splice(idx, 1);
                                 }
                             }
                         }
@@ -209,13 +260,18 @@
 
         // 2. แสดงผลหน้าจอ
         const abnormalCont = document.getElementById('abnormal-container');
+        const missingCont = document.getElementById('missing-container');
         const normalCont = document.getElementById('normal-container');
+        
         abnormalCont.innerHTML = '';
+        missingCont.innerHTML = '';
         normalCont.innerHTML = '';
 
         let hasAbnormal = false;
+        let hasMissing = false;
         let hasNormal = false;
 
+        // วาดกล่อง แดง (ผิดปกติ) และ เขียว (ปกติ)
         for (let room in roomStatus) {
             let status = roomStatus[room];
             let box = document.createElement('div');
@@ -223,27 +279,49 @@
             if (!status.isNormal) {
                 hasAbnormal = true;
                 box.className = 'box box-abnormal';
-                
                 let issueHtml = status.issues.map(iss => `<li>${iss}</li>`).join('');
                 box.innerHTML = `<h3><span>🚪 ${room}</span> <span style="font-size:0.85rem; color:#7f8c8d;">บันทึก ${status.timesChecked} ครั้ง</span></h3>
-                                 <ul class="issue-list">${issueHtml}</ul>`;
+                                 <ul class="issue-list issue-red">${issueHtml}</ul>`;
                 abnormalCont.appendChild(box);
-                
-                // เก็บลงตัวแปรสำหรับ Excel
-                reportDataForExcel.push([room, "ผิดปกติ", status.issues.join(' | ')]);
+                reportDataForExcel.push([room, "🔴 ผิดปกติ", status.issues.join(' | ')]);
             } else {
                 hasNormal = true;
                 box.className = 'box box-normal';
                 box.innerHTML = `<h3><span>🚪 ${room}</span> <span style="font-size:0.85rem; color:#7f8c8d;">บันทึก ${status.timesChecked} ครั้ง</span></h3>
                                  <p style="margin:0; color:#27ae60; font-weight:bold;">✨ ทุกค่าอยู่ในเกณฑ์มาตรฐาน</p>`;
                 normalCont.appendChild(box);
-                
-                reportDataForExcel.push([room, "ปกติ", "-"]);
+                reportDataForExcel.push([room, "🟢 ปกติ", "-"]);
             }
         }
 
+        // วาดกล่อง เทา (ขาดการบันทึก)
+        for (let room in missingData) {
+            let m = missingData[room];
+            let missingList = [];
+            
+            if (!m.roomRecorded) {
+                missingList.push("ไม่มีข้อมูลการจดบันทึกของห้องนี้เลย");
+            } else if (m.expectedEquips.length > 0) {
+                // ถ้าห้องถูกจด แต่มีเครื่องมือบางชิ้นหายไป
+                m.expectedEquips.forEach(eq => missingList.push(`ขาดบันทึกเครื่องมือ: ${eq}`));
+            }
+
+            if (missingList.length > 0) {
+                hasMissing = true;
+                let box = document.createElement('div');
+                box.className = 'box box-missing';
+                let issueHtml = missingList.map(iss => `<li>${iss}</li>`).join('');
+                box.innerHTML = `<h3><span>🚪 ${room}</span></h3><ul class="issue-list issue-gray">${issueHtml}</ul>`;
+                missingCont.appendChild(box);
+                
+                reportDataForExcel.push([room, "⚪ ไม่ได้บันทึก", missingList.join(' | ')]);
+            }
+        }
+
+        // ข้อความกรณีที่แต่ละหมวดไม่มีข้อมูล
         if (!hasAbnormal) abnormalCont.innerHTML = '<div class="no-data">ไม่พบห้องที่ผิดปกติในรอบเวลานี้ครับ 🎉</div>';
-        if (!hasNormal && !hasAbnormal) normalCont.innerHTML = '<div class="no-data">ไม่มีข้อมูลการบันทึกในรอบเวลานี้ครับ</div>';
+        if (!hasMissing) missingCont.innerHTML = '<div class="no-data">บันทึกข้อมูลครบถ้วนทุกห้องและทุกเครื่องมือครับ ✅</div>';
+        if (!hasNormal && !hasAbnormal && !hasMissing) normalCont.innerHTML = '<div class="no-data">ไม่มีข้อมูลการบันทึกในรอบเวลานี้ครับ</div>';
         else if (!hasNormal) normalCont.innerHTML = '<div class="no-data">ไม่มีห้องที่ผ่านเกณฑ์ทั้งหมดเลยครับ ⚠️</div>';
     }
 
@@ -252,7 +330,6 @@
         document.getElementById('export-email').style.display = method === 'email' ? 'block' : 'none';
     }
 
-    // ================= ระบบ Export และ Log =================
     async function handleExport() {
         if (reportDataForExcel.length === 0) {
             alert("กรุณากดปุ่ม 'สรุปข้อมูล' ก่อนทำการส่งออกครับ");
@@ -292,7 +369,7 @@
                 }
 
             } else if (format === 'excel') {
-                let ws_data = [ ["ชื่อห้องปฏิบัติการ", "สถานะ", "รายละเอียดความผิดปกติ"] ];
+                let ws_data = [ ["ชื่อห้องปฏิบัติการ", "สถานะ", "รายละเอียด (ความผิดปกติ / สิ่งที่หายไป)"] ];
                 reportDataForExcel.forEach(row => ws_data.push(row));
 
                 var ws = XLSX.utils.aoa_to_sheet(ws_data);
