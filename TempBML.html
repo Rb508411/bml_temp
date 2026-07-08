@@ -118,6 +118,7 @@
         
         /* สไตล์แจ้งเตือนตอนกรอกค่า Validations */
         .input-warning { background-color: #ffb3b3 !important; color: #d35400 !important; }
+        .input-warning-low { background-color: #aed6f1 !important; color: blue !important; } /* สีฟ้า (ค่าต่ำกว่าปกติ) */
         .input-error { background-color: #000000 !important; color: #ffffff !important; }
 
         .section-title {
@@ -186,11 +187,17 @@
                 </div>
                 
                 <!-- เพิ่มปุ่มลิงก์ไป Dashboard ตรงนี้ -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #8e44ad;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #8e44ad; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin-top:0; margin-bottom:0; color: #2c3e50;">เลือกห้องปฏิบัติการ</h3>
-                    <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" style="background-color: #8e44ad; color: white; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 0.95rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: background-color 0.3s;">
-                        📊 ดู Dashboard กราฟ
-                    </a>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" style="background-color: #8e44ad; color: white; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 0.95rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: background-color 0.3s;">
+                            📊 ดู Dashboard กราฟ
+                        </a>
+                        <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" style="background-color: #e67e22; color: white; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 0.95rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: background-color 0.3s;">
+                            📝 ดูรายงานสรุป
+                        </a>
+                    </div>
                 </div>
                 <div class="grid-container" id="room-grid">
                     <!-- จะถูกสร้างด้วย JavaScript -->
@@ -313,7 +320,7 @@
 
         function validateRoom(inputEl, type) {
 
-            inputEl.classList.remove('input-warning', 'input-error');
+            inputEl.classList.remove('input-warning', 'input-warning-low', 'input-error');
             const valStr = inputEl.value;
             if (valStr === '') return;
 
@@ -321,9 +328,11 @@
             const rules = ROOM_CRITERIA[type];
 
             if (val < rules.minAllow || val > rules.maxAllow) {
-                inputEl.classList.add('input-error'); // หลุดเกณฑ์บังคับ -> สีดำ
-            } else if (val < rules.minNorm || val > rules.maxNorm) {
-                inputEl.classList.add('input-warning'); // หลุดเกณฑ์ปกติ -> สีชมพู
+                inputEl.classList.add('input-error'); // หลุดเกณฑ์บังคับ (สูงหรือต่ำเกินไป) -> สีดำ
+            } else if (val > rules.maxNorm) {
+                inputEl.classList.add('input-warning'); // สูงกว่าเกณฑ์ปกติ -> สีชมพู
+            } else if (val < rules.minNorm) {
+                inputEl.classList.add('input-warning-low'); // ต่ำกว่าเกณฑ์ปกติ -> สีฟ้า
             }
         }
 
@@ -337,7 +346,7 @@
 
 
             // เคลียร์สีเดิม
-            tempInputEl.classList.remove('input-warning', 'input-error');
+            tempInputEl.classList.remove('input-warning', 'input-warning-low', 'input-error');
             
 
             
@@ -350,11 +359,11 @@
 
             // เช็คว่าอยู่นอกช่วงบังคับไหม (ห้ามบันทึก -> สีดำ)
             if (val < rules.minAllow || val > rules.maxAllow) {
-                tempInputEl.classList.add('input-error');
-            } 
-            // เช็คว่าอยู่นอกช่วงปกติไหม (บันทึกได้ -> สีชมพู)
-            else if (val < rules.minNorm || val > rules.maxNorm) {
-                tempInputEl.classList.add('input-warning');
+                tempInputEl.classList.add('input-error'); // หลุดเกณฑ์บังคับ (สูงหรือต่ำเกินไป) -> สีดำ
+            } else if (val > rules.maxNorm) {
+                tempInputEl.classList.add('input-warning'); // สูงกว่าเกณฑ์ปกติ -> สีชมพู
+            } else if (val < rules.minNorm) {
+                tempInputEl.classList.add('input-warning-low'); // ต่ำกว่าเกณฑ์ปกติ -> สีฟ้า
             }
         }
 

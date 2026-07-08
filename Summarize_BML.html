@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานสรุปสถานะห้องปฏิบัติการ</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 900px; background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { text-align: center; color: #2c3e50; margin-top: 0; margin-bottom: 20px; }
+        
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
+        .nav-btn { text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-home { background-color: #34495e; } .btn-home:hover { background-color: #2c3e50; }
+        .btn-dash { background-color: #8e44ad; } .btn-dash:hover { background-color: #732d91; }
+
+        .filters { display: flex; gap: 15px; flex-wrap: wrap; background-color: #eaf2f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; align-items: center; justify-content: center; border-left: 4px solid #3498db; }
+        .filters label { font-weight: bold; color: #2980b9; }
+        input[type="date"], select { padding: 10px; border-radius: 5px; border: 1px solid #bdc3c7; font-size: 1rem; }
+        .btn-generate { background-color: #3498db; color: white; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        .btn-generate:hover { background-color: #2980b9; }
+
+        .export-controls { display: flex; gap: 10px; flex-wrap: wrap; background-color: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; align-items: center; }
+        .btn-export { background-color: #27ae60; color: white; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        
+        #loading { text-align: center; color: #e67e22; font-weight: bold; font-size: 1.2rem; display: none; margin: 20px 0; }
+        
+        /* สไตล์กล่องรายงาน */
+        .report-section { margin-top: 20px; }
+        .box { padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 5px solid; }
+        .box-abnormal { background-color: #fdf2e9; border-color: #e74c3c; }
+        .box-normal { background-color: #eafaf1; border-color: #2ecc71; }
+        .box h3 { margin-top: 0; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .issue-list { margin: 0; padding-left: 20px; color: #c0392b; font-weight: bold; }
+        .issue-list li { margin-bottom: 5px; }
+        
+        .no-data { text-align: center; color: #7f8c8d; font-style: italic; padding: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-buttons">
+        <a href="https://rb508411.github.io/bml_temp/TempBML.html" class="nav-btn btn-home">🏠 กลับหน้าบันทึกหลัก</a>
+        <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" class="nav-btn btn-dash">📊 ไปหน้า Dashboard กราฟ</a>
+    </div>
+
+    <h1>📝 รายงานสรุปสถานะความผิดปกติ</h1>
+    
+    <div class="filters">
+        <label>📅 เลือกวันที่:</label>
+        <input type="date" id="filter-date">
+        
+        <label>⏰ เลือกรอบเวลา:</label>
+        <select id="filter-session">
+            <option value="ALL">รวมทุกรอบ</option>
+            <option value="MORN">☀️ รอบเช้า (06:00 - 13:59)</option>
+            <option value="EVE">🌙 รอบบ่าย/เย็น (14:00 - 23:59)</option>
+        </select>
+        
+        <button class="btn-generate" onclick="generateReport()">🔍 สรุปข้อมูล</button>
+    </div>
+
+    <div class="export-controls">
+        <h4 style="margin:0; color:#34495e;">📤 ส่งออกรายงาน:</h4>
+        <select id="export-format">
+            <option value="pdf">PDF (หน้าตารายงาน)</option>
+            <option value="excel">Excel (ตารางสรุป)</option>
+        </select>
+        <select id="export-method" onchange="toggleEmail()">
+            <option value="download">📥 บันทึกลงเครื่อง</option>
+            <option value="email">📧 ส่งผ่านอีเมล</option>
+        </select>
+        <input type="email" id="export-email" placeholder="ระบุอีเมลผู้รับ..." style="display:none; flex:1;">
+        <button class="btn-export" onclick="handleExport()">ดำเนินการ</button>
+    </div>
+
+    <div id="loading">⏳ กำลังดึงและวิเคราะห์ข้อมูล...</div>
+    
+    <div id="export-content" style="padding: 20px; background: white; border-radius: 8px;">
+        <h2 id="report-title" style="text-align: center; color: #2c3e50; border-bottom: 2px solid #bdc3c7; padding-bottom: 10px;">รายงานประจำวันที่ ...</h2>
+        
+        <div class="report-section">
+            <h3 style="color: #c0392b;">🚨 ห้องที่พบความผิดปกติ (หลุดเกณฑ์)</h3>
+            <div id="abnormal-container">
+                <div class="no-data">-- กรุณากดปุ่มสรุปข้อมูล --</div>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h3 style="color: #27ae60;">✅ ห้องที่สถานะปกติ (ผ่านเกณฑ์ทั้งหมด)</h3>
+            <div id="normal-container">
+                <div class="no-data">-- กรุณากดปุ่มสรุปข้อมูล --</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
+    let currentUser = localStorage.getItem('lab_logged_in_user') || "ไม่ระบุตัวตน";
+    
+    let rawData = [];
+    let reportDataForExcel = []; // เก็บข้อมูลตารางสำหรับทำ Excel
+
+    // โหลดข้อมูลทั้งหมดเมื่อเปิดหน้าเว็บ
+    async function loadData() {
+        showLoading("กำลังโหลดฐานข้อมูล...");
+        try {
+            const res = await fetch(`${SCRIPT_URL}?action=getDashboardData`);
+            rawData = await res.json();
+            
+            // ตั้งค่า Datepicker เป็นวันนี้อัตโนมัติ
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('filter-date').value = `${yyyy}-${mm}-${dd}`;
+            
+        } catch (e) {
+            alert("ดึงข้อมูลไม่สำเร็จ กรุณาลองใหม่ครับ");
+        }
+        hideLoading();
+    }
+
+    // ฟังก์ชันตรวจสอบเกณฑ์ของเครื่องมือแต่ละประเภท
+    function getLimits(name) {
+        let lower = name.toLowerCase();
+        if (lower.includes("-70")) return { min: -75, max: -65 };
+        if (lower.includes("-20")) return { min: -35, max: -15 };
+        if (lower.includes("-30")) return { min: -40, max: -20 };
+        if (lower.includes("ตู้เย็น")) return { min: 2, max: 8 };
+        return null;
+    }
+
+    // ฟังก์ชันตรวจสอบค่าที่ผิดปกติ
+    function checkAnomaly(val, min, max, label) {
+        if (val === null || isNaN(val)) return null;
+        if (val < min) return `${label}: ${val} (ต่ำกว่าเกณฑ์ ${min})`;
+        if (val > max) return `${label}: ${val} (สูงกว่าเกณฑ์ ${max})`;
+        return null;
+    }
+
+    function generateReport() {
+        const selectedDateStr = document.getElementById('filter-date').value;
+        const selectedSession = document.getElementById('filter-session').value;
+        
+        if (!selectedDateStr) {
+            alert("กรุณาเลือกวันที่ต้องการสรุปครับ");
+            return;
+        }
+
+        const reportTitle = document.getElementById('report-title');
+        let sessionText = selectedSession === "ALL" ? "รวมทุกรอบ" : (selectedSession === "MORN" ? "รอบเช้า" : "รอบบ่าย/เย็น");
+        reportTitle.innerText = `รายงานผลการตรวจสอบประจำวันที่ ${selectedDateStr} (${sessionText})`;
+
+        let roomStatus = {};
+        reportDataForExcel = [];
+
+        // 1. กรองและวิเคราะห์ข้อมูล
+        rawData.forEach(row => {
+            if (!row.timestamp) return;
+            
+            let d = new Date(row.timestamp);
+            let rowDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            let hour = d.getHours();
+            let rowSession = (hour >= 6 && hour < 14) ? "MORN" : "EVE"; // แบ่งรอบตามเวลาจริง
+
+            // ตรวจสอบเงื่อนไขตัวกรอง
+            if (rowDate === selectedDateStr && (selectedSession === "ALL" || selectedSession === rowSession)) {
+                let room = row.room;
+                if (!roomStatus[room]) roomStatus[room] = { isNormal: true, issues: [], timesChecked: 0 };
+                
+                roomStatus[room].timesChecked++;
+                let timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                
+                // ตรวจสอบอุณหภูมิและความชื้นห้อง (Temp: 18-25, Hum: 20-60)
+                let tempIssue = checkAnomaly(row.rTemp, 18, 25, "อุณหภูมิห้อง");
+                let humIssue = checkAnomaly(row.rHum, 20, 60, "ความชื้นห้อง");
+                
+                if (tempIssue) { roomStatus[room].isNormal = false; roomStatus[room].issues.push(`[${timeStr}] ${tempIssue}`); }
+                if (humIssue) { roomStatus[room].isNormal = false; roomStatus[room].issues.push(`[${timeStr}] ${humIssue}`); }
+
+                // ตรวจสอบเครื่องมือในห้อง
+                if (row.equipments) {
+                    let items = row.equipments.split(',');
+                    items.forEach(item => {
+                        let parts = item.split('=');
+                        if (parts.length === 2) {
+                            let eqName = parts[0].trim();
+                            let eqVal = parseFloat(parts[1].replace('°C', '').trim());
+                            let limits = getLimits(eqName);
+                            
+                            if (limits) {
+                                let eqIssue = checkAnomaly(eqVal, limits.min, limits.max, eqName);
+                                if (eqIssue) {
+                                    roomStatus[room].isNormal = false;
+                                    roomStatus[room].issues.push(`[${timeStr}] ${eqIssue}`);
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        });
+
+        // 2. แสดงผลหน้าจอ
+        const abnormalCont = document.getElementById('abnormal-container');
+        const normalCont = document.getElementById('normal-container');
+        abnormalCont.innerHTML = '';
+        normalCont.innerHTML = '';
+
+        let hasAbnormal = false;
+        let hasNormal = false;
+
+        for (let room in roomStatus) {
+            let status = roomStatus[room];
+            let box = document.createElement('div');
+            
+            if (!status.isNormal) {
+                hasAbnormal = true;
+                box.className = 'box box-abnormal';
+                
+                let issueHtml = status.issues.map(iss => `<li>${iss}</li>`).join('');
+                box.innerHTML = `<h3><span>🚪 ${room}</span> <span style="font-size:0.85rem; color:#7f8c8d;">บันทึก ${status.timesChecked} ครั้ง</span></h3>
+                                 <ul class="issue-list">${issueHtml}</ul>`;
+                abnormalCont.appendChild(box);
+                
+                // เก็บลงตัวแปรสำหรับ Excel
+                reportDataForExcel.push([room, "ผิดปกติ", status.issues.join(' | ')]);
+            } else {
+                hasNormal = true;
+                box.className = 'box box-normal';
+                box.innerHTML = `<h3><span>🚪 ${room}</span> <span style="font-size:0.85rem; color:#7f8c8d;">บันทึก ${status.timesChecked} ครั้ง</span></h3>
+                                 <p style="margin:0; color:#27ae60; font-weight:bold;">✨ ทุกค่าอยู่ในเกณฑ์มาตรฐาน</p>`;
+                normalCont.appendChild(box);
+                
+                reportDataForExcel.push([room, "ปกติ", "-"]);
+            }
+        }
+
+        if (!hasAbnormal) abnormalCont.innerHTML = '<div class="no-data">ไม่พบห้องที่ผิดปกติในรอบเวลานี้ครับ 🎉</div>';
+        if (!hasNormal && !hasAbnormal) normalCont.innerHTML = '<div class="no-data">ไม่มีข้อมูลการบันทึกในรอบเวลานี้ครับ</div>';
+        else if (!hasNormal) normalCont.innerHTML = '<div class="no-data">ไม่มีห้องที่ผ่านเกณฑ์ทั้งหมดเลยครับ ⚠️</div>';
+    }
+
+    function toggleEmail() {
+        const method = document.getElementById('export-method').value;
+        document.getElementById('export-email').style.display = method === 'email' ? 'block' : 'none';
+    }
+
+    // ================= ระบบ Export และ Log =================
+    async function handleExport() {
+        if (reportDataForExcel.length === 0) {
+            alert("กรุณากดปุ่ม 'สรุปข้อมูล' ก่อนทำการส่งออกครับ");
+            return;
+        }
+
+        const format = document.getElementById('export-format').value;
+        const method = document.getElementById('export-method').value;
+        const email = document.getElementById('export-email').value;
+        const dateStr = document.getElementById('filter-date').value;
+        const targetLabel = `Summary_${dateStr}`;
+
+        if (method === 'email' && !email) {
+            alert("กรุณาระบุอีเมลปลายทางที่ต้องการให้ระบบส่งไฟล์ไปครับ");
+            return;
+        }
+
+        showLoading("กำลังสร้างไฟล์และบันทึกประวัติ...");
+        try {
+            if (format === 'pdf') {
+                const element = document.getElementById('export-content');
+                const opt = {
+                    margin: 0.5,
+                    filename: `${targetLabel}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                };
+
+                if (method === 'download') {
+                    await html2pdf().set(opt).from(element).save();
+                    await sendLogToBackend(targetLabel, format, method, "");
+                } else {
+                    const pdfBase64 = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+                    const b64Data = pdfBase64.split(',')[1];
+                    await sendLogToBackend(targetLabel, format, method, email, b64Data, "application/pdf", `${targetLabel}.pdf`);
+                }
+
+            } else if (format === 'excel') {
+                let ws_data = [ ["ชื่อห้องปฏิบัติการ", "สถานะ", "รายละเอียดความผิดปกติ"] ];
+                reportDataForExcel.forEach(row => ws_data.push(row));
+
+                var ws = XLSX.utils.aoa_to_sheet(ws_data);
+                var wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Summary");
+
+                if (method === 'download') {
+                    XLSX.writeFile(wb, `${targetLabel}.xlsx`);
+                    await sendLogToBackend(targetLabel, format, method, "");
+                } else {
+                    const excelBase64 = XLSX.write(wb, {type: 'base64', bookType: 'xlsx'});
+                    await sendLogToBackend(targetLabel, format, method, email, excelBase64, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", `${targetLabel}.xlsx`);
+                }
+            }
+            alert("✅ ดำเนินการส่งออกข้อมูลเรียบร้อยแล้วครับ");
+        } catch(e) {
+            alert("เกิดข้อผิดพลาดในการส่งออก: " + e.message);
+        }
+        hideLoading();
+    }
+
+    async function sendLogToBackend(target, format, method, email, fileBase64 = null, mimeType = null, fileName = null) {
+        const payload = {
+            action: "exportLog",
+            user: currentUser,
+            target: target,
+            format: format,
+            method: method,
+            email: email,
+            fileBase64: fileBase64,
+            mimeType: mimeType,
+            fileName: fileName
+        };
+
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    }
+
+    function showLoading(text) {
+        const loader = document.getElementById('loading');
+        loader.innerText = text;
+        loader.style.display = 'block';
+    }
+    
+    function hideLoading() {
+        document.getElementById('loading').style.display = 'none';
+    }
+
+    window.onload = loadData;
+</script>
+</body>
+</html>

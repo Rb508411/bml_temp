@@ -25,12 +25,25 @@
         .data-table th { background-color: #34495e; color: white; padding: 10px; border: 1px solid #bdc3c7; }
         .data-table td { padding: 8px; border: 1px solid #bdc3c7; }
         .data-table tr:nth-child(even) { background-color: #f9f9f9; }
+
+/* เพิ่มสไตล์สำหรับปุ่มนำทาง (Navigation) */
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
+        .nav-btn { text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-home { background-color: #34495e; } .btn-home:hover { background-color: #2c3e50; }
+        .btn-summary { background-color: #e67e22; } .btn-summary:hover { background-color: #d35400; }
+
     </style>
 </head>
 <body>
 
 <div class="container">
+
+    <div class="nav-buttons">
+        <a href="https://rb508411.github.io/bml_temp/TempBML.html" class="nav-btn btn-home">🏠 กลับหน้าบันทึกหลัก</a>
+        <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" class="nav-btn btn-summary">📝 ไปหน้ารายงานสรุป</a>
+    </div>
     <h1>📊 Dashboard อุณหภูมิและความชื้น</h1>
+
     
     <div class="controls">
         <select id="viewType" onchange="updateSubFilter()">
