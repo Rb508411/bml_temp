@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Map - แผนผังห้องปฏิบัติการ</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 1000px; background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { text-align: center; color: #2c3e50; margin-top: 0; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 20px; font-size: 0.95rem; }
+        
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
+        .nav-btn { text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .btn-home { background-color: #34495e; } .btn-home:hover { background-color: #2c3e50; }
+        .btn-dash { background-color: #8e44ad; } .btn-dash:hover { background-color: #732d91; }
+        .btn-summary { background-color: #e67e22; } .btn-summary:hover { background-color: #d35400; }
+        .btn-map { background-color: #16a085; } .btn-map:hover { background-color: #117a65; }
+
+        .top-panel { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; background-color: #eaf2f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #3498db; }
+        .btn-refresh { background-color: #3498db; color: white; border: none; padding: 8px 15px; font-size: 0.95rem; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        .btn-refresh:hover { background-color: #2980b9; }
+
+        /* ================= แผนผัง CSS Grid (บูรณาการโซนใหม่) ================= */
+        .map-wrapper {
+            background-color: #dbe4f0;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px dashed #3498db;
+            margin: 0 auto;
+            max-width: 750px; /* ขยายความกว้างรองรับ 5 คอลัมน์ */
+        }
+
+        .map-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1.2fr 1.2fr 1fr; /* 5 คอลัมน์ */
+            grid-auto-rows: 65px; /* ความสูงแต่ละแถว */
+            gap: 2px;
+            background-color: #000;
+            border: 2px solid #000;
+        }
+
+        .map-room {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-weight: bold;
+            color: white;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            position: relative;
+            background-color: #95a5a6; /* สีตั้งต้น (เทา = ขาดบันทึก) */
+            padding: 5px;
+            line-height: 1.2;
+        }
+        
+        .map-room:hover:not(.empty-space):not(.static-box) {
+            opacity: 0.8;
+            transform: scale(0.97);
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            border: 2px solid #fff;
+        }
+
+        /* สถานะสี */
+        .status-normal { background-color: #008000 !important; }
+        .status-abnormal { background-color: #ff0000 !important; }
+        .status-missing { background-color: #7f8c8d !important; }
+        
+        .empty-space { background-color: #000 !important; cursor: default; }
+        .static-box { background-color: #ff0000 !important; cursor: default; border: 2px solid #000; } /* สำหรับ Pre-PCR */
+
+        /* กำหนดพิกัด Grid ของแต่ละห้อง */
+        #r-stock { grid-area: 1 / 2 / 2 / 3; }
+        #r-sample { grid-area: 1 / 3 / 2 / 6; }
+        
+        #r-bsl2 { grid-area: 2 / 2 / 4 / 3; }
+        #r-pcr1m { grid-area: 2 / 3 / 5 / 5; }
+        #r-mmx { grid-area: 2 / 5 / 3 / 6; }
+        #r-pcrmix { grid-area: 3 / 5 / 5 / 6; }
+        
+        #r-prepcr { grid-area: 4 / 1 / 5 / 2; } /* โซนสีแดง */
+        
+        #r-lib { grid-area: 5 / 1 / 7 / 2; } /* โซน Library Prep (เขียว) */
+        #r-pcr2 { grid-area: 5 / 2 / 6 / 3; }
+        #r-pcr1p { grid-area: 5 / 3 / 8 / 5; }
+        #r-post { grid-area: 5 / 5 / 7 / 6; }
+        
+        #r-cobas6800 { grid-area: 7 / 2 / 9 / 3; }
+        
+        #r-seq { grid-area: 8 / 1 / 10 / 2; } /* โซน Sequencing (เขียว) */
+        #r-analysis { grid-area: 9 / 2 / 10 / 4; } /* โซน Analysis (เขียว) */
+        #r-cobas4800 { grid-area: 8 / 5 / 10 / 6; }
+
+        /* พื้นที่สีดำ (ช่องว่างทางเดิน) */
+        #empty-top-left { grid-area: 1 / 1 / 4 / 2; }
+        #empty-mid-left1 { grid-area: 4 / 2 / 5 / 3; }
+        #empty-mid-left2 { grid-area: 6 / 2 / 7 / 3; }
+        #empty-bot-right1 { grid-area: 7 / 5 / 8 / 6; }
+        #empty-bot-mid { grid-area: 8 / 3 / 9 / 5; }
+        #empty-bot-right2 { grid-area: 9 / 4 / 10 / 5; }
+
+        /* ================= Modal CSS (หน้าต่างรายละเอียด) ================= */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-box { background: #fff; width: 90%; max-width: 450px; border-radius: 10px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 15px; background: #e74c3c; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: bold; }
+        .modal-title { margin-top: 0; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; color: #2c3e50; }
+        .modal-stat { font-size: 1.1rem; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .modal-stat strong { color: #34495e; }
+        .modal-equip-list { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 15px; }
+        .modal-equip-item { display: flex; justify-content: space-between; border-bottom: 1px solid #ecf0f1; padding: 5px 0; font-size: 0.95rem; }
+        .modal-equip-item:last-child { border-bottom: none; }
+        .val-error { color: #e74c3c; font-weight: bold; }
+        
+        #loading { text-align: center; color: #e67e22; font-weight: bold; font-size: 1.2rem; display: none; margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-buttons">
+        <a href="TempBML.html" class="nav-btn btn-home">🏠 กลับหน้าบันทึกหลัก</a>
+        <a href="BML_dashboard.html" class="nav-btn btn-dash">📊 Dashboard กราฟ</a>
+        <a href="Summarize_BML.html" class="nav-btn btn-summary">📝 รายงานสรุป</a>
+        <a href="BML_map.html" class="nav-btn btn-map">🗺️ แผนผังห้อง</a>
+    </div>
+
+    <h1>🗺️ แผนผังห้องปฏิบัติการ (Interactive Map)</h1>
+    <div class="subtitle">จำลองผังห้องจริง | <span style="color:#008000;">เขียว=ปกติ</span> | <span style="color:#ff0000;">แดง=ผิดปกติ</span> | <span style="color:#7f8c8d;">เทา=ยังไม่บันทึก</span><br>👆 คลิกที่ห้องเพื่อดูรายละเอียดอุณหภูมิและความชื้นทั้งหมด</div>
+    
+    <div class="top-panel">
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <label style="font-weight: bold; color: #2980b9;">📅 วันที่:</label>
+            <input type="date" id="filter-date" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7; font-family: inherit;">
+            
+            <label style="font-weight: bold; color: #2980b9;">⏰ รอบ:</label>
+            <select id="filter-session" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7; font-family: inherit;">
+                <option value="ALL">รวมทุกรอบ (ล่าสุด)</option>
+                <option value="MORN">☀️ รอบเช้า (06:00-13:59)</option>
+                <option value="EVE">🌙 รอบบ่าย/เย็น (14:00-23:59)</option>
+            </select>
+            <button class="btn-refresh" onclick="processMapData()">🔍 ดูแผนผัง</button>
+        </div>
+        <div style="font-size: 0.9rem; color: #7f8c8d;">
+            ดึงข้อมูลล่าสุด: <span id="last-update-time" style="color: #2980b9; font-weight:bold;">-</span>
+        </div>
+    </div>
+
+    <div id="loading">⏳ กำลังสแกนพื้นที่...</div>
+
+    <div class="map-wrapper">
+        <div class="map-grid">
+            <div id="empty-top-left" class="map-room empty-space"></div>
+            <div id="r-stock" class="map-room" onclick="showRoomDetails('Stock Room')">Stock</div>
+            <div id="r-sample" class="map-room" onclick="showRoomDetails('Sample Preparation Room')">Sample preparation</div>
+            
+            <div id="r-bsl2" class="map-room" onclick="showRoomDetails('BSL-2 Room')">BSL-2</div>
+            <div id="r-pcr1m" class="map-room" onclick="showRoomDetails('PCR Room I (หน้าห้อง MMX)')">PCR I (หน้าห้อง MMX)</div>
+            <div id="r-mmx" class="map-room" onclick="showRoomDetails('MMX Room')">MMX</div>
+            
+            <div id="r-pcrmix" class="map-room" onclick="showRoomDetails('PCR Mix Room')">PCR Mix</div>
+            
+            <div id="r-prepcr" class="map-room static-box">Pre-PCR</div>
+            
+            <div id="r-lib" class="map-room" onclick="showRoomDetails('Library Preparation')">Library Prep</div>
+            <div id="r-pcr2" class="map-room" onclick="showRoomDetails('PCR Room II')">PCR II</div>
+            <div id="r-pcr1p" class="map-room" onclick="showRoomDetails('PCR Room I (หน้าห้อง Post PCR)')">PCR I (ตรงหน้าห้อง Post)</div>
+            <div id="r-post" class="map-room" onclick="showRoomDetails('Post PCR Room')">Post PCR</div>
+            
+            <div id="empty-mid-left1" class="map-room empty-space"></div>
+            <div id="empty-mid-left2" class="map-room empty-space"></div>
+            
+            <div id="r-cobas6800" class="map-room" onclick="showRoomDetails('Cobas 6800 Room')">cobas 6800</div>
+            
+            <div id="empty-bot-right1" class="map-room empty-space"></div>
+            
+            <div id="r-seq" class="map-room" onclick="showRoomDetails('Sequencing Room')">Sequencing</div>
+            <div id="r-analysis" class="map-room" onclick="showRoomDetails('Analysis Room')">Analysis</div>
+            
+            <div id="empty-bot-mid" class="map-room empty-space"></div>
+            <div id="empty-bot-right2" class="map-room empty-space"></div>
+            
+            <div id="r-cobas4800" class="map-room" onclick="showRoomDetails('Cobas 4800 Zone')">cobas 4800</div>
+        </div>
+    </div>
+</div>
+
+<div id="room-modal" class="modal-overlay">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal()">✖</button>
+        <h2 class="modal-title" id="modal-title">ชื่อห้อง</h2>
+        <div id="modal-content">
+            </div>
+    </div>
+</div>
+
+<script>
+    // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
+
+    const LAB_CONFIG = {
+        "Cobas 4800 Zone": ["ตู้เย็น (BML-MOL-139)"], 
+        "Post PCR Room": [], 
+        "PCR Room I (หน้าห้อง Post PCR)": ["ตู้เย็น (BML-MOL-211)"],
+        "PCR Mix Room": [],
+        "PCR Room I (หน้าห้อง MMX)": ["ตู้เย็น (NML00013)", "ตู้เย็น -20 °C (NML00443)", "ตู้เย็น -20 °C (NML00007)", "ตู้เย็น -20 °C (NML00006)", "ตู้เย็น -70 °C (BML-MOL-220)"],
+        "MMX Room": ["ตู้เย็น (NML00009)", "ตู้เย็น -20 °C (NML00009)"],
+        "Sample Preparation Room": ["ตู้เย็น (NML00011)", "ตู้เย็น (NML00442)", "ตู้เย็น -20 °C (NML00442)", "ตู้เย็น -30 °C (NML00004)"],
+        "BSL-2 Room": ["ตู้เย็น -70 °C (BML-MOL-125)", "ตู้เย็น -70 °C (BML-MOL-124)"],
+        "Stock Room": [],
+        "PCR Room II": [],
+        "Cobas 6800 Room": [],
+        "Library Preparation": [],
+        "Sequencing Room": [],
+        "Analysis Room": []
+    };
+
+    const ROOM_ID_MAP = {
+        "Stock Room": "r-stock",
+        "Sample Preparation Room": "r-sample",
+        "BSL-2 Room": "r-bsl2",
+        "PCR Room I (หน้าห้อง MMX)": "r-pcr1m",
+        "MMX Room": "r-mmx",
+        "PCR Mix Room": "r-pcrmix",
+        "PCR Room II": "r-pcr2",
+        "PCR Room I (หน้าห้อง Post PCR)": "r-pcr1p",
+        "Post PCR Room": "r-post",
+        "Cobas 6800 Room": "r-cobas6800",
+        "Cobas 4800 Zone": "r-cobas4800",
+        "Library Preparation": "r-lib",
+        "Sequencing Room": "r-seq",
+        "Analysis Room": "r-analysis"
+    };
+
+    let rawData = [];
+    let latestRoomData = {};
+
+    async function loadData() {
+        showLoading();
+        try {
+            const res = await fetch(`${SCRIPT_URL}?action=getDashboardData`);
+            rawData = await res.json();
+            processMapData();
+        } catch (e) {
+            alert("ดึงข้อมูลไม่สำเร็จ กรุณาลองใหม่ครับ");
+        }
+        hideLoading();
+    }
+
+    function getLimits(name) {
+        let lower = name.toLowerCase();
+        if (lower.includes("-70")) return { min: -75, max: -65 };
+        if (lower.includes("-20")) return { min: -35, max: -15 };
+        if (lower.includes("-30")) return { min: -40, max: -20 };
+        if (lower.includes("ตู้เย็น")) return { min: 2, max: 8 };
+        return null;
+    }
+
+    function checkAnomaly(val, min, max) {
+        if (val === null || isNaN(val)) return false;
+        return (val < min || val > max);
+    }
+
+    function processMapData() {
+        const selectedDateStr = document.getElementById('filter-date').value;
+        const selectedSession = document.getElementById('filter-session').value;
+
+        if (!selectedDateStr) return;
+
+        const now = new Date();
+        document.getElementById('last-update-time').innerText = now.toLocaleTimeString('th-TH');
+
+        latestRoomData = {};
+
+        rawData.forEach(row => {
+            if (!row.timestamp) return;
+            
+            let d = new Date(row.timestamp);
+            let rowDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            let hour = d.getHours();
+            let rowSession = (hour >= 6 && hour < 14) ? "MORN" : "EVE";
+
+            if (rowDate === selectedDateStr && (selectedSession === "ALL" || selectedSession === rowSession)) {
+                let room = row.room;
+                if (!latestRoomData[room] || new Date(row.timestamp) > new Date(latestRoomData[room].timestamp)) {
+                    latestRoomData[room] = Object.assign({}, row);
+                    latestRoomData[room].parsedEquips = [];
+                }
+            }
+        });
+
+        for (let room in latestRoomData) {
+            let row = latestRoomData[room];
+            if (row.equipments && row.equipments !== '-') {
+                let addEq = (name, val) => row.parsedEquips.push({ name: name, val: val });
+
+                if (row.equipments.includes('=')) {
+                    let items = row.equipments.split(',');
+                    items.forEach(item => {
+                        let parts = item.split('=');
+                        if (parts.length === 2) addEq(parts[0].trim(), parseFloat(parts[1].replace('°C', '').trim()));
+                    });
+                } else {
+                    let rawVal = row.equipTemp || row['Equipments Temp'] || row.equipmentsTemp;
+                    if (rawVal !== undefined && rawVal !== '') {
+                        addEq(row.equipments.trim(), parseFloat(rawVal));
+                    }
+                }
+            }
+        }
+
+        Object.keys(ROOM_ID_MAP).forEach(roomName => {
+            let elementId = ROOM_ID_MAP[roomName];
+            let el = document.getElementById(elementId);
+            if (!el) return;
+            
+            el.classList.remove('status-normal', 'status-abnormal', 'status-missing');
+            
+            let data = latestRoomData[roomName];
+            if (!data) {
+                el.classList.add('status-missing');
+                return;
+            }
+
+            let isAbnormal = false;
+            let isMissing = false;
+
+            if (checkAnomaly(data.rTemp, 18, 25) || checkAnomaly(data.rHum, 20, 60)) isAbnormal = true;
+
+            data.parsedEquips.forEach(eq => {
+                let limits = getLimits(eq.name);
+                if (limits && checkAnomaly(eq.val, limits.min, limits.max)) isAbnormal = true;
+            });
+
+            let expectedEquips = [...(LAB_CONFIG[roomName] || [])];
+            data.parsedEquips.forEach(eq => {
+                let idx = expectedEquips.indexOf(eq.name);
+                if (idx > -1) expectedEquips.splice(idx, 1);
+            });
+            if (expectedEquips.length > 0) isMissing = true;
+
+            if (isAbnormal) el.classList.add('status-abnormal');
+            else if (isMissing) el.classList.add('status-missing');
+            else el.classList.add('status-normal');
+        });
+    }
+
+    function showRoomDetails(roomName) {
+        const modal = document.getElementById('room-modal');
+        const title = document.getElementById('modal-title');
+        const content = document.getElementById('modal-content');
+        
+        title.innerText = `🚪 ${roomName}`;
+        let data = latestRoomData[roomName];
+
+        if (!data) {
+            content.innerHTML = `<div style="text-align:center; padding: 20px; color:#7f8c8d;">ไม่มีข้อมูลการบันทึกของห้องนี้ในรอบเวลาที่เลือกครับ ⚪</div>`;
+        } else {
+            let tErr = checkAnomaly(data.rTemp, 18, 25);
+            let hErr = checkAnomaly(data.rHum, 20, 60);
+            let recordTime = new Date(data.timestamp).toLocaleTimeString('th-TH');
+            
+            let html = `
+                <div style="font-size: 0.9rem; color: #7f8c8d; margin-bottom: 15px; text-align:right;">
+                    จดบันทึกเมื่อ: ${recordTime} <br>โดย: ${data.recorder || 'ไม่ระบุ'}
+                </div>
+                <div class="modal-stat"><strong>🌡️ อุณหภูมิห้อง (18-25):</strong> <span class="${tErr ? 'val-error' : ''}">${data.rTemp !== null ? data.rTemp + ' °C' : '-'}</span></div>
+                <div class="modal-stat"><strong>💧 ความชื้นห้อง (20-60):</strong> <span class="${hErr ? 'val-error' : ''}">${data.rHum !== null ? data.rHum + ' %' : '-'}</span></div>
+            `;
+
+            let expectedEquips = [...(LAB_CONFIG[roomName] || [])];
+            if (data.parsedEquips.length > 0 || expectedEquips.length > 0) {
+                html += `<div class="modal-equip-list"><strong>🔬 เครื่องมือในห้อง:</strong><br><br>`;
+                
+                data.parsedEquips.forEach(eq => {
+                    let limits = getLimits(eq.name);
+                    let eqErr = limits ? checkAnomaly(eq.val, limits.min, limits.max) : false;
+                    let limitText = limits ? ` (${limits.min} ถึง ${limits.max})` : '';
+                    
+                    html += `<div class="modal-equip-item"><span>${eq.name} <small style="color:#95a5a6;">${limitText}</small></span><span class="${eqErr ? 'val-error' : ''}">${eq.val} °C</span></div>`;
+                    
+                    let idx = expectedEquips.indexOf(eq.name);
+                    if (idx > -1) expectedEquips.splice(idx, 1);
+                });
+
+                expectedEquips.forEach(eq => {
+                    html += `<div class="modal-equip-item" style="color: #7f8c8d;"><span>${eq}</span><span><i>ไม่ได้บันทึก</i></span></div>`;
+                });
+                html += `</div>`;
+            }
+            
+            if(data.remark) {
+                 html += `<div style="margin-top: 15px; padding: 10px; background: #fdf2e9; border-left: 4px solid #e67e22; border-radius: 4px; font-size: 0.9rem;"><strong>หมายเหตุ:</strong> ${data.remark}</div>`;
+            }
+            content.innerHTML = html;
+        }
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('room-modal').style.display = 'none'; }
+    window.onclick = function(event) { if (event.target == document.getElementById('room-modal')) closeModal(); }
+    function showLoading() { document.getElementById('loading').style.display = 'block'; }
+    function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+
+    window.onload = () => {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        document.getElementById('filter-date').value = `${yyyy}-${mm}-${dd}`;
+        
+        const hour = today.getHours();
+        if (hour >= 6 && hour < 14) document.getElementById('filter-session').value = "MORN";
+        else if (hour >= 14 && hour < 24) document.getElementById('filter-session').value = "EVE";
+        else document.getElementById('filter-session').value = "ALL";
+
+        loadData();
+        setInterval(loadData, 180000); 
+    };
+</script>
+</body>
+</html>
