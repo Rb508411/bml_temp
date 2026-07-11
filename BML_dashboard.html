@@ -50,6 +50,15 @@
 
     
     <div class="controls">
+
+        <div style="display: flex; gap: 10px; align-items: center; width: 100%; margin-bottom: 10px; flex-wrap: wrap;">
+            <label style="font-weight: bold; color: #2c3e50;">📅 ข้อมูลตั้งแต่:</label>
+            <input type="date" id="startDate" onchange="renderChart()" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7;">
+            <label style="font-weight: bold; color: #2c3e50;">ถึง:</label>
+            <input type="date" id="endDate" onchange="renderChart()" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7;">
+            <span style="font-size: 0.85rem; color: #e74c3c;">*ดึงย้อนหลังได้สูงสุด 3 เดือน</span>
+        </div>
+        
         <select id="viewType" onchange="updateSubFilter()">
             <!-- แยกอุณหภูมิและความชื้นห้องออกจากกัน -->
             <option value="room_temp">🌡️ ดูอุณหภูมิห้อง (รายห้อง)</option>
@@ -104,6 +113,24 @@
     const colorPalette = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#34495e', '#ff6b81', '#7bed9f'];
 
     async function loadData() {
+
+        const today = new Date();
+        const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
+        const threeMonthsAgo = new Date(); threeMonthsAgo.setMonth(today.getMonth() - 3);
+
+        const formatDate = (date) => {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        };
+
+        const startDateEl = document.getElementById('startDate');
+        const endDateEl = document.getElementById('endDate');
+        
+        startDateEl.value = formatDate(thirtyDaysAgo);
+        endDateEl.value = formatDate(today);
+        startDateEl.min = formatDate(threeMonthsAgo); // ล็อกไม่ให้ถอยเกิน 3 เดือน
+        startDateEl.max = formatDate(today);
+        endDateEl.max = formatDate(today);
+
         showLoading("กำลังดึงข้อมูลจากฐานข้อมูล...");
         try {
             const res = await fetch(`${SCRIPT_URL}?action=getDashboardData`);
@@ -165,9 +192,21 @@ function processFilters() {
     }
 
     function renderChart() {
+
         const viewType = document.getElementById('viewType').value;
         const selectedTarget = document.getElementById('subFilter').value;
         if (!selectedTarget) return;
+
+        const sDate = new Date(document.getElementById('startDate').value);
+        sDate.setHours(0, 0, 0, 0);
+        const eDate = new Date(document.getElementById('endDate').value);
+        eDate.setHours(23, 59, 59, 999);
+
+        let filteredData = rawData.filter(row => {
+            if (!row.timestamp) return false;
+            let d = new Date(row.timestamp);
+            return d >= sDate && d <= eDate;
+        });
 
         currentLabels = [];
         activeDatasets = [];
@@ -186,7 +225,7 @@ function processFilters() {
         else if (lowerTarget.includes("ตู้เย็น")) globalLimits = { min: 2, max: 8 };
 
         if (viewType === 'room_temp') {
-            rawData.forEach(row => {
+            filteredData.forEach(row => {
                 if (row.room === selectedTarget) {
                     tempTimestamps.add(row.timestamp);
                     if (!groupedData['อุณหภูมิห้อง (°C)']) groupedData['อุณหภูมิห้อง (°C)'] = {};
@@ -195,7 +234,7 @@ function processFilters() {
             });
         } 
         else if (viewType === 'room_hum') {
-            rawData.forEach(row => {
+            filteredData.forEach(row => {
                 if (row.room === selectedTarget) {
                     tempTimestamps.add(row.timestamp);
                     if (!groupedData['ความชื้น (%)']) groupedData['ความชื้น (%)'] = {};
@@ -204,7 +243,7 @@ function processFilters() {
             });
         }
         else if (viewType === 'equip') {
-            rawData.forEach(row => {
+            filteredData.forEach(row => {
                 if (row.equipments && row.equipments !== '-') {
                     if (row.equipments.includes('=')) {
                         let items = row.equipments.split(',');
@@ -234,7 +273,7 @@ function processFilters() {
             });
         } 
         else if (viewType === 'group') {
-            rawData.forEach(row => {
+            filteredData.forEach(row => {
                 let ts = row.timestamp;
                 if (selectedTarget === "อุณหภูมิห้องทั้งหมด") {
                     tempTimestamps.add(ts);
