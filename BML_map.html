@@ -7,7 +7,7 @@
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 1000px; background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h1 { text-align: center; color: #2c3e50; margin-top: 0; margin-bottom: 5px; }
+        h1 { text-align: center; color: #f4f7f6; margin-top: 0; margin-bottom: 0; }
         .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 20px; font-size: 0.95rem; }
         
         .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
@@ -65,12 +65,12 @@
         }
 
         /* สถานะสี */
-        .status-normal { background-color: #008000 !important; }
-        .status-abnormal { background-color: #ff0000 !important; }
+        .status-normal { background-color: #27ae60 !important; }
+        .status-abnormal { background-color: #EA2839 !important; }
         .status-missing { background-color: #7f8c8d !important; }
         
         .empty-space { background-color: #000 !important; cursor: default; }
-        .static-box { background-color: #ff0000 !important; cursor: default; border: 2px solid #000; } /* สำหรับ Pre-PCR */
+        .static-box { background-color: #EA2839 !important; cursor: default; border: 2px solid #000; } /* สำหรับ Pre-PCR */
 
         /* กำหนดพิกัด Grid ของแต่ละห้อง */
         #r-stock { grid-area: 1 / 2 / 2 / 3; }
@@ -81,7 +81,7 @@
         #r-mmx { grid-area: 2 / 5 / 3 / 6; }
         #r-pcrmix { grid-area: 3 / 5 / 5 / 6; }
         
-        #r-prepcr { grid-area: 4 / 1 / 5 / 2; } /* โซนสีแดง */
+        /*#r-prepcr { grid-area: 4 / 1 / 5 / 2; } โซนสีแดง */
         
         #r-lib { grid-area: 5 / 1 / 7 / 2; } /* โซน Library Prep (เขียว) */
         #r-pcr2 { grid-area: 5 / 2 / 6 / 3; }
@@ -105,14 +105,14 @@
         /* ================= Modal CSS (หน้าต่างรายละเอียด) ================= */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal-box { background: #fff; width: 90%; max-width: 450px; border-radius: 10px; padding: 20px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); position: relative; }
-        .modal-close { position: absolute; top: 15px; right: 15px; background: #e74c3c; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: bold; }
+        .modal-close { position: absolute; top: 15px; right: 15px; background: #EA2839; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-weight: bold; }
         .modal-title { margin-top: 0; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; color: #2c3e50; }
         .modal-stat { font-size: 1.1rem; margin-bottom: 10px; display: flex; justify-content: space-between; }
         .modal-stat strong { color: #34495e; }
         .modal-equip-list { background: #f8f9fa; padding: 10px; border-radius: 5px; margin-top: 15px; }
         .modal-equip-item { display: flex; justify-content: space-between; border-bottom: 1px solid #ecf0f1; padding: 5px 0; font-size: 0.95rem; }
         .modal-equip-item:last-child { border-bottom: none; }
-        .val-error { color: #e74c3c; font-weight: bold; }
+        .val-error { color: #EA2839; font-weight: bold; }
         
         #loading { text-align: center; color: #e67e22; font-weight: bold; font-size: 1.2rem; display: none; margin: 20px 0; }
     </style>
@@ -120,28 +120,85 @@
 <body>
 
 <div class="container">
-    <div class="nav-buttons">
-        <a href="TempBML.html" class="nav-btn btn-home">🏠 กลับหน้าบันทึกหลัก</a>
-        <a href="BML_dashboard.html" class="nav-btn btn-dash">📊 Dashboard กราฟ</a>
-        <a href="Summarize_BML.html" class="nav-btn btn-summary">📝 รายงานสรุป</a>
-        <a href="BML_map.html" class="nav-btn btn-map">🗺️ แผนผังห้อง</a>
+
+    
+        <!-- โลโก้ N Health -->
+    <div style="text-align: center; padding-top: 10px; margin-bottom: 15px;">
+        <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo" style="max-height: 70px; width: auto; object-fit: contain;">
     </div>
 
-    <h1>🗺️ แผนผังห้องปฏิบัติการ (Interactive Map)</h1>
-    <div class="subtitle">จำลองผังห้องจริง | <span style="color:#008000;">เขียว=ปกติ</span> | <span style="color:#ff0000;">แดง=ผิดปกติ</span> | <span style="color:#7f8c8d;">เทา=ยังไม่บันทึก</span><br>👆 คลิกที่ห้องเพื่อดูรายละเอียดอุณหภูมิและความชื้นทั้งหมด</div>
+    <style>
+
+        .header {
+            background: linear-gradient(135deg, #00338D, #34495e);
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+                    /* สไตล์สำหรับปุ่มลิงก์เมนู (ปุ่มจะลอยขึ้นเล็กน้อยและเปลี่ยนสีตอน Hover) */
+        .menu-link-btn {
+                        color: white !important;
+                        padding: 10px 15px;
+                        border-radius: 6px;
+                        text-decoration: none;
+                        font-size: 0.95rem;
+                        font-weight: bold;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .menu-btn-map { background-color: #00338D; }
+                    .menu-btn-map:hover { background-color: #001f5c; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+                    .menu-btn-main { background-color: #2c3e50; }
+                    .menu-btn-main:hover { background-color: #939393; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+                    .menu-btn-dash { background-color: #3498db; }
+                    .menu-btn-dash:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+                    .menu-btn-sum { background-color: #e67e22; }
+                    .menu-btn-sum:hover { background-color: #d35400; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+    </style>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #00338D; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin-top:0; margin-bottom:0; color: #2c3e50;">เลือกหน้าต่าง</h3>
+                    
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <!--<a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">
+                            🗺️ แผนผังห้อง
+                </a>-->
+                <a href="https://rb508411.github.io/bml_temp/TempBML.html" target="_blank" class="menu-link-btn menu-btn-main">
+                            🏠 กลับหน้าบันทึกหลัก
+                </a>
+                <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash">
+                            📊 Dashboard กราฟ
+                </a>
+
+                <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">
+                            📝 รายงานสรุป
+                </a>
+            </div>
+        </div>
+
+
+    <div class="header">
+        <h1>🗺️ แผนผังห้องปฏิบัติการ (Interactive Map)<br><small style="font-weight:normal; font-size:1rem; ">Molecular Laboratory</small></h1>
+    </div>
+    <div class="subtitle">จำลองผังห้องจริง | <span style="color:#27ae60;">เขียว=ปกติ</span> | <span style="color:#ff0000;">แดง=ผิดปกติ</span> | <span style="color:#7f8c8d;">เทา=ยังไม่บันทึก</span><br>👆 คลิกที่ห้องเพื่อดูรายละเอียดอุณหภูมิและความชื้นทั้งหมด</div>
     
-    <div class="top-panel">
+    <div class="top-panel" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
         <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
             <label style="font-weight: bold; color: #2980b9;">📅 วันที่:</label>
-            <input type="date" id="filter-date" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7; font-family: inherit;">
+            <!-- เพิ่ม onchange เพื่อให้อัปเดตอัตโนมัติ -->
+            <input type="date" id="filter-date" onchange="processMapData()" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7; font-family: inherit;">
             
             <label style="font-weight: bold; color: #2980b9;">⏰ รอบ:</label>
-            <select id="filter-session" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7; font-family: inherit;">
+            <!-- เพิ่ม onchange และเอาปุ่ม "ดูแผนผัง" ออก -->
+            <select id="filter-session" onchange="processMapData()" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7; font-family: inherit;">
                 <option value="ALL">รวมทุกรอบ (ล่าสุด)</option>
                 <option value="MORN">☀️ รอบเช้า (06:00-13:59)</option>
                 <option value="EVE">🌙 รอบบ่าย/เย็น (14:00-23:59)</option>
             </select>
-            <button class="btn-refresh" onclick="processMapData()">🔍 ดูแผนผัง</button>
         </div>
         <div style="font-size: 0.9rem; color: #7f8c8d;">
             ดึงข้อมูลล่าสุด: <span id="last-update-time" style="color: #2980b9; font-weight:bold;">-</span>
@@ -161,8 +218,6 @@
             <div id="r-mmx" class="map-room" onclick="showRoomDetails('MMX Room')">MMX</div>
             
             <div id="r-pcrmix" class="map-room" onclick="showRoomDetails('PCR Mix Room')">PCR Mix</div>
-            
-            <div id="r-prepcr" class="map-room static-box">Pre-PCR</div>
             
             <div id="r-lib" class="map-room" onclick="showRoomDetails('Library Preparation')">Library Prep</div>
             <div id="r-pcr2" class="map-room" onclick="showRoomDetails('PCR Room II')">PCR II</div>

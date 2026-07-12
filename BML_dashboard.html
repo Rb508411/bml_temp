@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
     <title>Dashboard อุณหภูมิและความชื้น</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #eaf2f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 900px; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h1 { text-align: center; color: #2c3e50; margin-top: 0; }
+        h1 { text-align: center; color: #f0f4f8; margin-top: 0; margin-bottom: 0}
         
         .controls, .export-controls { display: flex; gap: 15px; flex-wrap: wrap; background-color: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; align-items: center; }
         select, input[type="email"] { padding: 10px; border-radius: 5px; border: 1px solid #bdc3c7; font-size: 1rem; flex: 1; min-width: 150px; }
@@ -25,29 +27,82 @@
         #loading { text-align: center; color: #e67e22; font-weight: bold; font-size: 1.2rem; display: none; margin: 20px 0; }
         
         .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; text-align: center; }
-        .data-table th { background-color: #34495e; color: white; padding: 10px; border: 1px solid #bdc3c7; }
+        .data-table th { background-color: #00338D; color: white; padding: 10px; border: 1px solid #bdc3c7; }
         .data-table td { padding: 8px; border: 1px solid #bdc3c7; }
         .data-table tr:nth-child(even) { background-color: #f9f9f9; }
 
-/* เพิ่มสไตล์สำหรับปุ่มนำทาง (Navigation) */
-        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
-        .nav-btn { text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .btn-home { background-color: #34495e; } .btn-home:hover { background-color: #2c3e50; }
-        .btn-summary { background-color: #e67e22; } .btn-summary:hover { background-color: #d35400; }
+        .controls { display: flex; gap: 15px; flex-wrap: wrap; background-color: #eaf2f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; align-items: center; justify-content: center;}
+        .controls label { font-weight: bold; color: #2980b9; }
 
     </style>
 </head>
 <body>
 
+
+
 <div class="container">
 
-    <div class="nav-buttons">
-        <a href="https://rb508411.github.io/bml_temp/TempBML.html" class="nav-btn btn-home">🏠 กลับหน้าบันทึกหลัก</a>
-        <a href="https://rb508411.github.io/bml_temp/BML_map.html" class="nav-btn btn-map">🗺️ ไปหน้าแผนผังห้อ</a>
-        <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" class="nav-btn btn-summary">📝 ไปหน้ารายงานสรุป</a>
+    <!-- โลโก้ N Health -->
+    <div style="text-align: center; padding-top: 10px; margin-bottom: 15px;">
+        <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo" style="max-height: 70px; width: auto; object-fit: contain;">
     </div>
-    <h1>📊 Dashboard อุณหภูมิและความชื้น</h1>
 
+    <style>
+
+        .header {
+            background: linear-gradient(135deg, #00338D, #34495e);
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+                    /* สไตล์สำหรับปุ่มลิงก์เมนู (ปุ่มจะลอยขึ้นเล็กน้อยและเปลี่ยนสีตอน Hover) */
+        .menu-link-btn {
+                        color: white !important;
+                        padding: 10px 15px;
+                        border-radius: 6px;
+                        text-decoration: none;
+                        font-size: 0.95rem;
+                        font-weight: bold;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .menu-btn-map { background-color: #00338D; }
+                    .menu-btn-map:hover { background-color: #001f5c; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+                    .menu-btn-main { background-color: #2c3e50; }
+                    .menu-btn-main:hover { background-color: #939393; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+                    .menu-btn-dash { background-color: #3498db; }
+                    .menu-btn-dash:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+                    .menu-btn-sum { background-color: #e67e22; }
+                    .menu-btn-sum:hover { background-color: #d35400; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+    </style>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #00338D; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin-top:0; margin-bottom:0; color: #2c3e50;">เลือกหน้าต่าง</h3>
+                    
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">
+                            🗺️ แผนผังห้อง
+                </a>
+                <a href="https://rb508411.github.io/bml_temp/TempBML.html" target="_blank" class="menu-link-btn menu-btn-main">
+                            🏠 กลับหน้าบันทึกหลัก
+                </a>
+                <!--<a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash">
+                            📊 Dashboard กราฟ
+                </a>-->
+
+                <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">
+                            📝 รายงานสรุป
+                </a>
+            </div>
+        </div>
+
+    <div class="header">
+        <h1>📊 Dashboard อุณหภูมิและความชื้น<br><small style="font-weight:normal; font-size:1rem;">Molecular Laboratory</small></h1>
+    </div>
     
     <div class="controls">
 
@@ -56,7 +111,7 @@
             <input type="date" id="startDate" onchange="renderChart()" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7;">
             <label style="font-weight: bold; color: #2c3e50;">ถึง:</label>
             <input type="date" id="endDate" onchange="renderChart()" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7;">
-            <span style="font-size: 0.85rem; color: #e74c3c;">*ดึงย้อนหลังได้สูงสุด 3 เดือน</span>
+            <span style="font-size: 0.85rem; color: #EA2839;">*ดึงย้อนหลังได้สูงสุด 3 เดือน</span>
         </div>
         
         <select id="viewType" onchange="updateSubFilter()">
@@ -341,6 +396,61 @@ function processFilters() {
             });
             colorIdx++;
         }
+
+
+        let maDatasets = [];
+        activeDatasets.forEach(ds => {
+            if (!ds.isLimitLine) { // ทำเฉพาะเส้นข้อมูลจริง ไม่ทำเส้นเกณฑ์
+                let maDataArray = [];
+                for (let i = 0; i < currentLabels.length; i++) {
+                    if (ds.data[i] === null) {
+                        maDataArray.push(null);
+                        continue;
+                    }
+                    
+                    let currentTime = new Date(currentLabels[i]).getTime();
+                    let sum = 0;
+                    let count = 0;
+                    
+                    // ย้อนกลับไปหาข้อมูลในอดีต (กรอบเวลา 7 วัน = 7 * 24 * 60 * 60 * 1000 มิลลิวินาที)
+                    for (let j = i; j >= 0; j--) {
+                        let pastTime = new Date(currentLabels[j]).getTime();
+                        if (currentTime - pastTime <= 7 * 24 * 60 * 60 * 1000) {
+                            if (ds.data[j] !== null) {
+                                sum += ds.data[j];
+                                count++;
+                            }
+                        } else {
+                            break; // ข้อมูลเรียงตามเวลาอยู่แล้ว ถ้าเกิน 7 วันระบบจะหยุดค้นหาทันทีเพื่อลดภาระเครื่อง
+                        }
+                    }
+                    
+                    // หากมีข้อมูลย้อนหลังให้หาค่าเฉลี่ย (ทศนิยม 2 ตำแหน่ง)
+                    if (count > 0) {
+                        maDataArray.push(parseFloat((sum / count).toFixed(2)));
+                    } else {
+                        maDataArray.push(null);
+                    }
+                }
+
+                maDatasets.push({
+                    label: `ค่าเฉลี่ย 7 วัน (${ds.label})`,
+                    data: maDataArray,
+                    borderColor: '#bdc3c7', // สีเทาอ่อน
+                    borderWidth: 2,
+                    borderDash: [3, 3], // เส้นประแบบไข่ปลา
+                    pointRadius: 0, // ปิดจุดกลมๆ บนเส้นค่าเฉลี่ย
+                    fill: false,
+                    tension: 0.3,
+                    spanGaps: true,
+                    isLimitLine: true // มาร์คไว้เพื่อให้ระบบละเว้นการวาดลงในตารางและไฟล์ Excel
+                });
+            }
+        });
+        
+        // นำเส้นค่าเฉลี่ยทั้งหมดไปพล็อตรวมในกราฟ
+        activeDatasets.push(...maDatasets);
+
 
         let limitsToAdd = [];
         if (globalLimits) {

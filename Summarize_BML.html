@@ -9,7 +9,7 @@
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 900px; background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        h1 { text-align: center; color: #2c3e50; margin-top: 0; margin-bottom: 20px; }
+        h1 { text-align: center; color: #f4f7f6; margin-top: 0; margin-bottom: 0; }
         
         .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
         .nav-btn { text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -18,7 +18,7 @@
         .btn-map { background-color: #16a085; } .btn-map:hover { background-color: #117a65; }
 
 
-        .filters { display: flex; gap: 15px; flex-wrap: wrap; background-color: #eaf2f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; align-items: center; justify-content: center; border-left: 4px solid #3498db; }
+        .filters { display: flex; gap: 15px; flex-wrap: wrap; background-color: #eaf2f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; align-items: center; justify-content: center;}
         .filters label { font-weight: bold; color: #2980b9; }
         input[type="date"], select { padding: 10px; border-radius: 5px; border: 1px solid #bdc3c7; font-size: 1rem; }
         .btn-generate { background-color: #3498db; color: white; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 5px; cursor: pointer; }
@@ -35,13 +35,13 @@
         .box h3 { margin-top: 0; margin-bottom: 10px; display: flex; justify-content: space-between; }
         
         /* กล่อง 3 สถานะ: แดง (ผิดปกติ) เขียว (ปกติ) เทา (ขาดบันทึก) */
-        .box-abnormal { background-color: #fdf2e9; border-color: #e74c3c; }
+        .box-abnormal { background-color: #fdf2e9; border-color: #EA2839; }
         .box-normal { background-color: #eafaf1; border-color: #2ecc71; }
         .box-missing { background-color: #f4f6f6; border-color: #95a5a6; } /* สีเทา */
         .box-missing h3 { color: #7f8c8d; }
         
         .issue-list { margin: 0; padding-left: 20px; font-weight: bold; }
-        .issue-red { color: #c0392b; }
+        .issue-red { color: #EA2839; }
         .issue-gray { color: #7f8c8d; }
         .issue-list li { margin-bottom: 5px; }
         
@@ -51,26 +51,83 @@
 <body>
 
 <div class="container">
-    <div class="nav-buttons">
-        <a href="https://rb508411.github.io/bml_temp/TempBML.html" class="nav-btn btn-home">🏠 กลับหน้าบันทึกหลัก</a>
-        <a href="https://rb508411.github.io/bml_temp/BML_map.html" class="nav-btn btn-map">🗺️ ไปหน้าแผนผังห้อ</a>
-        <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" class="nav-btn btn-dash">📊 ไปหน้า Dashboard กราฟ</a>
+
+        <!-- โลโก้ N Health -->
+    <div style="text-align: center; padding-top: 10px; margin-bottom: 15px;">
+        <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo" style="max-height: 70px; width: auto; object-fit: contain;">
     </div>
 
-    <h1>📝 รายงานสรุปสถานะความผิดปกติ</h1>
+    <style>
+
+        .header {
+            background: linear-gradient(135deg, #00338D, #34495e);
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+                    /* สไตล์สำหรับปุ่มลิงก์เมนู (ปุ่มจะลอยขึ้นเล็กน้อยและเปลี่ยนสีตอน Hover) */
+        .menu-link-btn {
+                        color: white !important;
+                        padding: 10px 15px;
+                        border-radius: 6px;
+                        text-decoration: none;
+                        font-size: 0.95rem;
+                        font-weight: bold;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .menu-btn-map { background-color: #00338D; }
+                    .menu-btn-map:hover { background-color: #001f5c; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+                    .menu-btn-main { background-color: #2c3e50; }
+                    .menu-btn-main:hover { background-color: #939393; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+                    .menu-btn-dash { background-color: #3498db; }
+                    .menu-btn-dash:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+                    .menu-btn-sum { background-color: #e67e22; }
+                    .menu-btn-sum:hover { background-color: #d35400; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+    </style>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #00338D; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin-top:0; margin-bottom:0; color: #2c3e50;">เลือกหน้าต่าง</h3>
+                    
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">
+                            🗺️ แผนผังห้อง
+                </a>
+                <a href="https://rb508411.github.io/bml_temp/TempBML.html" target="_blank" class="menu-link-btn menu-btn-main">
+                            🏠 กลับหน้าบันทึกหลัก
+                </a>
+                <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash">
+                            📊 Dashboard กราฟ
+                </a>
+
+                <!--<a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">
+                            📝 รายงานสรุป
+                </a>-->
+            </div>
+        </div>
+
+
+    <div class="header">
+        <h1>📝 รายงานสรุปสถานะความผิดปกติ<br><small style="font-weight:normal; font-size:1rem; ">Molecular Laboratory</small></h1>
+    </div>
+
     
     <div class="filters">
         <label>📅 เลือกวันที่:</label>
-        <input type="date" id="filter-date">
+        <!-- เพิ่ม onchange และลบปุ่มออก -->
+        <input type="date" id="filter-date" onchange="generateReport()">
         
         <label>⏰ เลือกรอบเวลา:</label>
-        <select id="filter-session">
+        <!-- เพิ่ม onchange -->
+        <select id="filter-session" onchange="generateReport()">
             <option value="ALL">รวมทุกรอบ</option>
             <option value="MORN">☀️ รอบเช้า (06:00 - 13:59)</option>
             <option value="EVE">🌙 รอบบ่าย/เย็น (14:00 - 23:59)</option>
         </select>
-        
-        <button class="btn-generate" onclick="generateReport()">🔍 สรุปข้อมูล</button>
     </div>
 
     <div class="export-controls">
@@ -93,7 +150,7 @@
         <h2 id="report-title" style="text-align: center; color: #2c3e50; border-bottom: 2px solid #bdc3c7; padding-bottom: 10px;">รายงานประจำวันที่ ...</h2>
         
         <div class="report-section">
-            <h3 style="color: #c0392b;">🚨 ห้องที่พบความผิดปกติ (หลุดเกณฑ์)</h3>
+            <h3 style="color: #EA2839;">🚨 ห้องที่พบความผิดปกติ (หลุดเกณฑ์)</h3>
             <div id="abnormal-container">
                 <div class="no-data">-- กรุณากดปุ่มสรุปข้อมูล --</div>
             </div>
@@ -153,6 +210,7 @@
             const mm = String(today.getMonth() + 1).padStart(2, '0');
             const dd = String(today.getDate()).padStart(2, '0');
             document.getElementById('filter-date').value = `${yyyy}-${mm}-${dd}`;
+            generateReport();
             
         } catch (e) {
             alert("ดึงข้อมูลไม่สำเร็จ กรุณาลองใหม่ครับ");
