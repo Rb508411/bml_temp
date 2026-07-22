@@ -83,23 +83,24 @@
         
         /*#r-prepcr { grid-area: 4 / 1 / 5 / 2; } โซนสีแดง */
         
-        #r-lib { grid-area: 5 / 1 / 7 / 2; } /* โซน Library Prep (เขียว) */
-        #r-pcr2 { grid-area: 5 / 2 / 6 / 3; }
-        #r-pcr1p { grid-area: 5 / 3 / 8 / 5; }
+        #r-lib { grid-area: 5 / 1 / 7 / 3; } /* โซน Library Prep (เขียว) */
+        #r-pcr2 { grid-area: 4 / 1 / 5 / 2; } /* FFPE Extraction */
+        #r-prepcr { grid-area: 4 / 2 / 5 / 3; } /* สลับที่ PCR2 กับ Library */
+        #r-pcr1p { grid-area: 5 / 3 / 9 / 5; }
         #r-post { grid-area: 5 / 5 / 7 / 6; }
         
-        #r-cobas6800 { grid-area: 7 / 2 / 9 / 3; }
+        #r-cobas6800 { grid-area: 7 / 1 / 9 / 3; }
         
-        #r-seq { grid-area: 8 / 1 / 10 / 2; } /* โซน Sequencing (เขียว) */
+        #r-seq { grid-area: 9 / 1 / 10 / 2; } /* โซน Sequencing (เขียว) */
         #r-analysis { grid-area: 9 / 2 / 10 / 4; } /* โซน Analysis (เขียว) */
         #r-cobas4800 { grid-area: 8 / 5 / 10 / 6; }
 
         /* พื้นที่สีดำ (ช่องว่างทางเดิน) */
         #empty-top-left { grid-area: 1 / 1 / 4 / 2; }
-        #empty-mid-left1 { grid-area: 4 / 2 / 5 / 3; }
-        #empty-mid-left2 { grid-area: 6 / 2 / 7 / 3; }
+        /*#empty-mid-left1 { grid-area: 4 / 2 / 5 / 3; }*/
+        #empty-mid-left2 { grid-area: 7 / 2 / 7 / 3; }
         #empty-bot-right1 { grid-area: 7 / 5 / 8 / 6; }
-        #empty-bot-mid { grid-area: 8 / 3 / 9 / 5; }
+      /*  #empty-bot-mid { grid-area: 8 / 3 / 9 / 5; }*/
         #empty-bot-right2 { grid-area: 9 / 4 / 10 / 5; }
 
         /* ================= Modal CSS (หน้าต่างรายละเอียด) ================= */
@@ -209,10 +210,11 @@
 
     <div class="map-wrapper">
         <div class="map-grid">
+
             <div id="empty-top-left" class="map-room empty-space"></div>
             <div id="r-stock" class="map-room" onclick="showRoomDetails('Stock Room')">Stock</div>
             <div id="r-sample" class="map-room" onclick="showRoomDetails('Sample Preparation Room')">Sample preparation</div>
-            
+            <div id="r-pre-pcr" class="map-room" onclick="showRoomDetails('Pre-PCR')">Pre-PCR</div>            
             <div id="r-bsl2" class="map-room" onclick="showRoomDetails('BSL-2 Room')">BSL-2</div>
             <div id="r-pcr1m" class="map-room" onclick="showRoomDetails('PCR Room I (หน้าห้อง MMX)')">PCR I (หน้าห้อง MMX)</div>
             <div id="r-mmx" class="map-room" onclick="showRoomDetails('MMX Room')">MMX</div>
@@ -220,7 +222,7 @@
             <div id="r-pcrmix" class="map-room" onclick="showRoomDetails('PCR Mix Room')">PCR Mix</div>
             
             <div id="r-lib" class="map-room" onclick="showRoomDetails('Library Preparation')">Library Prep</div>
-            <div id="r-pcr2" class="map-room" onclick="showRoomDetails('PCR Room II')">PCR II</div>
+            <div id="r-pcr2" class="map-room" onclick="showRoomDetails('FFPE Extraction')">FFPE Extraction Room</div>
             <div id="r-pcr1p" class="map-room" onclick="showRoomDetails('PCR Room I (หน้าห้อง Post PCR)')">PCR I (ตรงหน้าห้อง Post)</div>
             <div id="r-post" class="map-room" onclick="showRoomDetails('Post PCR Room')">Post PCR</div>
             
@@ -265,7 +267,8 @@
         "Sample Preparation Room": ["ตู้เย็น (NML00011)", "ตู้เย็น (NML00442)", "ตู้เย็น -20 °C (NML00442)", "ตู้เย็น -30 °C (NML00004)"],
         "BSL-2 Room": ["ตู้เย็น -70 °C (BML-MOL-125)", "ตู้เย็น -70 °C (BML-MOL-124)"],
         "Stock Room": [],
-        "PCR Room II": [],
+        "FFPE Extraction Room": [],
+        "Pre-PCR Room": [],
         "Cobas 6800 Room": [],
         "Library Preparation": [],
         "Sequencing Room": [],
@@ -279,7 +282,8 @@
         "PCR Room I (หน้าห้อง MMX)": "r-pcr1m",
         "MMX Room": "r-mmx",
         "PCR Mix Room": "r-pcrmix",
-        "PCR Room II": "r-pcr2",
+        "FFPE Extraction": "r-pcr2",
+        "Pre-PCR Room": "r-prepcr",
         "PCR Room I (หน้าห้อง Post PCR)": "r-pcr1p",
         "Post PCR Room": "r-post",
         "Cobas 6800 Room": "r-cobas6800",
