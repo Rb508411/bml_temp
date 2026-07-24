@@ -10,16 +10,6 @@
         h1 { text-align: center; color: #f0f4f8; margin-top: 0; margin-bottom: 0}
         .subtitle { text-align: center; color: #7f8c8d; margin-bottom: 20px; font-size: 0.95rem; }
         
-       /* .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #3498db; }
-        .menu-link-btn { color: white !important; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 0.95rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: all 0.3s ease; border: none; cursor: pointer; }
-        .menu-btn-home { background-color: #34495e; } .menu-btn-home:hover { background-color: #2c3e50; transform: translateY(-2px); } 
-        .btn-home { background-color: #34495e; } .btn-home:hover { background-color: #2c3e50; }
-        .btn-dash { background-color: #8e44ad; } .btn-dash:hover { background-color: #732d91; }
-        .btn-summary { background-color: #e67e22; } .btn-summary:hover { background-color: #d35400; }
-        .btn-map { background-color: #16a085; } .btn-map:hover { background-color: #117a65; }
-        .btn-defrost { background-color: #82d4fa; } .btn-defrost:hover { background-color: #3420e7; } */
-        
-
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: bold; color: #34495e; margin-bottom: 5px; font-size: 0.95rem; }
         .form-control { width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
@@ -28,15 +18,11 @@
         .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         @media (max-width: 600px) { .grid-2-col { grid-template-columns: 1fr; } }
 
-        /* กล่องแบ่ง Step */
-        .step-box { padding: 20px; border-radius: 8px; margin-bottom: 20px; position: relative; border: 2px solid; }
-        .step-box-1 { border-color: #7174ee; background-color: #cbeaf1; }
-        .step-box-2 { border-color: #eca452; background-color: #faebe7; }
-        .step-title { font-weight: bold; font-size: 1.1rem; margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        /* กล่องรวมข้อมูล */
+        .step-box { padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 2px solid #3498db; background-color: #eaf2f8; }
         
-        .btn-submit { width: 100%; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-step-1 { background-color: #2980b9; } .btn-step-1:hover { background-color: #0753b6; }
-        .btn-step-2 { background-color: #f7783d; } .btn-step-2:hover { background-color: #9b4004; }
+        .btn-submit { width: 100%; color: white; padding: 15px; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 20px; background-color: #00338D; }
+        .btn-submit:hover { background-color: #001f5c; }
 
         #loading { display: none; text-align: center; color: #2980b9; font-weight: bold; margin-top: 15px; padding: 10px; background: #eaf2f8; border-radius: 6px; }
 
@@ -49,13 +35,9 @@
         .history-table td { padding: 10px 12px; border-bottom: 1px solid #ecf0f1; color: #34495e; }
         .history-table tr:hover { background-color: #f8f9fa; }
         .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
-        .status-pending { background-color: #fdf2e9; color: #e67e22; }
         .status-completed { background-color: #eafaf1; color: #27ae60; }
         .btn-reload { background-color: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
         #history-loading { text-align: center; color: #7f8c8d; padding: 20px; font-style: italic; }
-
-
-
     </style>
 </head>
 <body>
@@ -67,84 +49,37 @@
     </div>
 
     <style>
-
-        .header {
-            background: linear-gradient(135deg, #00338D, #34495e);
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-                    /* สไตล์สำหรับปุ่มลิงก์เมนู (ปุ่มจะลอยขึ้นเล็กน้อยและเปลี่ยนสีตอน Hover) */
-        .menu-link-btn {
-                        color: white !important;
-                        padding: 10px 15px;
-                        border-radius: 6px;
-                        text-decoration: none;
-                        font-size: 0.95rem;
-                        font-weight: bold;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                        transition: all 0.3s ease;
-                    }
-                    
-                    .menu-btn-map { background-color: #00338D; }
-                    .menu-btn-map:hover { background-color: #001f5c; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-main { background-color: #2c3e50; }
-                    .menu-btn-main:hover { background-color: #939393; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-dash { background-color: #3498db; }
-                    .menu-btn-dash:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-sum { background-color: #e67e22; }
-                    .menu-btn-sum:hover { background-color: #d35400; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-frost { background-color: #3a2dec; }
-                    .menu-btn-frost:hover { background-color: #595beb; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-
-</style>
-
-
+        .header { background: linear-gradient(135deg, #00338D, #34495e); color: white; padding: 10px; text-align: center; }
+        .menu-link-btn { color: white !important; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 0.95rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: all 0.3s ease; }
+        .menu-btn-map { background-color: #00338D; } .menu-btn-map:hover { background-color: #001f5c; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .menu-btn-main { background-color: #2c3e50; } .menu-btn-main:hover { background-color: #939393; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .menu-btn-dash { background-color: #3498db; } .menu-btn-dash:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .menu-btn-sum { background-color: #e67e22; } .menu-btn-sum:hover { background-color: #d35400; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .menu-btn-frost { background-color: #3a2dec; } .menu-btn-frost:hover { background-color: #595beb; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+    </style>
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #00338D; flex-wrap: wrap; gap: 10px;">
         <h3 style="margin-top:0; margin-bottom:0; color: #2c3e50;">เลือกหน้าต่าง</h3>
-    
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-
-                <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">
-                            🗺️ ผังห้อง
-                </a>
-                <a href="https://rb508411.github.io/bml_temp/TempBML.html" target="_blank" class="menu-link-btn menu-btn-main">
-                            🏠 หน้าหลัก
-                </a>
-                <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash">
-                            📊 Dashboard
-                </a>
-
-                <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">
-                            📝 รายงานสรุป
-                </a>
-
-                <!--<a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">
-                            ❄️ กิจกรรมตู้เย็น
-                </a>-->
-
-            </div>
+            <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map" onclick="logUserActivity('กิจกรรมตู้เย็น', 'คลิกเปลี่ยนหน้า', 'ไปหน้า: ผังห้อง')">🗺️ ผังห้อง</a>
+            <a href="https://rb508411.github.io/bml_temp/TempBML.html" target="_blank" class="menu-link-btn menu-btn-main" onclick="logUserActivity('กิจกรรมตู้เย็น', 'คลิกเปลี่ยนหน้า', 'ไปหน้า: หน้าหลัก')">🏠 หน้าหลัก</a>
+            <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash" onclick="logUserActivity('กิจกรรมตู้เย็น', 'คลิกเปลี่ยนหน้า', 'ไปหน้า: Dashboard')">📊 Dashboard</a>
+            <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum" onclick="logUserActivity('กิจกรรมตู้เย็น', 'คลิกเปลี่ยนหน้า', 'ไปหน้า: รายงานสรุป')">📝 รายงานสรุป</a>
+        </div>
     </div>
 
-        <div id="user-profile" style="text-align: center; background-color: #eaf2f8; padding: 8px; border-radius: 6px; color: #2c3e50; font-size: 0.95rem; margin-bottom: 20px; display: none;">
-            👤 เข้าสู่ระบบโดย: <strong id="display-name" style="color: #2980b9;"></strong>
-        </div>
+    <div id="user-profile" style="text-align: center; background-color: #eaf2f8; padding: 8px; border-radius: 6px; color: #2c3e50; font-size: 0.95rem; margin-bottom: 20px; display: none;">
+        👤 เข้าสู่ระบบโดย: <strong id="display-name" style="color: #2980b9;"></strong>
+    </div>
 
     <div class="header">
         <h1>❄️ บันทึกการเปิดตู้/ละลายน้ำแข็ง<br><small style="font-weight:normal; font-size:1rem;">Molecular Laboratory</small></h1>
     </div>
 
-    <div class="subtitle">บันทึกเวลา 2 ขั้นตอน (ก่อนเริ่ม และ หลังเสร็จสิ้น) เพื่อติดตามอุณหภูมิ</div>
+    <div class="subtitle">บันทึกข้อมูลการดำเนินการก่อนและหลังให้ครบถ้วนในครั้งเดียว</div>
 
     <form id="defrostForm">
         <!-- ข้อมูลทั่วไป (ใช้ร่วมกัน) -->
-        
         <div class="grid-2-col">
             <div class="form-group">
                 <label>📅 วันที่ดำเนินการ</label>
@@ -178,7 +113,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>🔬 รหัส/ชื่อตู้เย็น (สำคัญ! ต้องกรอกให้ตรงกัน)</label>
+                <label>🔬 รหัส/ชื่อตู้เย็น</label>
                 <select id="df-equipment" class="form-control" required>
                     <option value="" disabled selected>-- กรุณาเลือกห้องก่อน --</option>
                 </select>
@@ -197,9 +132,8 @@
             </select>
         </div>
 
-        <!-- กล่องส่วนที่ 1 -->
-        <div class="step-box step-box-1">
-            <h3 class="step-title" style="color: #010949;">ส่วนที่ 1: ก่อนเริ่มดำเนินการ</h3>
+        <!-- ข้อมูลรายละเอียดการดำเนินการรวมไว้ในกล่องเดียว -->
+        <div class="step-box">
             <div class="grid-2-col">
                 <div class="form-group">
                     <label>⏱️ เวลาที่เริ่ม (Start Time)</label>
@@ -207,15 +141,10 @@
                 </div>
                 <div class="form-group">
                     <label>🌡️ อุณหภูมิก่อนเริ่ม (°C)</label>
-                    <input type="number" step="0.1" id="df-temp-before" class="form-control" placeholder="ระบุตัวเลข">
+                    <input type="number" step="0.1" id="df-temp-before" class="form-control" placeholder="ระบุตัวเลข" required>
                 </div>
             </div>
-            <button type="button" class="btn-submit btn-step-1" onclick="submitBefore()">บันทึกข้อมูลส่วนที่ 1 (เริ่มต้น)</button>
-        </div>
-
-        <!-- กล่องส่วนที่ 2 -->
-        <div class="step-box step-box-2">
-            <h3 class="step-title" style="color: #9b4004;">ส่วนที่ 2: หลังเสร็จสิ้น (กลับมากรอกภายหลังได้)</h3>
+            
             <div class="grid-2-col">
                 <div class="form-group">
                     <label>⏱️ เวลาที่เสร็จสิ้น (End Time)</label>
@@ -223,22 +152,23 @@
                 </div>
                 <div class="form-group">
                     <label>🌡️ อุณหภูมิหลังเสร็จสิ้น (°C)</label>
-                    <input type="number" step="0.1" id="df-temp-after" class="form-control" placeholder="ระบุตัวเลข">
+                    <input type="number" step="0.1" id="df-temp-after" class="form-control" placeholder="ระบุตัวเลข" required>
                 </div>
             </div>
+            
             <div class="form-group">
-                <label>📝 หมายเหตุ (ถ้ามี)</label>
+                <label>📝 หมายเหตุ / วิธีแก้ไข (ถ้ามี)</label>
                 <input type="text" id="df-remark" class="form-control" placeholder="เช่น ทำความสะอาดเรียบร้อย">
             </div>
-            <button type="button" class="btn-submit btn-step-2" onclick="submitAfter()">บันทึกข้อมูลส่วนที่ 2 (เสร็จสิ้น)</button>
         </div>
 
-<div class="history-container">
+        <button type="button" class="btn-submit" onclick="submitDefrost()">💾 บันทึกข้อมูลและส่งเข้าระบบ</button>
+
+        <div class="history-container">
             <div class="history-title">
                 <span>📋 ประวัติการเปิดตู้/ละลายน้ำแข็ง (30 รายการล่าสุด)</span>
                 <button type="button" class="btn-reload" onclick="loadDefrostHistory()">🔄 รีเฟรช</button>
             </div>
-            
             <div class="table-responsive">
                 <table class="history-table">
                     <thead>
@@ -260,7 +190,6 @@
             </div>
         </div>
 
-
         <div id="loading">⏳ กำลังติดต่อฐานข้อมูล กรุณารอสักครู่...</div>
     </form>
 </div>
@@ -269,64 +198,27 @@
     // 📍 นำ URL ของ Google Apps Script มาใส่ตรงนี้
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
 
-
-
     const LAB_EQUIPMENTS = {
-            "Cobas 4800 Zone": [
-                "ตู้เย็น (BML-MOL-139)"
-            ], 
-            "Post PCR Room": [
-                "ตู้เย็น (BML-MOL-616)"
-            ], 
+            "Cobas 4800 Zone": ["ตู้เย็น (BML-MOL-139)"], 
+            "Post PCR Room": ["ตู้เย็น (BML-MOL-616)"], 
             "PCR Room I (หน้าห้อง Post PCR)": [],
             "PCR Mix Room": [],
-            "PCR Room I (หน้าห้อง MMX)": [
-                "ตู้เย็น (BML-MOL-211)",
-                "ตู้เย็น -30 °C (BML-MOL-206)",
-                "ตู้เย็น -20 °C (BML-MOL-489)",
-                "ตู้เย็น (BML-MOL-352)"
-            ],
-            "MMX Room": [
-                "ตู้เย็น (BML-MOL-353)",
-                "ตู้เย็น -20 °C (BML-MOL-353)"
-            ],
-            "Sample Preparation Room": [
-                "ตู้เย็น (BML-MOL-210)",
-                "ตู้เย็น (BML-MOL-458)",
-                "ตู้เย็น -20 °C (BML-MOL-458)",
-                "ตู้เย็น -20 °C (BML-MOL-121)",
-                "ตู้เย็น -20 °C (BML-MOL-123)",
-                "ตู้เย็น -30 °C (BML-MOL-207)"
-            ],
-            "BSL-2 Room": [
-                "ตู้เย็น -70 °C (BML-MOL-220)",
-                "ตู้เย็น -70 °C (BML-MOL-125)",
-                "ตู้เย็น -70 °C (BML-MOL-124)"
-            ],
+            "PCR Room I (หน้าห้อง MMX)": ["ตู้เย็น (BML-MOL-211)", "ตู้เย็น -30 °C (BML-MOL-206)", "ตู้เย็น -20 °C (BML-MOL-489)", "ตู้เย็น (BML-MOL-352)"],
+            "MMX Room": ["ตู้เย็น (BML-MOL-353)", "ตู้เย็น -20 °C (BML-MOL-353)"],
+            "Sample Preparation Room": ["ตู้เย็น (BML-MOL-210)", "ตู้เย็น (BML-MOL-458)", "ตู้เย็น -20 °C (BML-MOL-458)", "ตู้เย็น -20 °C (BML-MOL-121)", "ตู้เย็น -20 °C (BML-MOL-123)", "ตู้เย็น -30 °C (BML-MOL-207)"],
+            "BSL-2 Room": ["ตู้เย็น -70 °C (BML-MOL-220)", "ตู้เย็น -70 °C (BML-MOL-125)", "ตู้เย็น -70 °C (BML-MOL-124)"],
             "Stock Room": [],
             "PCR Room II": [],
             "Cobas 6800 Room": [],
-            "Library Preparation": [
-                "ตู้เย็น (BML-MOL-539)",
-                "ตู้เย็น -20 °C (BML-MOL-617)",
-                "ตู้เย็น -70 °C (BML-MOL-566)"
-            ],
+            "Library Preparation": ["ตู้เย็น (BML-MOL-539)", "ตู้เย็น -20 °C (BML-MOL-617)", "ตู้เย็น -70 °C (BML-MOL-566)"],
             "Sequencing Room": [],
-            "Analysis Room": [
-                "ตู้เย็น (BML-MOL-619)",
-                "ตู้เย็น -20 °C (BML-MOL-620)",
-                "ตู้เย็น -20 °C (BML-MOL-680)"
-            ]
-        };
+            "Analysis Room": ["ตู้เย็น (BML-MOL-619)", "ตู้เย็น -20 °C (BML-MOL-620)", "ตู้เย็น -20 °C (BML-MOL-680)"]
+    };
 
     function updateEquipmentList() {
         const room = document.getElementById('df-room').value;
         const equipSelect = document.getElementById('df-equipment');
-        
-        // ล้างค่าเก่าออก
         equipSelect.innerHTML = '<option value="" disabled selected>-- เลือกตู้เย็น --</option>';
-        
-        // ตรวจสอบว่าห้องนั้นมีตู้เย็นหรือไม่
         if (LAB_EQUIPMENTS[room] && LAB_EQUIPMENTS[room].length > 0) {
             LAB_EQUIPMENTS[room].forEach(eq => {
                 let opt = document.createElement('option');
@@ -340,65 +232,65 @@
     }
 
     window.onload = () => {
-
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         document.getElementById('df-date').value = `${yyyy}-${mm}-${dd}`;
 
-        const savedRecorder = localStorage.getItem('lab_logged_in_user');
+        const savedUser = localStorage.getItem('lab_logged_in_user');
         const recorderInput = document.getElementById('df-recorder');
         
-        if (savedRecorder && recorderInput) {
-            recorderInput.value = savedRecorder;
-            
-            // ล็อกช่องไว้ไม่ให้แก้ไข เพื่อบังคับให้อ้างอิงจากการ Login เท่านั้น
-            recorderInput.setAttribute('readonly', true); 
-            recorderInput.style.backgroundColor = '#eaf2f8'; 
-            recorderInput.style.cursor = 'not-allowed';
+        if (savedUser) {
+            document.getElementById('display-name').innerText = savedUser;
+            document.getElementById('user-profile').style.display = 'block';
+
+            if (recorderInput) {
+                recorderInput.value = savedUser;
+                recorderInput.setAttribute('readonly', true); 
+                recorderInput.style.backgroundColor = '#eaf2f8'; 
+                recorderInput.style.cursor = 'not-allowed';
+            }
+            logUserActivity("กิจกรรมตู้เย็น", "เปิดดูหน้าต่าง");
         }
-
-
-
+        
+        loadDefrostHistory();
     };
 
-    // ฟังก์ชันสำหรับส่งข้อมูลส่วนที่ 1 เพิ่ม 'lab_logged_in_user'
-    function submitBefore() {
+    // ฟังก์ชันรวบการส่งข้อมูลทั้งหมดในครั้งเดียว
+    function submitDefrost() {
         const payload = {
             date: document.getElementById('df-date').value,
-            recorder: document.getElementById('lab_logged_in_user').value,
+            recorder: document.getElementById('df-recorder').value,
             room: document.getElementById('df-room').value,
             equipment: document.getElementById('df-equipment').value,
             reason: document.getElementById('df-reason').value,
             startTime: document.getElementById('df-start-time').value,
-            tempBefore: document.getElementById('df-temp-before').value
-        };
-
-        if (!payload.date || !payload.recorder || !payload.room || !payload.equipment || !payload.reason || !payload.startTime || !payload.tempBefore) {
-            alert("กรุณากรอกข้อมูล วันที่, ผู้บันทึก, ห้อง, รหัสตู้เย็น, เหตุผล, เวลาเริ่ม และ อุณหภูมิก่อนเริ่ม ให้ครบถ้วนครับ");
-            return;
-        }
-
-        sendData('saveBefore', payload, "✅ บันทึกส่วนเริ่มต้นสำเร็จ! ท่านสามารถปิดหน้านี้ แล้วค่อยกลับมาบันทึกส่วนที่ 2 ได้ครับ");
-        
-    }
-
-    // ฟังก์ชันสำหรับส่งข้อมูลส่วนที่ 2
-    function submitAfter() {
-        const payload = {
-            equipment: document.getElementById('df-equipment').value,
+            tempBefore: document.getElementById('df-temp-before').value,
             endTime: document.getElementById('df-end-time').value,
             tempAfter: document.getElementById('df-temp-after').value,
             remark: document.getElementById('df-remark').value
         };
 
-        if (!payload.equipment || !payload.endTime || !payload.tempAfter) {
-            alert("สำหรับการบันทึกส่วนที่ 2 กรุณากรอก 'รหัส/ชื่อตู้เย็น' ให้ตรงกับตอนเริ่มต้น และระบุเวลาเสร็จสิ้น/อุณหภูมิหลังเสร็จสิ้นครับ");
+        if (!payload.date || !payload.recorder || !payload.room || payload.equipment === "-- กรุณาเลือกห้องก่อน --" || !payload.equipment || !payload.reason || !payload.tempBefore || !payload.tempAfter) {
+            alert("⚠️ กรุณากรอกข้อมูล วันที่, ผู้บันทึก, ห้อง, รหัสตู้เย็น, เหตุผล, และ อุณหภูมิก่อน-หลังทำ ให้ครบถ้วนครับ");
             return;
         }
 
-        sendData('saveAfter', payload, "✅ บันทึกส่วนที่ 2 เสร็จสิ้น! อัปเดตข้อมูลตู้เย็นครบถ้วนแล้วครับ");
+        // แปลงข้อมูล payload ให้สอดคล้องกับโครงสร้าง Google Apps Script (action ที่ใช้)
+        const finalPayload = {
+            date: payload.date,
+            recorder: payload.recorder,
+            room: payload.room,
+            equipment: payload.equipment,
+            reason: payload.reason,
+            tempBefore: payload.tempBefore,
+            action: payload.remark, // เอาหมายเหตุ/วิธีแก้ ส่งเข้าไปแทนค่า action ใน Google sheet
+            tempAfter: payload.tempAfter
+        };
+
+        logUserActivity("กิจกรรมตู้เย็น", "บันทึกละลายน้ำแข็ง (รวดเดียว)", `ตู้เย็น: ${payload.equipment} | เหตุผล: ${payload.reason}`);
+        sendData('saveDefrostComplete', finalPayload, "✅ บันทึกข้อมูลกิจกรรมตู้เย็นเสร็จสิ้น!");
     }
 
     function loadDefrostHistory() {
@@ -412,8 +304,6 @@
             .then(res => res.json())
             .then(data => {
                 loading.style.display = 'none';
-                
-                // เรียงจากใหม่ไปเก่า และตัดเอาแค่ 30 รายการล่าสุด
                 let recentRecords = data.reverse().slice(0, 30);
                 
                 if (recentRecords.length === 0) {
@@ -423,12 +313,10 @@
 
                 recentRecords.forEach(row => {
                     let tr = document.createElement('tr');
-                    
-                    // ตั้งค่าสีสถานะ (Pending = สีส้ม, Completed = สีเขียว)
+                    // ถ้าส่งรวดเดียว สถานะควรเป็น Completed เสมอ
                     let statusClass = row.status === "Pending" ? "status-pending" : "status-completed";
                     let statusText = row.status === "Pending" ? "⏳ รอดำเนินการ" : "✅ เสร็จสิ้น";
                     
-                    // แปลงรูปแบบวันที่ให้แสดงสวยงาม (เช่น 2024-06-25 เป็น 25/06/2024)
                     let displayDate = "-";
                     if (row.date) {
                         try {
@@ -455,15 +343,9 @@
             });
     }
 
-    // สั่งให้โหลดประวัติทันทีที่เปิดหน้าเว็บ
-    window.addEventListener('load', loadDefrostHistory);
-
-
-    // ฟังก์ชันหลักในการยิง API
-function sendData(actionType, payload, successMsg) {
+    function sendData(actionType, payload, successMsg) {
         document.getElementById('loading').style.display = 'block';
 
-        // แปลงข้อมูลและแนบไปกับ URL แทนการใช้ formData
         const url = `${SCRIPT_URL}?action=${actionType}&data=${encodeURIComponent(JSON.stringify(payload))}`;
 
         fetch(url)
@@ -472,17 +354,16 @@ function sendData(actionType, payload, successMsg) {
             if (result === "Success") {
                 alert(successMsg);
 
-                let stepName = actionType === 'saveBefore' ? "บันทึกส่วนที่ 1" : "บันทึกส่วนที่ 2";
-                logUserActivity("กิจกรรมตู้เย็น", stepName, `ตู้เย็น: ${payload.equipment}`);
-
-                if (actionType === 'saveAfter') {
+                if (actionType === 'saveDefrostComplete') {
                     document.getElementById('defrostForm').reset();
-                    // เซ็ตวันที่ใหม่
                     const today = new Date();
                     document.getElementById('df-date').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    
+                    // เติมชื่อกลับคืนมาหลังรีเซ็ตฟอร์ม
+                    const savedUser = localStorage.getItem('lab_logged_in_user');
+                    if(savedUser) document.getElementById('df-recorder').value = savedUser;
                 }
                 
-                // (ถ้ามี) สั่งอัปเดตตารางประวัติด้านล่างอัตโนมัติ
                 if (typeof loadDefrostHistory === "function") {
                     loadDefrostHistory();
                 }
@@ -498,17 +379,6 @@ function sendData(actionType, payload, successMsg) {
         });
     }
 
-
-    window.addEventListener('load', () => {
-        // 📍 ดึงชื่อจากการ Login ในหน้า TempBML
-        const savedUser = localStorage.getItem('lab_logged_in_user');
-        
-        if (savedUser) {
-            document.getElementById('display-name').innerText = savedUser;
-            document.getElementById('user-profile').style.display = 'block'; // แสดงกล่องข้อความ
-        }
-    });
-
     function logUserActivity(pageName, actionName, detailsStr = "") {
         const scriptUrl = SCRIPT_URL; 
         const currentUser = localStorage.getItem('lab_logged_in_user') || "ไม่ระบุชื่อ (Guest)";
@@ -520,21 +390,13 @@ function sendData(actionType, payload, successMsg) {
             details: detailsStr
         };
 
-        const url = `${scriptUrl}?action=logActivity&data=${encodeURIComponent(JSON.stringify(logPayload))}`;
+        const formData = new URLSearchParams();
+        formData.append('action', 'logActivity');
+        formData.append('data', JSON.stringify(logPayload));
 
-        // เพิ่มการอ่านค่าที่ Google ตอบกลับมา เพื่อเช็ค Error
-        fetch(url)
-            .then(response => response.text())
-            .then(text => {
-                console.log("Log Backend Response:", text); // พิมพ์ลง Console
-                if (text !== "Success") {
-                    alert("แจ้งเตือนจากระบบ Log: " + text); // เด้งบอกบนหน้าจอ
-                }
-            })
-            .catch(error => {
-                console.error("Log Fetch Error:", error);
-                alert("Log Fetch Error: ไม่สามารถเชื่อมต่อ Apps Script ได้");
-            });
+        // ส่งข้อมูลโดยไม่ต้องรอผลลัพธ์
+        fetch(scriptUrl, { method: 'POST', body: formData })
+            .catch(error => console.error("Log Error:", error));
     }
 
 </script>
