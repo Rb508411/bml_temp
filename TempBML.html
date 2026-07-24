@@ -299,38 +299,48 @@
             "Cobas 4800 Zone": [
                 "ตู้เย็น (BML-MOL-139)"
             ], 
-            "Post PCR Room": [], 
-            "PCR Room I (หน้าห้อง Post PCR)": [
-                "ตู้เย็น (BML-MOL-211)"
-            ],
+            "Post PCR Room": [
+                "ตู้เย็น (BML-MOL-616)"
+            ], 
+            "PCR Room I (หน้าห้อง Post PCR)": [],
             "PCR Mix Room": [],
             "PCR Room I (หน้าห้อง MMX)": [
-                "ตู้เย็น (NML00013)",
-                "ตู้เย็น -20 °C (NML00443)",
-                "ตู้เย็น -20 °C (NML00007)",
-                "ตู้เย็น -20 °C (NML00006)",
-                "ตู้เย็น -70 °C (BML-MOL-220)"
+                "ตู้เย็น (BML-MOL-211)",
+                "ตู้เย็น -30 °C (BML-MOL-206)",
+                "ตู้เย็น -20 °C (BML-MOL-489)",
+                "ตู้เย็น (BML-MOL-352)"
             ],
             "MMX Room": [
-                "ตู้เย็น (NML00009)",
-                "ตู้เย็น -20 °C (NML00009)"
+                "ตู้เย็น (BML-MOL-353)",
+                "ตู้เย็น -20 °C (BML-MOL-353)"
             ],
             "Sample Preparation Room": [
-                "ตู้เย็น (NML00011)",
-                "ตู้เย็น (NML00442)",
-                "ตู้เย็น -20 °C (NML00442)",
-                "ตู้เย็น -30 °C (NML00004)"
+                "ตู้เย็น (BML-MOL-210)",
+                "ตู้เย็น (BML-MOL-458)",
+                "ตู้เย็น -20 °C (BML-MOL-458)",
+                "ตู้เย็น -20 °C (BML-MOL-121)",
+                "ตู้เย็น -20 °C (BML-MOL-123)",
+                "ตู้เย็น -30 °C (BML-MOL-207)"
             ],
             "BSL-2 Room": [
+                "ตู้เย็น -70 °C (BML-MOL-220)",
                 "ตู้เย็น -70 °C (BML-MOL-125)",
                 "ตู้เย็น -70 °C (BML-MOL-124)"
             ],
             "Stock Room": [],
             "PCR Room II": [],
             "Cobas 6800 Room": [],
-            "Library Preparation": [],
+            "Library Preparation": [
+                "ตู้เย็น (BML-MOL-539)",
+                "ตู้เย็น -20 °C (BML-MOL-617)",
+                "ตู้เย็น -70 °C (BML-MOL-566)"
+            ],
             "Sequencing Room": [],
-            "Analysis Room": []
+            "Analysis Room": [
+                "ตู้เย็น (BML-MOL-619)",
+                "ตู้เย็น -20 °C (BML-MOL-620)",
+                "ตู้เย็น -20 °C (BML-MOL-680)"
+            ]
         };
 
         let currentSessionName = null;
@@ -458,6 +468,7 @@
                 if (result.success) {
                     currentUser = result.name;
                     localStorage.setItem('lab_logged_in_user', currentUser);
+                    logUserActivity("หน้าหลัก", "เข้าสู่ระบบ", `รหัสพนักงาน: ${empId}`);
                     showDashboard();
                 } else {
                     alert(result.message);
@@ -764,10 +775,12 @@
                 
                 if(result === "Success") {
                     alert("✅ บันทึกข้อมูลสำเร็จ!");
+                    logUserActivity("หน้าหลัก", "บันทึกห้องสำเร็จ", `ห้อง: ${currentEditingRoom}`);
                     currentEditingRoom = null;
                     showDashboard();
                 } else {
                     alert("บันทึกไม่สำเร็จ: " + result);
+                    logUserActivity("หน้าหลัก", "บันทึกห้องไม่สำเร็จ", `ห้อง: ${currentEditingRoom}`);
                 }
             } catch(e) {
                 alert("การเชื่อมต่อมีปัญหา กรุณาลองอีกครั้ง");
@@ -787,6 +800,29 @@
                 document.getElementById('view-dashboard').style.display = 'none';
             }
         };
+
+    function logUserActivity(pageName, actionName, detailsStr = "") {
+        // ใช้ SCRIPT_URL ตัวเดียวกับที่ใช้อยู่ในหน้านั้นๆ
+        const scriptUrl = SCRIPT_URL; 
+        const currentUser = localStorage.getItem('bml_recorder') || "ไม่ระบุชื่อ (Guest)";
+        
+        const logPayload = {
+            user: currentUser,
+            page: pageName,
+            action: actionName,
+            details: detailsStr
+        };
+
+        const formData = new URLSearchParams();
+        formData.append('action', 'logActivity');
+        formData.append('data', JSON.stringify(logPayload));
+
+        // ส่งข้อมูลโดยไม่ต้องรอผลลัพธ์ (ไม่ต้องมี Alert กวนใจผู้ใช้)
+        fetch(scriptUrl, { method: 'POST', body: formData })
+            .catch(error => console.error("Log Error:", error));
+    }
+
+
     </script>
 </body>
 </html>

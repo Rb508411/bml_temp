@@ -110,6 +110,10 @@
             </div>
         </div>
 
+        <div id="user-profile" style="text-align: center; background-color: #eaf2f8; padding: 8px; border-radius: 6px; color: #2c3e50; font-size: 0.95rem; margin-bottom: 20px; display: none;">
+            👤 เข้าสู่ระบบโดย: <strong id="display-name" style="color: #2980b9;"></strong>
+        </div>
+
     <div class="header">
         <h1>📊 Dashboard อุณหภูมิและความชื้น<br><small style="font-weight:normal; font-size:1rem;">Molecular Laboratory</small></h1>
     </div>
@@ -639,6 +643,39 @@ function processFilters() {
     }
 
     window.onload = loadData;
+
+    window.addEventListener('load', () => {
+        // 📍 ดึงชื่อจากการ Login ในหน้า TempBML
+        const savedUser = localStorage.getItem('lab_logged_in_user');
+        
+        if (savedUser) {
+            document.getElementById('display-name').innerText = savedUser;
+            document.getElementById('user-profile').style.display = 'block'; // แสดงกล่องข้อความ
+            logUserActivity("Dashboard กราฟ", "เปิดดูหน้าต่าง");
+        }
+    });
+
+    function logUserActivity(pageName, actionName, detailsStr = "") {
+        // ใช้ SCRIPT_URL ตัวเดียวกับที่ใช้อยู่ในหน้านั้นๆ
+        const scriptUrl = SCRIPT_URL; 
+        const currentUser = localStorage.getItem('bml_recorder') || "ไม่ระบุชื่อ (Guest)";
+        
+        const logPayload = {
+            user: currentUser,
+            page: pageName,
+            action: actionName,
+            details: detailsStr
+        };
+
+        const formData = new URLSearchParams();
+        formData.append('action', 'logActivity');
+        formData.append('data', JSON.stringify(logPayload));
+
+        // ส่งข้อมูลโดยไม่ต้องรอผลลัพธ์ (ไม่ต้องมี Alert กวนใจผู้ใช้)
+        fetch(scriptUrl, { method: 'POST', body: formData })
+            .catch(error => console.error("Log Error:", error));
+    }
+
 </script>
 </body>
 </html>

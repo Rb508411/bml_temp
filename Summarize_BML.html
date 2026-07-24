@@ -118,6 +118,9 @@
             </div>
         </div>
 
+        <div id="user-profile" style="text-align: center; background-color: #eaf2f8; padding: 8px; border-radius: 6px; color: #2c3e50; font-size: 0.95rem; margin-bottom: 20px; display: none;">
+            👤 เข้าสู่ระบบโดย: <strong id="display-name" style="color: #2980b9;"></strong>
+        </div>
 
     <div class="header">
         <h1>📝 รายงานสรุปสถานะความผิดปกติ<br><small style="font-weight:normal; font-size:1rem; ">Molecular Laboratory</small></h1>
@@ -189,22 +192,53 @@
     let reportDataForExcel = []; // เก็บข้อมูลตารางสำหรับทำ Excel
 
     // โครงสร้างมาตรฐาน (นำมาจากหน้าบันทึก เพื่อใช้ตรวจหาของที่หายไป)
-    const LAB_CONFIG = {
-        "Cobas 4800 Zone": ["ตู้เย็น (BML-MOL-139)"], 
-        "Post PCR Room": [], 
-        "PCR Room I (หน้าห้อง Post PCR)": ["ตู้เย็น (BML-MOL-211)"],
-        "PCR Mix Room": [],
-        "PCR Room I (หน้าห้อง MMX)": ["ตู้เย็น (NML00013)", "ตู้เย็น -20 °C (NML00443)", "ตู้เย็น -20 °C (NML00007)", "ตู้เย็น -20 °C (NML00006)", "ตู้เย็น -70 °C (BML-MOL-220)"],
-        "MMX Room": ["ตู้เย็น (NML00009)", "ตู้เย็น -20 °C (NML00009)"],
-        "Sample Preparation Room": ["ตู้เย็น (NML00011)", "ตู้เย็น (NML00442)", "ตู้เย็น -20 °C (NML00442)", "ตู้เย็น -30 °C (NML00004)"],
-        "BSL-2 Room": ["ตู้เย็น -70 °C (BML-MOL-125)", "ตู้เย็น -70 °C (BML-MOL-124)"],
-        "Stock Room": [],
-        "PCR Room II": [],
-        "Cobas 6800 Room": [],
-        "Library Preparation": [],
-        "Sequencing Room": [],
-        "Analysis Room": []
-    };
+        const LAB_CONFIG = {
+            "Cobas 4800 Zone": [
+                "ตู้เย็น (BML-MOL-139)"
+            ], 
+            "Post PCR Room": [
+                "ตู้เย็น (BML-MOL-616)"
+            ], 
+            "PCR Room I (หน้าห้อง Post PCR)": [],
+            "PCR Mix Room": [],
+            "PCR Room I (หน้าห้อง MMX)": [
+                "ตู้เย็น (BML-MOL-211)",
+                "ตู้เย็น -30 °C (BML-MOL-206)",
+                "ตู้เย็น -20 °C (BML-MOL-489)",
+                "ตู้เย็น (BML-MOL-352)"
+            ],
+            "MMX Room": [
+                "ตู้เย็น (BML-MOL-353)",
+                "ตู้เย็น -20 °C (BML-MOL-353)"
+            ],
+            "Sample Preparation Room": [
+                "ตู้เย็น (BML-MOL-210)",
+                "ตู้เย็น (BML-MOL-458)",
+                "ตู้เย็น -20 °C (BML-MOL-458)",
+                "ตู้เย็น -20 °C (BML-MOL-121)",
+                "ตู้เย็น -20 °C (BML-MOL-123)",
+                "ตู้เย็น -30 °C (BML-MOL-207)"
+            ],
+            "BSL-2 Room": [
+                "ตู้เย็น -70 °C (BML-MOL-220)",
+                "ตู้เย็น -70 °C (BML-MOL-125)",
+                "ตู้เย็น -70 °C (BML-MOL-124)"
+            ],
+            "Stock Room": [],
+            "PCR Room II": [],
+            "Cobas 6800 Room": [],
+            "Library Preparation": [
+                "ตู้เย็น (BML-MOL-539)",
+                "ตู้เย็น -20 °C (BML-MOL-617)",
+                "ตู้เย็น -70 °C (BML-MOL-566)"
+            ],
+            "Sequencing Room": [],
+            "Analysis Room": [
+                "ตู้เย็น (BML-MOL-619)",
+                "ตู้เย็น -20 °C (BML-MOL-620)",
+                "ตู้เย็น -20 °C (BML-MOL-680)"
+            ]
+        };
 
     // โหลดข้อมูลทั้งหมดเมื่อเปิดหน้าเว็บ
     async function loadData() {
@@ -245,6 +279,8 @@
     function generateReport() {
         const selectedDateStr = document.getElementById('filter-date').value;
         const selectedSession = document.getElementById('filter-session').value;
+
+        logUserActivity("รายงานสรุป", "สร้างรายงาน", `วันที่: ${selectedDateStr} | รอบ: ${selectedSession}`);
         
         if (!selectedDateStr) {
             alert("กรุณาเลือกวันที่ต้องการสรุปครับ");
@@ -278,7 +314,8 @@
             if (rowDate === selectedDateStr && (selectedSession === "ALL" || selectedSession === rowSession)) {
                 let room = row.room;
                 
-                if (!roomStatus[room]) roomStatus[room] = { isNormal: true, issues: [], timesChecked: 0 };
+                // 📍 เพิ่ม allValues เพื่อเก็บค่าที่บันทึกได้ทั้งหมด
+                if (!roomStatus[room]) roomStatus[room] = { isNormal: true, issues: [], timesChecked: 0, allValues: [] };
                 roomStatus[room].timesChecked++;
                 let timeStr = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
                 
@@ -292,11 +329,17 @@
                     missingData[room].roomRecorded = true;
                 }
 
+                let eqStrs = []; // 📍 สร้าง array เก็บข้อความตู้เย็นโดยเฉพาะ
+
                 if (row.equipments && row.equipments !== '-') {
                     let processEquip = (eqName, eqValStr) => {
                         let eqVal = parseFloat(String(eqValStr).replace('°C', '').trim());
-                        let limits = getLimits(eqName);
                         
+                        if (!isNaN(eqVal)) {
+                            eqStrs.push(`${eqName}: ${eqVal}°C`); // 📍 บันทึกค่าตู้เย็น
+                        }
+
+                        let limits = getLimits(eqName);
                         if (limits && !isNaN(eqVal)) {
                             let eqIssue = checkAnomaly(eqVal, limits.min, limits.max, eqName);
                             if (eqIssue) {
@@ -313,20 +356,34 @@
                         }
                     };
 
-                    if (row.equipments.includes('=')) {
-                        // รูปแบบเก่า
-                        let items = row.equipments.split(',');
-                        items.forEach(item => {
-                            let parts = item.split('=');
-                            if (parts.length === 2) processEquip(parts[0].trim(), parts[1]);
-                        });
-                    } else {
-                        // รูปแบบใหม่ (แยกคอลัมน์)
-                        let rawVal = row.equipTemp || row['Equipments Temp'] || row.equipmentsTemp;
-                        if (rawVal !== undefined && rawVal !== '') {
-                            processEquip(row.equipments.trim(), rawVal);
+                    // รองรับรูปแบบ JSON (จากระบบใหม่) และรูปแบบเก่า
+                    try {
+                        let eqArray = JSON.parse(row.equipments);
+                        if (Array.isArray(eqArray)) {
+                            eqArray.forEach(eq => {
+                                if(eq.name && eq.temp) processEquip(eq.name, eq.temp);
+                            });
+                        }
+                    } catch(e) {
+                        if (row.equipments.includes('=')) {
+                            let items = row.equipments.split(',');
+                            items.forEach(item => {
+                                let parts = item.split('=');
+                                if (parts.length === 2) processEquip(parts[0].trim(), parts[1]);
+                            });
+                        } else {
+                            let rawVal = row.equipTemp || row['Equipments Temp'] || row.equipmentsTemp;
+                            if (rawVal !== undefined && rawVal !== '') {
+                                processEquip(row.equipments.trim(), rawVal);
+                            }
                         }
                     }
+                }
+                
+                // 📍 นำค่าทั้งหมด (ห้อง + ตู้เย็น) มารวมกันเป็นประวัติ
+// 📍 นำค่าทั้งหมด (ห้อง + ตู้เย็น) มารวมกันเป็นประวัติ
+                if (eqStrs.length > 0) {
+                    roomStatus[room].allValues.push(`❄️ ${eqStrs.join(', ')}`);
                 }
             }
         });
@@ -344,25 +401,48 @@
         let hasMissing = false;
         let hasNormal = false;
 
-        for (let room in roomStatus) {
+for (let room in roomStatus) {
             let status = roomStatus[room];
             let box = document.createElement('div');
             
+            // 📍 1. คัดกรองเอาเฉพาะค่าตู้เย็นที่ไม่ซ้ำกัน (Unique Values)
+            let uniqueValues = [...new Set(status.allValues)];
+            
+            let recordedBlock = '';
+            if (uniqueValues.length > 0) {
+                let valuesHtml = uniqueValues.map(v => `<div style="font-size:0.9rem; color:#555; margin-top:6px;">${v}</div>`).join('');
+                recordedBlock = `<div style="margin-top:12px; padding-top:10px; border-top:1px dashed #bdc3c7;">
+                                    <strong style="font-size:0.85rem; color:#2c3e50;">📋 ข้อมูลตู้เย็น:</strong>
+                                    ${valuesHtml}
+                                 </div>`;
+            }
+
             if (!status.isNormal) {
                 hasAbnormal = true;
                 box.className = 'box box-abnormal';
-                let issueHtml = status.issues.map(iss => `<li>${iss}</li>`).join('');
-                box.innerHTML = `<h3><span>🚪 ${room}</span> <span style="font-size:0.85rem; color:#7f8c8d;">บันทึก ${status.timesChecked} ครั้ง</span></h3>
-                                 <ul class="issue-list issue-red">${issueHtml}</ul>`;
+                
+                // 📍 2. คัดกรองข้อความแจ้งเตือน (Issues) ที่ซ้ำกันให้เหลืออันเดียว
+                let uniqueIssues = [...new Set(status.issues)];
+                let issueHtml = uniqueIssues.map(iss => `<li>${iss}</li>`).join('');
+                
+                box.innerHTML = `<h3><span>🚪 ${room}</span></h3>
+                                 <ul class="issue-list issue-red">${issueHtml}</ul>
+                                 ${recordedBlock}`; 
                 abnormalCont.appendChild(box);
-                reportDataForExcel.push([room, "🔴 ผิดปกติ", status.issues.join(' | ')]);
+                
+                // อัปเดตข้อมูลที่จะส่งออก Excel ให้เป็นค่าที่ไม่ซ้ำเช่นกัน
+                let allValsStr = uniqueValues.join(' \n ');
+                reportDataForExcel.push([room, "🔴 ผิดปกติ", `ปัญหา: ${uniqueIssues.join(' | ')}\n\nค่าที่บันทึก: ${allValsStr}`]);
             } else {
                 hasNormal = true;
                 box.className = 'box box-normal';
-                box.innerHTML = `<h3><span>🚪 ${room}</span> <span style="font-size:0.85rem; color:#7f8c8d;">บันทึก ${status.timesChecked} ครั้ง</span></h3>
-                                 <p style="margin:0; color:#27ae60; font-weight:bold;">✨ ทุกค่าอยู่ในเกณฑ์มาตรฐาน</p>`;
+                box.innerHTML = `<h3><span>🚪 ${room}</span></h3>
+                                 <p style="margin:0; color:#27ae60; font-weight:bold;">✨ ทุกค่าอยู่ในเกณฑ์มาตรฐาน</p>
+                                 ${recordedBlock}`; 
                 normalCont.appendChild(box);
-                reportDataForExcel.push([room, "🟢 ปกติ", "-"]);
+                
+                let allValsStr = uniqueValues.join(' \n ');
+                reportDataForExcel.push([room, "🟢 ปกติ", `ค่าที่บันทึก: ${allValsStr}`]);
             }
         }
 
@@ -410,6 +490,8 @@
         const email = document.getElementById('export-email').value;
         const dateStr = document.getElementById('filter-date').value;
         const targetLabel = `Summary_${dateStr}`;
+
+        logUserActivity("รายงานสรุป", "ส่งออกไฟล์", `รูปแบบ: ${format} | วิธีการ: ${method}`);
 
         if (method === 'email' && !email) {
             alert("กรุณาระบุอีเมลปลายทางที่ต้องการให้ระบบส่งไฟล์ไปครับ");
@@ -490,6 +572,39 @@
     }
 
     window.onload = loadData;
+
+    window.addEventListener('load', () => {
+        // 📍 ดึงชื่อจากการ Login ในหน้า TempBML
+        const savedUser = localStorage.getItem('lab_logged_in_user');
+        
+        if (savedUser) {
+            document.getElementById('display-name').innerText = savedUser;
+            document.getElementById('user-profile').style.display = 'block'; // แสดงกล่องข้อความ
+        }
+    });
+
+    function logUserActivity(pageName, actionName, detailsStr = "") {
+        // ใช้ SCRIPT_URL ตัวเดียวกับที่ใช้อยู่ในหน้านั้นๆ
+        const scriptUrl = SCRIPT_URL; 
+        const currentUser = localStorage.getItem('bml_recorder') || "ไม่ระบุชื่อ (Guest)";
+        
+        const logPayload = {
+            user: currentUser,
+            page: pageName,
+            action: actionName,
+            details: detailsStr
+        };
+
+        const formData = new URLSearchParams();
+        formData.append('action', 'logActivity');
+        formData.append('data', JSON.stringify(logPayload));
+
+        // ส่งข้อมูลโดยไม่ต้องรอผลลัพธ์ (ไม่ต้องมี Alert กวนใจผู้ใช้)
+        fetch(scriptUrl, { method: 'POST', body: formData })
+            .catch(error => console.error("Log Error:", error));
+    }
+
+
 </script>
 </body>
 </html>
