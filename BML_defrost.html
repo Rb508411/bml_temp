@@ -152,7 +152,7 @@
             </div>
             <div class="form-group">
                 <label>👤 ชื่อผู้บันทึก</label>
-                <input type="text" id="df-recorder" class="form-control" placeholder="ระบุชื่อหรือรหัสพนักงาน" required>
+                <input type="text" id="df-recorder" class="form-control" placeholder="ดึงข้อมูลอัตโนมัติ..." required>
             </div>
         </div>
 
@@ -340,11 +340,27 @@
     }
 
     window.onload = () => {
+
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
         const dd = String(today.getDate()).padStart(2, '0');
         document.getElementById('df-date').value = `${yyyy}-${mm}-${dd}`;
+
+        const savedRecorder = localStorage.getItem('lab_logged_in_user');
+        const recorderInput = document.getElementById('df-recorder');
+        
+        if (savedRecorder && recorderInput) {
+            recorderInput.value = savedRecorder;
+            
+            // ล็อกช่องไว้ไม่ให้แก้ไข เพื่อบังคับให้อ้างอิงจากการ Login เท่านั้น
+            recorderInput.setAttribute('readonly', true); 
+            recorderInput.style.backgroundColor = '#eaf2f8'; 
+            recorderInput.style.cursor = 'not-allowed';
+        }
+
+
+
     };
 
     // ฟังก์ชันสำหรับส่งข้อมูลส่วนที่ 1 เพิ่ม 'lab_logged_in_user'
