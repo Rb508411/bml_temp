@@ -802,9 +802,8 @@
         };
 
     function logUserActivity(pageName, actionName, detailsStr = "") {
-        // ใช้ SCRIPT_URL ตัวเดียวกับที่ใช้อยู่ในหน้านั้นๆ
         const scriptUrl = SCRIPT_URL; 
-        const currentUser = localStorage.getItem('bml_recorder') || "ไม่ระบุชื่อ (Guest)";
+        const currentUser = localStorage.getItem('lab_logged_in_user') || "ไม่ระบุชื่อ (Guest)";
         
         const logPayload = {
             user: currentUser,
@@ -813,13 +812,21 @@
             details: detailsStr
         };
 
-        const formData = new URLSearchParams();
-        formData.append('action', 'logActivity');
-        formData.append('data', JSON.stringify(logPayload));
+        const url = `${scriptUrl}?action=logActivity&data=${encodeURIComponent(JSON.stringify(logPayload))}`;
 
-        // ส่งข้อมูลโดยไม่ต้องรอผลลัพธ์ (ไม่ต้องมี Alert กวนใจผู้ใช้)
-        fetch(scriptUrl, { method: 'POST', body: formData })
-            .catch(error => console.error("Log Error:", error));
+        // เพิ่มการอ่านค่าที่ Google ตอบกลับมา เพื่อเช็ค Error
+        fetch(url)
+            .then(response => response.text())
+            .then(text => {
+                console.log("Log Backend Response:", text); // พิมพ์ลง Console
+                if (text !== "Success") {
+                    alert("แจ้งเตือนจากระบบ Log: " + text); // เด้งบอกบนหน้าจอ
+                }
+            })
+            .catch(error => {
+                console.error("Log Fetch Error:", error);
+                alert("Log Fetch Error: ไม่สามารถเชื่อมต่อ Apps Script ได้");
+            });
     }
 
 

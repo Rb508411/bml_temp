@@ -283,6 +283,18 @@ function processFilters() {
         let tempTimestamps = new Set();
         let groupedData = {}; 
 
+        // 📍 1. ฟังก์ชันช่วยแปลง Timestamp เป็นรูปแบบ "YYYY-MM-DD (MORN/EVE)"
+        const getSessionKey = (timestamp) => {
+            let d = new Date(timestamp);
+            let yyyy = d.getFullYear();
+            let mm = String(d.getMonth() + 1).padStart(2, '0');
+            let dd = String(d.getDate()).padStart(2, '0');
+            let hour = d.getHours();
+            // เช็คว่าถ้าก่อน 14:00 ให้เป็น MORN นอกนั้นเป็น EVE
+            let session = (hour < 14) ? "MORN" : "EVE";
+            return `${yyyy}-${mm}-${dd} (${session})`;
+        };
+
         let globalLimits = null;
         let lowerTarget = selectedTarget.toLowerCase();
         
@@ -293,27 +305,31 @@ function processFilters() {
         else if (lowerTarget.includes("-30")) globalLimits = { min: -40, max: -20 };
         else if (lowerTarget.includes("ตู้เย็น")) globalLimits = { min: 2, max: 8 };
 
+        // 📍 2. เปลี่ยน row.timestamp ให้เป็น tsKey ก่อนนำไปจับกลุ่มข้อมูล
         if (viewType === 'room_temp') {
             filteredData.forEach(row => {
                 if (row.room === selectedTarget) {
-                    tempTimestamps.add(row.timestamp);
+                    let tsKey = getSessionKey(row.timestamp);
+                    tempTimestamps.add(tsKey);
                     if (!groupedData['อุณหภูมิห้อง (°C)']) groupedData['อุณหภูมิห้อง (°C)'] = {};
-                    groupedData['อุณหภูมิห้อง (°C)'][row.timestamp] = row.rTemp;
+                    groupedData['อุณหภูมิห้อง (°C)'][tsKey] = row.rTemp;
                 }
             });
         } 
         else if (viewType === 'room_hum') {
             filteredData.forEach(row => {
                 if (row.room === selectedTarget) {
-                    tempTimestamps.add(row.timestamp);
+                    let tsKey = getSessionKey(row.timestamp);
+                    tempTimestamps.add(tsKey);
                     if (!groupedData['ความชื้น (%)']) groupedData['ความชื้น (%)'] = {};
-                    groupedData['ความชื้น (%)'][row.timestamp] = row.rHum;
+                    groupedData['ความชื้น (%)'][tsKey] = row.rHum;
                 }
             });
         }
         else if (viewType === 'equip') {
             filteredData.forEach(row => {
                 if (row.equipments && row.equipments !== '-') {
+                    let tsKey = getSessionKey(row.timestamp);
                     if (row.equipments.includes('=')) {
                         let items = row.equipments.split(',');
                         items.forEach(item => {
@@ -321,10 +337,10 @@ function processFilters() {
                             if (parts.length === 2 && parts[0].trim() === selectedTarget) {
                                 let val = parseFloat(parts[1].replace('°C', '').trim());
                                 if (!isNaN(val)) {
-                                    tempTimestamps.add(row.timestamp);
+                                    tempTimestamps.add(tsKey);
                                     let colName = `อุณหภูมิ ${selectedTarget} (°C)`;
                                     if (!groupedData[colName]) groupedData[colName] = {};
-                                    groupedData[colName][row.timestamp] = val;
+                                    groupedData[colName][tsKey] = val;
                                 }
                             }
                         });
@@ -332,10 +348,10 @@ function processFilters() {
                         let rawVal = row.equipTemp || row['Equipments Temp'] || row.equipmentsTemp;
                         let val = parseFloat(rawVal);
                         if (!isNaN(val)) {
-                            tempTimestamps.add(row.timestamp);
+                            tempTimestamps.add(tsKey);
                             let colName = `อุณหภูมิ ${selectedTarget} (°C)`;
                             if (!groupedData[colName]) groupedData[colName] = {};
-                            groupedData[colName][row.timestamp] = val;
+                            groupedData[colName][tsKey] = val;
                         }
                     }
                 }
@@ -343,16 +359,16 @@ function processFilters() {
         } 
         else if (viewType === 'group') {
             filteredData.forEach(row => {
-                let ts = row.timestamp;
+                let tsKey = getSessionKey(row.timestamp);
                 if (selectedTarget === "อุณหภูมิห้องทั้งหมด") {
-                    tempTimestamps.add(ts);
+                    tempTimestamps.add(tsKey);
                     if (!groupedData[row.room]) groupedData[row.room] = {};
-                    groupedData[row.room][ts] = row.rTemp;
+                    groupedData[row.room][tsKey] = row.rTemp;
                 } 
                 else if (selectedTarget === "ความชื้นห้องทั้งหมด") {
-                    tempTimestamps.add(ts);
+                    tempTimestamps.add(tsKey);
                     if (!groupedData[row.room]) groupedData[row.room] = {};
-                    groupedData[row.room][ts] = row.rHum;
+                    groupedData[row.room][tsKey] = row.rHum;
                 } 
                 else {
                     if (row.equipments && row.equipments !== '-') {
@@ -366,10 +382,10 @@ function processFilters() {
                             else if (selectedTarget === "ตู้เย็น -70 °C" && eqName.includes("-70")) isMatch = true;
 
                             if (isMatch && !isNaN(val)) {
-                                tempTimestamps.add(ts);
+                                tempTimestamps.add(tsKey);
                                 let colName = `${row.room}: ${eqName}`;
                                 if (!groupedData[colName]) groupedData[colName] = {};
-                                groupedData[colName][ts] = val;
+                                groupedData[colName][tsKey] = val;
                             }
                         };
 
@@ -390,7 +406,16 @@ function processFilters() {
             });
         }
 
-        currentLabels = Array.from(tempTimestamps).sort((a,b) => new Date(a) - new Date(b));
+        // 📍 3. ปรับลอจิกการเรียงแกน X ให้เรียงตามวันที่ แล้วตามด้วยรอบ MORN ต้องมาก่อน EVE
+        currentLabels = Array.from(tempTimestamps).sort((a, b) => {
+            let dateA = a.split(' ')[0];
+            let dateB = b.split(' ')[0];
+            if (dateA !== dateB) return new Date(dateA) - new Date(dateB);
+            
+            let sessionA = a.includes('MORN') ? 0 : 1;
+            let sessionB = b.includes('MORN') ? 0 : 1;
+            return sessionA - sessionB;
+        });
 
         let colorIdx = 0;
         for (let label in groupedData) {
@@ -411,10 +436,9 @@ function processFilters() {
             colorIdx++;
         }
 
-
         let maDatasets = [];
         activeDatasets.forEach(ds => {
-            if (!ds.isLimitLine) { // ทำเฉพาะเส้นข้อมูลจริง ไม่ทำเส้นเกณฑ์
+            if (!ds.isLimitLine) { 
                 let maDataArray = [];
                 for (let i = 0; i < currentLabels.length; i++) {
                     if (ds.data[i] === null) {
@@ -422,24 +446,26 @@ function processFilters() {
                         continue;
                     }
                     
-                    let currentTime = new Date(currentLabels[i]).getTime();
+                    // 📍 4. ปรับการดึงวันที่สำหรับคำนวณ MA ให้ตัดคำว่า (MORN/EVE) ออกก่อนเพื่อไม่ให้เกิดบัค
+                    let currentDateStr = currentLabels[i].split(' ')[0];
+                    let currentTime = new Date(currentDateStr).getTime();
                     let sum = 0;
                     let count = 0;
                     
-                    // ย้อนกลับไปหาข้อมูลในอดีต (กรอบเวลา 7 วัน = 7 * 24 * 60 * 60 * 1000 มิลลิวินาที)
                     for (let j = i; j >= 0; j--) {
-                        let pastTime = new Date(currentLabels[j]).getTime();
+                        let pastDateStr = currentLabels[j].split(' ')[0];
+                        let pastTime = new Date(pastDateStr).getTime();
+                        
                         if (currentTime - pastTime <= 7 * 24 * 60 * 60 * 1000) {
                             if (ds.data[j] !== null) {
                                 sum += ds.data[j];
                                 count++;
                             }
                         } else {
-                            break; // ข้อมูลเรียงตามเวลาอยู่แล้ว ถ้าเกิน 7 วันระบบจะหยุดค้นหาทันทีเพื่อลดภาระเครื่อง
+                            break; 
                         }
                     }
                     
-                    // หากมีข้อมูลย้อนหลังให้หาค่าเฉลี่ย (ทศนิยม 2 ตำแหน่ง)
                     if (count > 0) {
                         maDataArray.push(parseFloat((sum / count).toFixed(2)));
                     } else {
@@ -450,21 +476,19 @@ function processFilters() {
                 maDatasets.push({
                     label: `ค่าเฉลี่ย 7 วัน (${ds.label})`,
                     data: maDataArray,
-                    borderColor: '#bdc3c7', // สีเทาอ่อน
+                    borderColor: '#bdc3c7', 
                     borderWidth: 2,
-                    borderDash: [3, 3], // เส้นประแบบไข่ปลา
-                    pointRadius: 0, // ปิดจุดกลมๆ บนเส้นค่าเฉลี่ย
+                    borderDash: [3, 3], 
+                    pointRadius: 0, 
                     fill: false,
                     tension: 0.3,
                     spanGaps: true,
-                    isLimitLine: true // มาร์คไว้เพื่อให้ระบบละเว้นการวาดลงในตารางและไฟล์ Excel
+                    isLimitLine: true 
                 });
             }
         });
         
-        // นำเส้นค่าเฉลี่ยทั้งหมดไปพล็อตรวมในกราฟ
         activeDatasets.push(...maDatasets);
-
 
         let limitsToAdd = [];
         if (globalLimits) {
@@ -656,9 +680,8 @@ function processFilters() {
     });
 
     function logUserActivity(pageName, actionName, detailsStr = "") {
-        // ใช้ SCRIPT_URL ตัวเดียวกับที่ใช้อยู่ในหน้านั้นๆ
         const scriptUrl = SCRIPT_URL; 
-        const currentUser = localStorage.getItem('bml_recorder') || "ไม่ระบุชื่อ (Guest)";
+        const currentUser = localStorage.getItem('lab_logged_in_user') || "ไม่ระบุชื่อ (Guest)";
         
         const logPayload = {
             user: currentUser,
@@ -667,13 +690,21 @@ function processFilters() {
             details: detailsStr
         };
 
-        const formData = new URLSearchParams();
-        formData.append('action', 'logActivity');
-        formData.append('data', JSON.stringify(logPayload));
+        const url = `${scriptUrl}?action=logActivity&data=${encodeURIComponent(JSON.stringify(logPayload))}`;
 
-        // ส่งข้อมูลโดยไม่ต้องรอผลลัพธ์ (ไม่ต้องมี Alert กวนใจผู้ใช้)
-        fetch(scriptUrl, { method: 'POST', body: formData })
-            .catch(error => console.error("Log Error:", error));
+        // เพิ่มการอ่านค่าที่ Google ตอบกลับมา เพื่อเช็ค Error
+        fetch(url)
+            .then(response => response.text())
+            .then(text => {
+                console.log("Log Backend Response:", text); // พิมพ์ลง Console
+                if (text !== "Success") {
+                    alert("แจ้งเตือนจากระบบ Log: " + text); // เด้งบอกบนหน้าจอ
+                }
+            })
+            .catch(error => {
+                console.error("Log Fetch Error:", error);
+                alert("Log Fetch Error: ไม่สามารถเชื่อมต่อ Apps Script ได้");
+            });
     }
 
 </script>
