@@ -218,7 +218,7 @@
             <div id="empty-top-left" class="map-room empty-space"></div>
             <div id="r-stock" class="map-room" onclick="showRoomDetails('Stock Room')">Stock</div>
             <div id="r-sample" class="map-room" onclick="showRoomDetails('Sample Preparation Room')">Sample preparation</div>
-            <div id="r-pre-pcr" class="map-room" onclick="showRoomDetails('Pre-PCR')">Pre-PCR</div>            
+            <div id="r-prepcr" class="map-room" onclick="showRoomDetails('Pre-PCR Room')">Pre-PCR</div>            
             <div id="r-bsl2" class="map-room" onclick="showRoomDetails('BSL-2 Room')">BSL-2</div>
             <div id="r-pcr1m" class="map-room" onclick="showRoomDetails('PCR Room I (หน้าห้อง MMX)')">PCR I (หน้าห้อง MMX)</div>
             <div id="r-mmx" class="map-room" onclick="showRoomDetails('MMX Room')">MMX</div>
@@ -368,6 +368,7 @@
 
         latestRoomData = {};
 
+        // 1. กรองและจัดกลุ่มข้อมูลตามห้อง (สะสมข้อมูลที่แยกหลายแถวเข้าด้วยกัน)
         rawData.forEach(row => {
             if (!row.timestamp) return;
             
@@ -378,33 +379,67 @@
 
             if (rowDate === selectedDateStr && (selectedSession === "ALL" || selectedSession === rowSession)) {
                 let room = row.room;
-                if (!latestRoomData[room] || new Date(row.timestamp) > new Date(latestRoomData[room].timestamp)) {
-                    latestRoomData[room] = Object.assign({}, row);
-                    latestRoomData[room].parsedEquips = [];
+                
+                // ถ้ายังไม่มีข้อมูลห้องนี้ในกล่องความจำ ให้สร้างกล่องใหม่
+                if (!latestRoomData[room]) {
+                    latestRoomData[room] = {
+                        rTemp: null,
+                        rHum: null,
+                        timestamp: row.timestamp,
+                        recorder: row.recorder,
+                        remark: row.remark,
+                        parsedEquips: [] // เตรียมพื้นที่เก็บรายชื่อตู้เย็น
+                    };
+                }
+
+                // อัปเดตข้อมูลของห้องให้เป็นค่าล่าสุดเสมอ (อิงตามเวลา)
+                if (new Date(row.timestamp) >= new Date(latestRoomData[room].timestamp)) {
+                    latestRoomData[room].timestamp = row.timestamp;
+                    if (row.rTemp !== "" && row.rTemp !== undefined) latestRoomData[room].rTemp = row.rTemp;
+                    if (row.rHum !== "" && row.rHum !== undefined) latestRoomData[room].rHum = row.rHum;
+                    if (row.recorder) latestRoomData[room].recorder = row.recorder;
+                    if (row.remark) latestRoomData[room].remark = row.remark;
+                }
+
+                // ดึงข้อมูลตู้เย็นจากแถวนี้ ไปสะสมไว้ใน parsedEquips
+                if (row.equipments && row.equipments !== '-') {
+                    let addEq = (name, val) => {
+                        // เช็คว่าตู้เย็นชื่อนี้เคยถูกเก็บไปหรือยัง ถ้ามีแล้วให้อัปเดตค่าล่าสุด
+                        let existingIdx = latestRoomData[room].parsedEquips.findIndex(e => e.name === name);
+                        if (existingIdx > -1) {
+                            latestRoomData[room].parsedEquips[existingIdx].val = val;
+                        } else {
+                            latestRoomData[room].parsedEquips.push({ name: name, val: val });
+                        }
+                    };
+
+                    // รองรับการอ่านข้อมูลทั้งรูปแบบ JSON และรูปแบบเก่า
+                    try {
+                        let eqArray = JSON.parse(row.equipments);
+                        if (Array.isArray(eqArray)) {
+                            eqArray.forEach(eq => {
+                                if(eq.name && eq.temp) addEq(eq.name, parseFloat(eq.temp));
+                            });
+                        }
+                    } catch(e) {
+                        if (row.equipments.includes('=')) {
+                            let items = row.equipments.split(',');
+                            items.forEach(item => {
+                                let parts = item.split('=');
+                                if (parts.length === 2) addEq(parts[0].trim(), parseFloat(parts[1].replace('°C', '').trim()));
+                            });
+                        } else {
+                            let rawVal = row.equipTemp || row['Equipments Temp'] || row.equipmentsTemp;
+                            if (rawVal !== undefined && rawVal !== '') {
+                                addEq(row.equipments.trim(), parseFloat(rawVal));
+                            }
+                        }
+                    }
                 }
             }
         });
 
-        for (let room in latestRoomData) {
-            let row = latestRoomData[room];
-            if (row.equipments && row.equipments !== '-') {
-                let addEq = (name, val) => row.parsedEquips.push({ name: name, val: val });
-
-                if (row.equipments.includes('=')) {
-                    let items = row.equipments.split(',');
-                    items.forEach(item => {
-                        let parts = item.split('=');
-                        if (parts.length === 2) addEq(parts[0].trim(), parseFloat(parts[1].replace('°C', '').trim()));
-                    });
-                } else {
-                    let rawVal = row.equipTemp || row['Equipments Temp'] || row.equipmentsTemp;
-                    if (rawVal !== undefined && rawVal !== '') {
-                        addEq(row.equipments.trim(), parseFloat(rawVal));
-                    }
-                }
-            }
-        }
-
+        // 2. ตรวจสอบสถานะความผิดปกติของแต่ละห้อง
         Object.keys(ROOM_ID_MAP).forEach(roomName => {
             let elementId = ROOM_ID_MAP[roomName];
             let el = document.getElementById(elementId);
