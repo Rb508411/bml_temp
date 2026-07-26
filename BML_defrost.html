@@ -199,21 +199,53 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
 
     const LAB_EQUIPMENTS = {
-            "Cobas 4800 Zone": ["ตู้เย็น (BML-MOL-139)"], 
-            "Post PCR Room": ["ตู้เย็น (BML-MOL-616)"], 
-            "PCR Room I (หน้าห้อง Post PCR)": [],
-            "PCR Mix Room": [],
-            "PCR Room I (หน้าห้อง MMX)": ["ตู้เย็น (BML-MOL-211)", "ตู้เย็น -30 °C (BML-MOL-206)", "ตู้เย็น -20 °C (BML-MOL-489)", "ตู้เย็น (BML-MOL-352)"],
-            "MMX Room": ["ตู้เย็น (BML-MOL-353)", "ตู้เย็น -20 °C (BML-MOL-353)"],
-            "Sample Preparation Room": ["ตู้เย็น (BML-MOL-210)", "ตู้เย็น (BML-MOL-458)", "ตู้เย็น -20 °C (BML-MOL-458)", "ตู้เย็น -20 °C (BML-MOL-121)", "ตู้เย็น -20 °C (BML-MOL-123)", "ตู้เย็น -30 °C (BML-MOL-207)"],
-            "BSL-2 Room": ["ตู้เย็น -70 °C (BML-MOL-220)", "ตู้เย็น -70 °C (BML-MOL-125)", "ตู้เย็น -70 °C (BML-MOL-124)"],
             "Stock Room": [],
-            "PCR Room II": [],
+            "Sample Preparation Room": [
+                "ตู้เย็น (BML-MOL-210)",
+                "ตู้เย็น (BML-MOL-458)",
+                "ตู้เย็น -20 °C (BML-MOL-458)",
+                "ตู้เย็น -20 °C (BML-MOL-121)",
+                "ตู้เย็น -20 °C (BML-MOL-123)",
+                "ตู้เย็น -30 °C (BML-MOL-207)"
+            ],
+            "MMX Room": [
+                "ตู้เย็น (BML-MOL-353)",
+                "ตู้เย็น -20 °C (BML-MOL-353)"
+            ],
+            "PCR Mix Room": [],
+            "PCR Room I (หน้าห้อง MMX)": [
+                "ตู้เย็น (BML-MOL-211)",
+                "ตู้เย็น -30 °C (BML-MOL-206)",
+                "ตู้เย็น -20 °C (BML-MOL-489)",
+                "ตู้เย็น (BML-MOL-352)"
+            ],
+            "PCR Room I (หน้าห้อง Post PCR)": [],
+            "BSL-2 Room": [
+                "ตู้เย็น -70 °C (BML-MOL-220)",
+                "ตู้เย็น -70 °C (BML-MOL-125)",
+                "ตู้เย็น -70 °C (BML-MOL-124)"
+            ],
+            "FFPE Extraction":[],
+            "Pre-PCR Room":[],
+            "Library Preparation": [
+                "ตู้เย็น (BML-MOL-539)",
+                "ตู้เย็น -20 °C (BML-MOL-617)",
+                "ตู้เย็น -70 °C (BML-MOL-566)"
+            ],
+            "Post PCR Room": [
+                "ตู้เย็น (BML-MOL-616)"
+            ], 
             "Cobas 6800 Room": [],
-            "Library Preparation": ["ตู้เย็น (BML-MOL-539)", "ตู้เย็น -20 °C (BML-MOL-617)", "ตู้เย็น -70 °C (BML-MOL-566)"],
+            "Cobas 4800 Zone": [
+                "ตู้เย็น (BML-MOL-139)"
+            ], 
             "Sequencing Room": [],
-            "Analysis Room": ["ตู้เย็น (BML-MOL-619)", "ตู้เย็น -20 °C (BML-MOL-620)", "ตู้เย็น -20 °C (BML-MOL-680)"]
-    };
+            "Analysis Room": [
+                "ตู้เย็น (BML-MOL-619)",
+                "ตู้เย็น -20 °C (BML-MOL-620)",
+                "ตู้เย็น -20 °C (BML-MOL-680)"
+            ]
+        };
 
     function updateEquipmentList() {
         const room = document.getElementById('df-room').value;
