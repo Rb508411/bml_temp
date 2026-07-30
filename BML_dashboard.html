@@ -3,8 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-
     <title>Dashboard อุณหภูมิและความชื้น</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -22,7 +20,6 @@
         .btn-summary { background-color: #e67e22; } .btn-summary:hover { background-color: #d35400; }
         .btn-map { background-color: #16a085; } .btn-map:hover { background-color: #117a65; }
 
-        /* ปรับความสูงกราฟจาก 50vh เป็น 65vh */
         .chart-container { position: relative; height: 65vh; width: 100%; margin-bottom: 20px; }
         #loading { text-align: center; color: #e67e22; font-weight: bold; font-size: 1.2rem; display: none; margin: 20px 0; }
         
@@ -34,92 +31,47 @@
         .controls { display: flex; gap: 15px; flex-wrap: wrap; background-color: #eaf2f8; padding: 15px; border-radius: 8px; margin-bottom: 20px; align-items: center; justify-content: center;}
         .controls label { font-weight: bold; color: #2980b9; }
 
+        /* ป้องกันการตัดหน้ากระดาษขาดครึ่งบรรทัด และให้พยายามดึงหัวตารางซ้ำ */
+        .data-table thead { display: table-header-group; }
+        .data-table tr { page-break-inside: avoid; }
     </style>
 </head>
 <body>
 
-
-
 <div class="container">
-
-    <!-- โลโก้ N Health -->
     <div style="text-align: center; padding-top: 10px; margin-bottom: 15px;">
         <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo" style="max-height: 70px; width: auto; object-fit: contain;">
     </div>
 
     <style>
-
-        .header {
-            background: linear-gradient(135deg, #00338D, #34495e);
-            color: white;
-            padding: 10px;
-            text-align: center;
-        }
-                    /* สไตล์สำหรับปุ่มลิงก์เมนู (ปุ่มจะลอยขึ้นเล็กน้อยและเปลี่ยนสีตอน Hover) */
-        .menu-link-btn {
-                        color: white !important;
-                        padding: 10px 15px;
-                        border-radius: 6px;
-                        text-decoration: none;
-                        font-size: 0.95rem;
-                        font-weight: bold;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                        transition: all 0.3s ease;
-                    }
-                    
-                    .menu-btn-map { background-color: #00338D; }
-                    .menu-btn-map:hover { background-color: #001f5c; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-main { background-color: #2c3e50; }
-                    .menu-btn-main:hover { background-color: #939393; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-dash { background-color: #3498db; }
-                    .menu-btn-dash:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-sum { background-color: #e67e22; }
-                    .menu-btn-sum:hover { background-color: #d35400; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-frost { background-color: #3a2dec; }
-                    .menu-btn-frost:hover { background-color: #595beb; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
+        .header { background: linear-gradient(135deg, #00338D, #34495e); color: white; padding: 10px; text-align: center; }
+        .menu-link-btn { color: white !important; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 0.95rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: all 0.3s ease; }
+        .menu-btn-map { background-color: #00338D; } .menu-btn-map:hover { background-color: #001f5c; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .menu-btn-main { background-color: #2c3e50; } .menu-btn-main:hover { background-color: #939393; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .menu-btn-dash { background-color: #3498db; } .menu-btn-dash:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .menu-btn-sum { background-color: #e67e22; } .menu-btn-sum:hover { background-color: #d35400; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .menu-btn-frost { background-color: #3a2dec; } .menu-btn-frost:hover { background-color: #595beb; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
     </style>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #00338D; flex-wrap: wrap; gap: 10px;">
-            <h3 style="margin-top:0; margin-bottom:0; color: #2c3e50;">เลือกหน้าต่าง</h3>
-                    
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">
-                            🗺️ ผังห้อง
-                </a>
-                <a href="https://rb508411.github.io/bml_temp/TempBML.html" target="_blank" class="menu-link-btn menu-btn-main">
-                            🏠 หน้าหลัก
-                </a>
-                <!--<a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash">
-                            📊 Dashboard
-                </a>-->
-
-                <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">
-                            📝 รายงานสรุป
-                </a>
-
-                <a href="https://rb508411.github.io/bml_temp/BML_defrost.html" target="_blank" class="menu-link-btn menu-btn-frost">
-                            ❄️ กิจกรรมตู้เย็น
-                </a>
-
-
-            </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #00338D; flex-wrap: wrap; gap: 10px;">
+        <h3 style="margin-top:0; margin-bottom:0; color: #2c3e50;">เลือกหน้าต่าง</h3>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">🗺️ ผังห้อง</a>
+            <a href="https://rb508411.github.io/bml_temp/TempBML.html" target="_blank" class="menu-link-btn menu-btn-main">🏠 หน้าหลัก</a>
+            <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">📝 รายงานสรุป</a>
+            <a href="https://rb508411.github.io/bml_temp/BML_defrost.html" target="_blank" class="menu-link-btn menu-btn-frost">❄️ กิจกรรมตู้เย็น</a>
         </div>
+    </div>
 
-        <div id="user-profile" style="text-align: center; background-color: #eaf2f8; padding: 8px; border-radius: 6px; color: #2c3e50; font-size: 0.95rem; margin-bottom: 20px; display: none;">
-            👤 เข้าสู่ระบบโดย: <strong id="display-name" style="color: #2980b9;"></strong>
-        </div>
+    <div id="user-profile" style="text-align: center; background-color: #eaf2f8; padding: 8px; border-radius: 6px; color: #2c3e50; font-size: 0.95rem; margin-bottom: 20px; display: none;">
+        👤 เข้าสู่ระบบโดย: <strong id="display-name" style="color: #2980b9;"></strong>
+    </div>
 
     <div class="header">
         <h1>📊 Dashboard อุณหภูมิและความชื้น<br><small style="font-weight:normal; font-size:1rem;">Molecular Laboratory</small></h1>
     </div>
     
     <div class="controls">
-
         <div style="display: flex; gap: 10px; align-items: center; width: 100%; margin-bottom: 10px; flex-wrap: wrap;">
             <label style="font-weight: bold; color: #2c3e50;">📅 ข้อมูลตั้งแต่:</label>
             <input type="date" id="startDate" onchange="renderChart()" style="padding: 8px; border-radius: 5px; border: 1px solid #bdc3c7;">
@@ -129,7 +81,6 @@
         </div>
         
         <select id="viewType" onchange="updateSubFilter()">
-            <!-- แยกอุณหภูมิและความชื้นห้องออกจากกัน -->
             <option value="room_temp">🌡️ ดูอุณหภูมิห้อง (รายห้อง)</option>
             <option value="room_hum">💧 ดูความชื้นห้อง (รายห้อง)</option>
             <option value="equip">🔬 ดูอุณหภูมิเครื่องมือ (รายรุ่น)</option>
@@ -158,7 +109,7 @@
     <div id="loading">⏳ กำลังประมวลผล...</div>
     
     <div id="export-content" style="padding: 10px; background: white;">
-        <h3 id="report-title" style="text-align: center; display: none; color: #2c3e50;">รายงานข้อมูล</h3>
+        <h3 id="report-title" style="text-align: center; display: none; color: #2c3e50; margin-bottom: 20px;">รายงานข้อมูล</h3>
         <div class="chart-container">
             <canvas id="myChart"></canvas>
         </div>
@@ -182,7 +133,6 @@
     const colorPalette = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#34495e', '#ff6b81', '#7bed9f'];
 
     async function loadData() {
-
         const today = new Date();
         const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(today.getDate() - 30);
         const threeMonthsAgo = new Date(); threeMonthsAgo.setMonth(today.getMonth() - 3);
@@ -196,7 +146,7 @@
         
         startDateEl.value = formatDate(thirtyDaysAgo);
         endDateEl.value = formatDate(today);
-        startDateEl.min = formatDate(threeMonthsAgo); // ล็อกไม่ให้ถอยเกิน 3 เดือน
+        startDateEl.min = formatDate(threeMonthsAgo);
         startDateEl.max = formatDate(today);
         endDateEl.max = formatDate(today);
 
@@ -211,23 +161,20 @@
         hideLoading();
     }
 
-function processFilters() {
+    function processFilters() {
         rooms.clear();
         equipments.clear();
         
         rawData.forEach(row => {
             if (row.room) rooms.add(row.room);
-            // ดักจับข้อมูลที่ไม่ใช่ค่าว่าง หรือเครื่องหมาย -
             if (row.equipments && row.equipments !== '-' && row.equipments.trim() !== '') {
                 if (row.equipments.includes('=')) {
-                    // รองรับข้อมูลรูปแบบเก่า
                     let items = row.equipments.split(',');
                     items.forEach(item => {
                         let parts = item.split('=');
                         if (parts.length === 2) equipments.add(parts[0].trim());
                     });
                 } else {
-                    // รองรับข้อมูลรูปแบบใหม่ (แยกคอลัมน์)
                     equipments.add(row.equipments.trim());
                 }
             }
@@ -241,7 +188,6 @@ function processFilters() {
         subFilter.innerHTML = '';
 
         let options = [];
-        // ใช้ชุดข้อมูลห้องเดียวกันทั้งอุณหภูมิและความชื้น
         if (viewType === 'room_temp' || viewType === 'room_hum') {
             options = Array.from(rooms).sort();
         } else if (viewType === 'equip') {
@@ -261,20 +207,36 @@ function processFilters() {
     }
 
     function renderChart() {
-
         const viewType = document.getElementById('viewType').value;
         const selectedTarget = document.getElementById('subFilter').value;
         if (!selectedTarget) return;
 
-        const sDate = new Date(document.getElementById('startDate').value);
-        sDate.setHours(0, 0, 0, 0);
-        const eDate = new Date(document.getElementById('endDate').value);
-        eDate.setHours(23, 59, 59, 999);
+        const sVal = document.getElementById('startDate').value;
+        const eVal = document.getElementById('endDate').value;
+        if (!sVal || !eVal) return;
+
+        const sParts = sVal.split('-');
+        const sDate = new Date(sParts[0], sParts[1] - 1, sParts[2], 0, 0, 0, 0);
+        const eParts = eVal.split('-');
+        const eDate = new Date(eParts[0], eParts[1] - 1, eParts[2], 23, 59, 59, 999);
+
+        const parseTimestamp = (ts) => {
+            if (!ts) return null;
+            let d = new Date(ts);
+            if (!isNaN(d.getTime())) return d;
+            if (typeof ts === 'string' && ts.includes('/')) {
+                let parts = ts.split(/[\s/:]+/);
+                if (parts.length >= 3) {
+                    return new Date(parts[2], parts[1] - 1, parts[0], parts[3] || 0, parts[4] || 0, parts[5] || 0);
+                }
+            }
+            return null;
+        };
 
         let filteredData = rawData.filter(row => {
-            if (!row.timestamp) return false;
-            let d = new Date(row.timestamp);
-            return d >= sDate && d <= eDate;
+            let d = parseTimestamp(row.timestamp);
+            if (!d) return false;
+            return d.getTime() >= sDate.getTime() && d.getTime() <= eDate.getTime();
         });
 
         currentLabels = [];
@@ -283,14 +245,13 @@ function processFilters() {
         let tempTimestamps = new Set();
         let groupedData = {}; 
 
-        // 📍 1. ฟังก์ชันช่วยแปลง Timestamp เป็นรูปแบบ "YYYY-MM-DD (MORN/EVE)"
         const getSessionKey = (timestamp) => {
-            let d = new Date(timestamp);
+            let d = parseTimestamp(timestamp);
+            if (!d) return "Unknown";
             let yyyy = d.getFullYear();
             let mm = String(d.getMonth() + 1).padStart(2, '0');
             let dd = String(d.getDate()).padStart(2, '0');
             let hour = d.getHours();
-            // เช็คว่าถ้าก่อน 14:00 ให้เป็น MORN นอกนั้นเป็น EVE
             let session = (hour < 14) ? "MORN" : "EVE";
             return `${yyyy}-${mm}-${dd} (${session})`;
         };
@@ -305,7 +266,6 @@ function processFilters() {
         else if (lowerTarget.includes("-30")) globalLimits = { min: -40, max: -20 };
         else if (lowerTarget.includes("ตู้เย็น")) globalLimits = { min: 2, max: 8 };
 
-        // 📍 2. เปลี่ยน row.timestamp ให้เป็น tsKey ก่อนนำไปจับกลุ่มข้อมูล
         if (viewType === 'room_temp') {
             filteredData.forEach(row => {
                 if (row.room === selectedTarget) {
@@ -406,11 +366,13 @@ function processFilters() {
             });
         }
 
-        // 📍 3. ปรับลอจิกการเรียงแกน X ให้เรียงตามวันที่ แล้วตามด้วยรอบ MORN ต้องมาก่อน EVE
         currentLabels = Array.from(tempTimestamps).sort((a, b) => {
-            let dateA = a.split(' ')[0];
-            let dateB = b.split(' ')[0];
-            if (dateA !== dateB) return new Date(dateA) - new Date(dateB);
+            let dateA = a.split(' ')[0].split('-');
+            let dateB = b.split(' ')[0].split('-');
+            let timeA = new Date(dateA[0], dateA[1] - 1, dateA[2]).getTime();
+            let timeB = new Date(dateB[0], dateB[1] - 1, dateB[2]).getTime();
+            
+            if (timeA !== timeB) return timeA - timeB;
             
             let sessionA = a.includes('MORN') ? 0 : 1;
             let sessionB = b.includes('MORN') ? 0 : 1;
@@ -446,15 +408,14 @@ function processFilters() {
                         continue;
                     }
                     
-                    // 📍 4. ปรับการดึงวันที่สำหรับคำนวณ MA ให้ตัดคำว่า (MORN/EVE) ออกก่อนเพื่อไม่ให้เกิดบัค
-                    let currentDateStr = currentLabels[i].split(' ')[0];
-                    let currentTime = new Date(currentDateStr).getTime();
+                    let curParts = currentLabels[i].split(' ')[0].split('-');
+                    let currentTime = new Date(curParts[0], curParts[1] - 1, curParts[2]).getTime();
                     let sum = 0;
                     let count = 0;
                     
                     for (let j = i; j >= 0; j--) {
-                        let pastDateStr = currentLabels[j].split(' ')[0];
-                        let pastTime = new Date(pastDateStr).getTime();
+                        let pastParts = currentLabels[j].split(' ')[0].split('-');
+                        let pastTime = new Date(pastParts[0], pastParts[1] - 1, pastParts[2]).getTime();
                         
                         if (currentTime - pastTime <= 7 * 24 * 60 * 60 * 1000) {
                             if (ds.data[j] !== null) {
@@ -512,9 +473,10 @@ function processFilters() {
 
         drawChart();
         renderDataTable();
-        document.getElementById('report-title').innerText = `รายงานผล: ${selectedTarget}`;
+        
+        const reportTargetText = document.getElementById('report-title');
+        if (reportTargetText) reportTargetText.innerText = `รายงานผล: ${selectedTarget}`;
     }
-
 
     function drawChart() {
         const ctx = document.getElementById('myChart').getContext('2d');
@@ -532,12 +494,13 @@ function processFilters() {
         });
     }
 
+    // 📍 คืนค่าตารางแบบปกติ (ไม่ซอย) แต่ใช้ thead หุ้มหัวตารางไว้
     function renderDataTable() {
         let dataDatasets = activeDatasets.filter(ds => !ds.isLimitLine);
-        let tableHTML = '<table class="data-table"><tr><th>เวลา (Timestamp)</th>';
         
+        let tableHTML = '<table class="data-table"><thead><tr><th>เวลา (Timestamp)</th>';
         dataDatasets.forEach(ds => { tableHTML += `<th>${ds.label}</th>`; });
-        tableHTML += '</tr>';
+        tableHTML += '</tr></thead><tbody>';
 
         for (let i = 0; i < currentLabels.length; i++) {
             tableHTML += `<tr><td>${currentLabels[i]}</td>`;
@@ -545,7 +508,6 @@ function processFilters() {
                 let val = ds.data[i] !== null ? ds.data[i] : '-';
                 let styleStr = '';
 
-                // ตรวจสอบว่าค่าออกนอกเกณฑ์หรือไม่ (ถ้าหลุดให้เปลี่ยนฟอนต์เป็นสีแดง 255,0,0)
                 if (val !== '-' && ds.limitRange) {
                     if (val < ds.limitRange.min) {
                         styleStr = 'color: rgb(0,0,255); font-weight: bold;';
@@ -553,14 +515,12 @@ function processFilters() {
                     else if (val > ds.limitRange.max) {
                         styleStr = 'color: rgb(255,0,0); font-weight: bold;';
                     }
-
                 }
-                
                 tableHTML += `<td style="${styleStr}">${val}</td>`;
             });
             tableHTML += '</tr>';
         }
-        tableHTML += '</table>';
+        tableHTML += '</tbody></table>';
         document.getElementById('data-table-container').innerHTML = tableHTML;
     }
 
@@ -585,24 +545,93 @@ function processFilters() {
         try {
             if (format === 'pdf') {
                 document.getElementById('report-title').style.display = 'block';
-                const element = document.getElementById('export-content');
+                
+                // ปลดล็อกตารางให้กางเต็ม 100%
+                const tableContainer = document.getElementById('data-table-container');
+                tableContainer.style.overflowX = 'visible';
+                const exportElement = document.getElementById('export-content');
+                exportElement.style.height = 'auto';
+
+                // สร้างภาพ Header (โลโก้ + ข้อความ) บน Canvas 
+                const hdrCanvas = document.createElement('canvas');
+                hdrCanvas.width = 2338; // ความละเอียดสำหรับ A4 แนวนอน
+                hdrCanvas.height = 200;
+                const ctxH = hdrCanvas.getContext('2d');
+                ctxH.fillStyle = "white";
+                ctxH.fillRect(0, 0, hdrCanvas.width, hdrCanvas.height);
+                
+                if (window.pdfLogoBase64) {
+                    const img = new Image();
+                    img.src = window.pdfLogoBase64;
+                    ctxH.drawImage(img, 100, 40, 280, 85);
+                }
+                
+                ctxH.font = "bold 60px 'Helvetica Neue', Arial, sans-serif";
+                ctxH.fillStyle = "#2c3e50";
+                ctxH.textAlign = "center";
+                ctxH.fillText("แบบบันทึกพรเทพ", hdrCanvas.width / 2, 110);
+                
+                ctxH.beginPath();
+                ctxH.moveTo(100, 180);
+                ctxH.lineTo(hdrCanvas.width - 100, 180);
+                ctxH.strokeStyle = "#2c3e50";
+                ctxH.lineWidth = 4;
+                ctxH.stroke();
+                const headerData = hdrCanvas.toDataURL('image/jpeg', 1.0);
+
+                // สร้างภาพ Footer บน Canvas
+                const ftrCanvas = document.createElement('canvas');
+                ftrCanvas.width = 2338;
+                ftrCanvas.height = 100;
+                const ctxF = ftrCanvas.getContext('2d');
+                ctxF.fillStyle = "white";
+                ctxF.fillRect(0, 0, ftrCanvas.width, ftrCanvas.height);
+                
+                ctxF.beginPath();
+                ctxF.moveTo(100, 10);
+                ctxF.lineTo(ftrCanvas.width - 100, 10);
+                ctxF.strokeStyle = "#bdc3c7";
+                ctxF.lineWidth = 2;
+                ctxF.stroke();
+                
+                ctxF.font = "35px 'Helvetica Neue', Arial, sans-serif";
+                ctxF.fillStyle = "#34495e";
+                ctxF.textAlign = "left";
+                ctxF.fillText("FP-BML-BIO-00-008/4 แก้ไขครั้งที่ 09", 100, 60);
+                const footerData = ftrCanvas.toDataURL('image/jpeg', 1.0);
+
+                // ตั้งค่าหน้ากระดาษและสั่งตัดหน้าตรงส่วน <tr> เพื่อกันขาด
                 const opt = {
-                    margin: 0.5,
+                    margin: [1.1, 0.5, 0.8, 0.5], // บน 1.1", ขวา 0.5", ล่าง 0.8", ซ้าย 0.5"
                     filename: `Report_${target}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } 
+                    image: { type: 'jpeg', quality: 1 },
+                    html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
+                    pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' } 
                 };
 
+                // สั่งสร้าง PDF แล้ววนลูปประทับตราทุกหน้า
+                let worker = html2pdf().set(opt).from(exportElement).toPdf().get('pdf').then(function(pdf) {
+                    const totalPages = pdf.internal.getNumberOfPages();
+                    for (let i = 1; i <= totalPages; i++) {
+                        pdf.setPage(i);
+                        pdf.addImage(headerData, 'JPEG', 0, 0, 11.69, 1.0);   // แปะหัว
+                        pdf.addImage(footerData, 'JPEG', 0, 7.6, 11.69, 0.5); // แปะท้าย
+                    }
+                });
+
                 if (method === 'download') {
-                    await html2pdf().set(opt).from(element).save();
+                    await worker.save();
                     await sendLogToBackend(target, format, method, "");
                 } else {
-                    const pdfBase64 = await html2pdf().set(opt).from(element).outputPdf('datauristring');
+                    const pdfBase64 = await worker.outputPdf('datauristring');
                     const b64Data = pdfBase64.split(',')[1];
                     await sendLogToBackend(target, format, method, email, b64Data, "application/pdf", `Report_${target}.pdf`);
                 }
+                
+                // คืนค่าหน้าจอ
                 document.getElementById('report-title').style.display = 'none';
+                tableContainer.style.overflowX = 'auto';
 
             } else if (format === 'excel') {
                 let dataDatasets = activeDatasets.filter(ds => !ds.isLimitLine);
@@ -666,15 +695,38 @@ function processFilters() {
         document.getElementById('loading').style.display = 'none';
     }
 
-    window.onload = loadData;
+    // ==========================================
+    // เตรียมโหลดรูปโลโก้เข้า Cache เพื่อให้ประทับตรา PDF ได้
+    // ==========================================
+    window.pdfLogoBase64 = "";
+    
+    function preloadPDFLogo() {
+        const logoUrl = 'https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png';
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            window.pdfLogoBase64 = canvas.toDataURL('image/png'); 
+        };
+        img.src = logoUrl;
+    }
+
+    window.onload = () => {
+        loadData();
+        preloadPDFLogo();
+    };
 
     window.addEventListener('load', () => {
-        // 📍 ดึงชื่อจากการ Login ในหน้า TempBML
         const savedUser = localStorage.getItem('lab_logged_in_user');
         
         if (savedUser) {
             document.getElementById('display-name').innerText = savedUser;
-            document.getElementById('user-profile').style.display = 'block'; // แสดงกล่องข้อความ
+            document.getElementById('user-profile').style.display = 'block'; 
             logUserActivity("Dashboard กราฟ", "เปิดดูหน้าต่าง");
         }
     });
@@ -690,21 +742,12 @@ function processFilters() {
             details: detailsStr
         };
 
-        const url = `${scriptUrl}?action=logActivity&data=${encodeURIComponent(JSON.stringify(logPayload))}`;
+        const formData = new URLSearchParams();
+        formData.append('action', 'logActivity');
+        formData.append('data', JSON.stringify(logPayload));
 
-        // เพิ่มการอ่านค่าที่ Google ตอบกลับมา เพื่อเช็ค Error
-        fetch(url)
-            .then(response => response.text())
-            .then(text => {
-                console.log("Log Backend Response:", text); // พิมพ์ลง Console
-                if (text !== "Success") {
-                    alert("แจ้งเตือนจากระบบ Log: " + text); // เด้งบอกบนหน้าจอ
-                }
-            })
-            .catch(error => {
-                console.error("Log Fetch Error:", error);
-                alert("Log Fetch Error: ไม่สามารถเชื่อมต่อ Apps Script ได้");
-            });
+        fetch(scriptUrl, { method: 'POST', body: formData })
+            .catch(error => console.error("Log Error:", error));
     }
 
 </script>
