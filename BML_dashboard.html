@@ -120,6 +120,36 @@
 <script>
     // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
+
+    function checkLoginExpiration() {
+        const savedUser = localStorage.getItem('lab_logged_in_user');
+        const savedTime = localStorage.getItem('lab_login_timestamp');
+        
+        if (savedUser && savedTime) {
+            const now = Date.now();
+            const ONE_HOUR = 60 * 60 * 1000; // 1 ชั่วโมง
+            
+            if (now - parseInt(savedTime) > ONE_HOUR) {
+                localStorage.removeItem('lab_logged_in_user');
+                localStorage.removeItem('lab_login_timestamp');
+                
+                alert("⏱️ เซสชันหมดอายุ (เกิน 1 ชั่วโมง) ระบบจะพากลับไปหน้าเข้าสู่ระบบครับ");
+                window.location.href = "https://rb508411.github.io/bml_temp/TempBML.html"; 
+                return false;
+            }
+            return true;
+        }
+        
+        alert("🔒 คุณยังไม่ได้เข้าสู่ระบบ กรุณาเข้าสู่ระบบผ่านหน้าหลักก่อนครับ");
+        window.location.href = "https://rb508411.github.io/bml_temp/TempBML.html";
+        return false;
+    }
+
+
+
+
+
+
     let currentUser = localStorage.getItem('lab_logged_in_user') || "ไม่ระบุตัวตน";
     
     let rawData = [];
@@ -546,15 +576,52 @@
             if (format === 'pdf') {
                 document.getElementById('report-title').style.display = 'block';
                 
-                // ปลดล็อกตารางให้กางเต็ม 100%
                 const tableContainer = document.getElementById('data-table-container');
-                tableContainer.style.overflowX = 'visible';
                 const exportElement = document.getElementById('export-content');
+                
+                // 1. ปลดล็อกข้อจำกัด CSS ชั่วคราวเพื่อให้ตารางกางออกตามข้อมูลจริง
+                tableContainer.style.overflowX = 'visible';
                 exportElement.style.height = 'auto';
+                exportElement.style.width = 'auto'; 
+                exportElement.style.maxWidth = 'none';
+                
+                // 📍 2. ระบบคำนวณขนาดกระดาษอัตโนมัติ (A4 -> A3 -> A2)
+                const actualWidth = exportElement.scrollWidth;
+                
+                let paperFormat = 'a4';
+                let pdfWidthInches = 11.69;  // A4 แนวนอน
+                let pdfHeightInches = 8.27; 
+                let captureWidth = 1200;    
+                
+                // เช็คขนาดจากใหญ่สุดลงมาเล็กสุด
+                if (actualWidth > 2400) {
+                    paperFormat = 'a1';
+                    pdfWidthInches = 33.11;  // A1 กว้าง 23.39 นิ้ว
+                    pdfHeightInches = 23.39; // A1 สูง 16.54 นิ้ว
+                    captureWidth = Math.max(3394, actualWidth + 50); 
+                } 
 
-                // สร้างภาพ Header (โลโก้ + ข้อความ) บน Canvas 
+                else if (actualWidth > 1700) {
+                    paperFormat = 'a2';
+                    pdfWidthInches = 23.39;  // A2 กว้าง 23.39 นิ้ว
+                    pdfHeightInches = 16.54; // A2 สูง 16.54 นิ้ว
+                    captureWidth = Math.max(2400, actualWidth + 50); 
+                } 
+                else if (actualWidth > 1200) {
+                    paperFormat = 'a3';
+                    pdfWidthInches = 16.54;  // A3 กว้าง 16.54 นิ้ว
+                    pdfHeightInches = 11.69; // A3 สูง 11.69 นิ้ว
+                    captureWidth = Math.max(1700, actualWidth + 50); 
+                }
+                
+                // ล็อกความกว้างตามที่ระบบคำนวณได้
+                exportElement.style.width = captureWidth + 'px';
+                exportElement.style.margin = '0 auto';
+
+                // 3. สร้างภาพ Header แบบยืดหยุ่นตามความกว้างกระดาษ
+                const canvasWidth = Math.floor(pdfWidthInches * 200); // ความละเอียด 200 DPI
                 const hdrCanvas = document.createElement('canvas');
-                hdrCanvas.width = 2338; // ความละเอียดสำหรับ A4 แนวนอน
+                hdrCanvas.width = canvasWidth;
                 hdrCanvas.height = 200;
                 const ctxH = hdrCanvas.getContext('2d');
                 ctxH.fillStyle = "white";
@@ -569,19 +636,19 @@
                 ctxH.font = "bold 60px 'Helvetica Neue', Arial, sans-serif";
                 ctxH.fillStyle = "#2c3e50";
                 ctxH.textAlign = "center";
-                ctxH.fillText("แบบบันทึกพรเทพ", hdrCanvas.width / 2, 110);
+                ctxH.fillText("แบบบันทึกพรเทพ", hdrCanvas.width / 2, 110); 
                 
                 ctxH.beginPath();
                 ctxH.moveTo(100, 180);
-                ctxH.lineTo(hdrCanvas.width - 100, 180);
+                ctxH.lineTo(hdrCanvas.width - 100, 180); // ลากเส้นถึงขอบขวากระดาษเสมอ
                 ctxH.strokeStyle = "#2c3e50";
                 ctxH.lineWidth = 4;
                 ctxH.stroke();
                 const headerData = hdrCanvas.toDataURL('image/jpeg', 1.0);
 
-                // สร้างภาพ Footer บน Canvas
+                // 4. สร้างภาพ Footer แบบยืดหยุ่น
                 const ftrCanvas = document.createElement('canvas');
-                ftrCanvas.width = 2338;
+                ftrCanvas.width = canvasWidth;
                 ftrCanvas.height = 100;
                 const ctxF = ftrCanvas.getContext('2d');
                 ctxF.fillStyle = "white";
@@ -600,23 +667,24 @@
                 ctxF.fillText("FP-BML-BIO-00-008/4 แก้ไขครั้งที่ 09", 100, 60);
                 const footerData = ftrCanvas.toDataURL('image/jpeg', 1.0);
 
-                // ตั้งค่าหน้ากระดาษและสั่งตัดหน้าตรงส่วน <tr> เพื่อกันขาด
+                // 5. ตั้งค่ากระดาษโดยนำค่าที่คำนวณมาใช้งาน
                 const opt = {
-                    margin: [1.1, 0.5, 0.8, 0.5], // บน 1.1", ขวา 0.5", ล่าง 0.8", ซ้าย 0.5"
+                    margin: [1.1, 0.5, 0.8, 0.5], 
                     filename: `Report_${target}.pdf`,
                     image: { type: 'jpeg', quality: 1 },
-                    html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-                    jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' },
+                    html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: captureWidth },
+                    jsPDF: { unit: 'in', format: paperFormat, orientation: 'landscape' },
                     pagebreak: { mode: ['css', 'legacy'], avoid: 'tr' } 
                 };
 
-                // สั่งสร้าง PDF แล้ววนลูปประทับตราทุกหน้า
+                // 6. สั่งสร้าง PDF แล้วประทับตราตามขนาดกระดาษจริง
                 let worker = html2pdf().set(opt).from(exportElement).toPdf().get('pdf').then(function(pdf) {
                     const totalPages = pdf.internal.getNumberOfPages();
+                    const footerY = pdfHeightInches - 0.67; // คำนวณพิกัดแกน Y สำหรับ Footer ให้พอดีความสูงกระดาษ
                     for (let i = 1; i <= totalPages; i++) {
                         pdf.setPage(i);
-                        pdf.addImage(headerData, 'JPEG', 0, 0, 11.69, 1.0);   // แปะหัว
-                        pdf.addImage(footerData, 'JPEG', 0, 7.6, 11.69, 0.5); // แปะท้าย
+                        pdf.addImage(headerData, 'JPEG', 0, 0, pdfWidthInches, 1.0);   
+                        pdf.addImage(footerData, 'JPEG', 0, footerY, pdfWidthInches, 0.5); 
                     }
                 });
 
@@ -629,9 +697,11 @@
                     await sendLogToBackend(target, format, method, email, b64Data, "application/pdf", `Report_${target}.pdf`);
                 }
                 
-                // คืนค่าหน้าจอ
+                // 7. คืนค่าหน้าจอให้กลับสู่ปกติ
                 document.getElementById('report-title').style.display = 'none';
                 tableContainer.style.overflowX = 'auto';
+                exportElement.style.width = 'auto'; 
+                exportElement.style.maxWidth = '100%';
 
             } else if (format === 'excel') {
                 let dataDatasets = activeDatasets.filter(ds => !ds.isLimitLine);
@@ -722,12 +792,23 @@
     };
 
     window.addEventListener('load', () => {
-        const savedUser = localStorage.getItem('lab_logged_in_user');
-        
-        if (savedUser) {
-            document.getElementById('display-name').innerText = savedUser;
-            document.getElementById('user-profile').style.display = 'block'; 
-            logUserActivity("Dashboard กราฟ", "เปิดดูหน้าต่าง");
+        if (checkLoginExpiration()) {
+            const savedUser = localStorage.getItem('lab_logged_in_user');
+            
+            const displayNameEl = document.getElementById('display-name');
+            const userProfileEl = document.getElementById('user-profile');
+            
+            if (displayNameEl && userProfileEl) {
+                displayNameEl.innerText = savedUser;
+                userProfileEl.style.display = 'block'; 
+            }
+            
+            if (typeof logUserActivity === "function") {
+                logUserActivity(document.title || "หน้าต่างย่อย", "เปิดดูหน้าต่าง");
+            }
+            
+            // ตั้งเวลาให้แอบเช็คหลังบ้านทุกๆ 1 นาที 
+            setInterval(checkLoginExpiration, 60000); 
         }
     });
 

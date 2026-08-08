@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - จัดการข้อมูลขาดหาย</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #2c3e50; /* เปลี่ยนสีพื้นหลังให้ดูเป็นหน้าต่างลับ/Admin */
+            color: #ecf0f1;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: #fff;
+            color: #2c3e50;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #e74c3c, #c0392b); /* สีแดงแจ้งเตือนว่าเป็นหน้า Admin */
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 1.4rem; line-height: 1.4; }
+
+        .content { padding: 30px 20px; }
+
+        /* ----- Login ----- */
+        #view-login {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center;
+        }
+        #view-login h2 { color: #c0392b; margin-bottom: 10px; }
+        .login-input {
+            width: 100%; max-width: 300px; padding: 15px; font-size: 1.2rem;
+            text-align: center; border: 2px solid #bdc3c7; border-radius: 8px; margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        .login-input:focus { border-color: #e74c3c; outline: none; }
+        .btn-login {
+            width: 100%; max-width: 300px; background-color: #c0392b; color: white;
+            border: none; padding: 15px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer;
+        }
+        .btn-login:hover { background-color: #e74c3c; }
+
+        /* ----- Admin Dashboard ----- */
+        #view-admin { display: none; text-align: center; }
+        .admin-box {
+            background-color: #fdf2e9;
+            border: 2px solid #e67e22;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .btn-trigger {
+            background-color: #e67e22; color: white;
+            border: none; padding: 15px 20px; border-radius: 8px;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            width: 100%; transition: 0.3s;
+        }
+        .btn-trigger:hover { background-color: #d35400; }
+        
+        .btn-logout {
+            background-color: #95a5a6; color: white;
+            border: none; padding: 10px 20px; border-radius: 8px;
+            font-size: 1rem; font-weight: bold; cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* ----- Overlay ----- */
+        #overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            background: rgba(255,255,255,0.9); display: none;
+            justify-content: center; align-items: center; flex-direction: column; z-index: 9999;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3; border-top: 5px solid #e74c3c;
+            border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div id="overlay">
+            <div class="spinner"></div>
+            <h2 id="overlay-text" style="color:#c0392b;">กำลังประมวลผล...</h2>
+        </div>
+
+        <div class="header">
+            <h1>⚙️ ผู้ดูแลระบบ<br><small style="font-weight:normal; font-size:1rem;">ระบบจัดการข้อมูลที่ขาดหาย</small></h1>
+        </div>
+
+        <div class="content">
+            <!-- ================= VIEW 1: LOGIN ================= -->
+            <div id="view-login">
+                <h2>🔐 ยืนยันตัวตน</h2>
+                <p>หน้าต่างนี้จำกัดสิทธิ์เฉพาะผู้ดูแลระบบเท่านั้น</p>
+                <input type="password" id="empId" class="login-input" maxlength="6" placeholder="รหัสพนักงาน 6 หลัก">
+                <button class="btn-login" onclick="login()">เข้าสู่ระบบ</button>
+            </div>
+
+            <!-- ================= VIEW 2: ADMIN DASHBOARD ================= -->
+            <div id="view-admin">
+                <h3 style="color: #2c3e50;">ยินดีต้อนรับ, <span id="admin-name" style="color:#c0392b;">Admin</span></h3>
+                
+                <div class="admin-box">
+                    <h4 style="margin-top:0; color: #d35400;">⚠️ ระบบเติมค่าว่าง (Auto-Flag)</h4>
+                    <p style="font-size: 0.9rem; color: #7f8c8d; text-align: left;">
+                        ระบบจะทำการตรวจสอบ <b>"รอบเวลาล่าสุดที่เพิ่งจบไป"</b> หากพบว่ามีห้องใดที่ไม่มีข้อมูลการบันทึก ระบบจะสร้างแถวข้อมูลใหม่และระบุค่าเป็น <code>-</code> ให้โดยอัตโนมัติ
+                    </p>
+                    <button class="btn-trigger" onclick="triggerAutoFlag()">⚡ สั่งรัน Auto-Flag ทันที</button>
+                </div>
+
+                <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
+
+        function checkLoginExpiration() {
+            const savedUser = localStorage.getItem('lab_logged_in_user');
+            const savedTime = localStorage.getItem('lab_login_timestamp');
+                
+            if (savedUser && savedTime) {
+                const now = Date.now();
+                const ONE_HOUR = 60 * 60 * 1000; // 1 ชั่วโมง = 3,600,000 มิลลิวินาที
+                    
+                if (now - parseInt(savedTime) > ONE_HOUR) {
+                        // หากเวลาผ่านไปเกิน 1 ชั่วโมง ให้ล้างค่าการล็อกอิน
+                    localStorage.removeItem('lab_logged_in_user');
+                    localStorage.removeItem('lab_login_timestamp');
+                        
+                    alert("⏱️ เซสชันหมดอายุ (เกิน 1 ชั่วโมง) กรุณาเข้าสู่ระบบใหม่ครับ");
+                        
+                        // รีเฟรชหน้าเว็บเพื่อกลับสู่หน้า Login
+                    window.location.reload();
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
+
+
+        // 📍 กำหนดสิทธิ์รหัสพนักงานที่สามารถเข้าได้
+        const ALLOWED_USERS = ["516841", "521002", "508411"];
+
+        function showOverlay(text) {
+            document.getElementById('overlay-text').innerText = text;
+            document.getElementById('overlay').style.display = 'flex';
+        }
+        
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        function login() {
+            const empId = document.getElementById('empId').value.trim();
+            
+            if (!empId) {
+                alert("กรุณากรอกรหัสพนักงาน Admin");
+                return;
+            }
+
+            // ตรวจสอบสิทธิ์ฝั่งหน้าบ้าน
+            if (ALLOWED_USERS.includes(empId)) {
+                document.getElementById('admin-name').innerText = "รหัส " + empId;
+                document.getElementById('view-login').style.display = 'none';
+                document.getElementById('view-admin').style.display = 'block';
+                document.getElementById('empId').value = ''; // เคลียร์รหัสผ่าน
+            } else {
+                alert("❌ ปฏิเสธการเข้าถึง: คุณไม่มีสิทธิ์ใช้งานหน้าต่างนี้");
+                document.getElementById('empId').value = '';
+            }
+        }
+
+        function logout() {
+            document.getElementById('view-admin').style.display = 'none';
+            document.getElementById('view-login').style.display = 'flex';
+        }
+
+        async function triggerAutoFlag() {
+            if (!confirm("⚠️ ยืนยันการรันระบบ Auto-Flag?\n\nระบบจะทำการเติมค่า '-' ในฐานข้อมูลสำหรับรอบล่าสุดที่ขาดหายไปเท่านั้น")) {
+                return;
+            }
+
+            showOverlay("กำลังตรวจสอบและเติมข้อมูล...");
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=autoFlagMissing`);
+                const result = await response.text();
+                
+                alert("✅ สถานะการทำงาน:\n" + result);
+                
+            } catch (error) {
+                alert("❌ เกิดข้อผิดพลาดในการเชื่อมต่อกับฐานข้อมูล");
+                console.error("Auto-Flag Error:", error);
+            }
+            hideOverlay();
+        }
+
+        // รองรับการกด Enter เพื่อ Login
+        document.getElementById('empId').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+</html>

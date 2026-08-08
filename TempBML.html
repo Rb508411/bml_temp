@@ -295,6 +295,32 @@
         // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
 
+
+        function checkLoginExpiration() {
+            const savedUser = localStorage.getItem('lab_logged_in_user');
+            const savedTime = localStorage.getItem('lab_login_timestamp');
+            
+            if (savedUser && savedTime) {
+                const now = Date.now();
+                const ONE_HOUR = 60 * 60 * 1000; // 1 ชั่วโมง = 3,600,000 มิลลิวินาที
+                
+                if (now - parseInt(savedTime) > ONE_HOUR) {
+                    // หากเวลาผ่านไปเกิน 1 ชั่วโมง ให้ล้างค่าการล็อกอิน
+                    localStorage.removeItem('lab_logged_in_user');
+                    localStorage.removeItem('lab_login_timestamp');
+                    
+                    alert("⏱️ เซสชันหมดอายุ (เกิน 1 ชั่วโมง) กรุณาเข้าสู่ระบบใหม่ครับ");
+                    
+                    // รีเฟรชหน้าเว็บเพื่อกลับสู่หน้า Login
+                    window.location.reload();
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
+
     const LAB_CONFIG = {
             "Stock Room": [],
             "Sample Preparation Room": [
@@ -469,6 +495,7 @@
                 if (result.success) {
                     currentUser = result.name;
                     localStorage.setItem('lab_logged_in_user', currentUser);
+                    localStorage.setItem('lab_login_timestamp', Date.now());
                     logUserActivity("หน้าหลัก", "เข้าสู่ระบบ", `รหัสพนักงาน: ${empId}`);
                     showDashboard();
                 } else {
@@ -483,6 +510,7 @@
         function logout() {
             if(confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
                 localStorage.removeItem('lab_logged_in_user');
+                localStorage.removeItem('lab_login_timestamp');
                 currentUser = "";
                 clearInterval(refreshInterval);
                 document.getElementById('view-dashboard').style.display = 'none';
@@ -796,6 +824,7 @@
             if (savedUser) {
                 currentUser = savedUser;
                 showDashboard();
+                setInterval(checkLoginExpiration, 60000);
             } else {
                 document.getElementById('view-login').style.display = 'flex';
                 document.getElementById('view-dashboard').style.display = 'none';

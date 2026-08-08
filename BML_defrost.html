@@ -198,6 +198,33 @@
     // 📍 นำ URL ของ Google Apps Script มาใส่ตรงนี้
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
 
+    function checkLoginExpiration() {
+        const savedUser = localStorage.getItem('lab_logged_in_user');
+        const savedTime = localStorage.getItem('lab_login_timestamp');
+        
+        if (savedUser && savedTime) {
+            const now = Date.now();
+            const ONE_HOUR = 60 * 60 * 1000; // 1 ชั่วโมง
+            
+            if (now - parseInt(savedTime) > ONE_HOUR) {
+                localStorage.removeItem('lab_logged_in_user');
+                localStorage.removeItem('lab_login_timestamp');
+                
+                alert("⏱️ เซสชันหมดอายุ (เกิน 1 ชั่วโมง) ระบบจะพากลับไปหน้าเข้าสู่ระบบครับ");
+                window.location.href = "https://rb508411.github.io/bml_temp/TempBML.html"; 
+                return false;
+            }
+            return true;
+        }
+        
+        alert("🔒 คุณยังไม่ได้เข้าสู่ระบบ กรุณาเข้าสู่ระบบผ่านหน้าหลักก่อนครับ");
+        window.location.href = "https://rb508411.github.io/bml_temp/TempBML.html";
+        return false;
+    }
+
+
+
+
     const LAB_EQUIPMENTS = {
             "Stock Room": [],
             "Sample Preparation Room": [
@@ -264,6 +291,9 @@
     }
 
     window.onload = () => {
+        // 📍 เช็คสิทธิ์ก่อน ถ้าไม่ผ่านให้หยุดการทำงานบรรทัดถัดไปทันที
+        if (!checkLoginExpiration()) return; 
+
         const today = new Date();
         const yyyy = today.getFullYear();
         const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -287,6 +317,9 @@
         }
         
         loadDefrostHistory();
+        
+        // 📍 ตั้งเวลาเช็คซ้ำทุกๆ 1 นาที
+        setInterval(checkLoginExpiration, 60000);
     };
 
     // ฟังก์ชันรวบการส่งข้อมูลทั้งหมดในครั้งเดียว
