@@ -300,14 +300,32 @@
         };
 
         let globalLimits = null;
+        let fixedYMin = null; // 📍 ตัวแปรใหม่สำหรับล็อกแกน Y ต่ำสุด
+        let fixedYMax = null; // 📍 ตัวแปรใหม่สำหรับล็อกแกน Y สูงสุด
         let lowerTarget = selectedTarget.toLowerCase();
         
-        if (viewType === 'room_temp' || selectedTarget === "อุณหภูมิห้องทั้งหมด") globalLimits = { min: 18, max: 25 };
-        else if (viewType === 'room_hum' || selectedTarget === "ความชื้นห้องทั้งหมด") globalLimits = { min: 20, max: 60 };
-        else if (lowerTarget.includes("-70")) globalLimits = { min: -75, max: -65 };
-        else if (lowerTarget.includes("-20")) globalLimits = { min: -35, max: -15 };
-        else if (lowerTarget.includes("-30")) globalLimits = { min: -40, max: -20 };
-        else if (lowerTarget.includes("ตู้เย็น")) globalLimits = { min: 2, max: 8 };
+        if (viewType === 'room_temp' || selectedTarget === "อุณหภูมิห้องทั้งหมด") {
+            globalLimits = { min: 18, max: 25 };
+        }
+        else if (viewType === 'room_hum' || selectedTarget === "ความชื้นห้องทั้งหมด") {
+            globalLimits = { min: 20, max: 60 };
+        }
+        else if (lowerTarget.includes("-70")) {
+            globalLimits = { min: -75, max: -65 };
+            fixedYMin = -85; fixedYMax = -25; // 📍 ล็อกแกน Y สำหรับตู้ -70
+        }
+        else if (lowerTarget.includes("-30")) {
+            globalLimits = { min: -40, max: -20 };
+            fixedYMin = -40; fixedYMax = 20;  // 📍 ล็อกแกน Y สำหรับตู้ -30
+        }
+        else if (lowerTarget.includes("-20")) {
+            globalLimits = { min: -35, max: -15 };
+            fixedYMin = -40; fixedYMax = 0;   // 📍 ล็อกแกน Y สำหรับตู้ -20
+        }
+        else if (lowerTarget.includes("ตู้เย็น")) {
+            globalLimits = { min: 2, max: 8 };
+            fixedYMin = 0; fixedYMax = 25;    // 📍 ล็อกแกน Y สำหรับตู้เย็นปกติ (2-8)
+        }
 
         if (viewType === 'room_temp') {
             filteredData.forEach(row => {
@@ -537,7 +555,7 @@ const aiContainer = document.getElementById('ai-prediction-container');
             aiContainer.style.display = 'none';
         }
 
-        drawChart();
+        drawChart(fixedYMin, fixedYMax);
         renderDataTable();
         
         const reportTargetText = document.getElementById('report-title');
@@ -585,36 +603,43 @@ const aiContainer = document.getElementById('ai-prediction-container');
         return null;
     }
 
-function drawChart() {
+    function drawChart(yMin = null, yMax = null) {
         const ctx = document.getElementById('myChart').getContext('2d');
         if (myChart) myChart.destroy();
 
-        myChart = new Chart(ctx, {
-            type: 'line',
-            data: { labels: currentLabels, datasets: activeDatasets },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { x: { ticks: { maxRotation: 45, minRotation: 45 } } },
-                animation: false,
-                plugins: {
+        // 📍 สร้างโครงสร้าง Option ของกราฟ
+        let chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { 
+                x: { ticks: { maxRotation: 45, minRotation: 45 } },
+                y: {} // เตรียมพื้นที่สำหรับแกน Y
+            },
+            animation: false,
+            plugins: {
+                zoom: {
+                    pan: { enabled: true, mode: 'x' },
                     zoom: {
-                        pan: {
-                            enabled: true,
-                            mode: 'x', // อนุญาตให้คลิกแล้วลากซ้ายขวาได้
-                        },
-                        zoom: {
-                            wheel: { enabled: true }, // ใช้ลูกกลิ้งเมาส์ซูม
-                            pinch: { enabled: true }, // ใช้นิ้วซูมบนมือถือ
-                            mode: 'x',
-                            onZoomComplete: function() {
-                                // โชว์ปุ่ม Reset เวลาซูม
-                                document.getElementById('btn-reset-zoom').style.display = 'block';
-                            }
+                        wheel: { enabled: true },
+                        pinch: { enabled: true },
+                        mode: 'x',
+                        onZoomComplete: function() {
+                            document.getElementById('btn-reset-zoom').style.display = 'block';
                         }
                     }
                 }
             }
+        };
+
+        // 📍 ถ้ามีการส่งค่าล็อกแกนมา (เป็นของตู้เย็น) ให้ยัดค่าใส่แกน Y บังคับสเกลทันที
+        if (yMin !== null) chartOptions.scales.y.min = yMin;
+        if (yMax !== null) chartOptions.scales.y.max = yMax;
+
+        // สั่งวาดกราฟ
+        myChart = new Chart(ctx, {
+            type: 'line',
+            data: { labels: currentLabels, datasets: activeDatasets },
+            options: chartOptions
         });
         
         const btnReset = document.getElementById('btn-reset-zoom');
