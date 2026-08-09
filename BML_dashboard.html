@@ -459,58 +459,60 @@
             colorIdx++;
         }
 
-        let maDatasets = [];
-        activeDatasets.forEach(ds => {
-            if (!ds.isLimitLine) { 
-                let maDataArray = [];
-                for (let i = 0; i < currentLabels.length; i++) {
-                    if (ds.data[i] === null) {
-                        maDataArray.push(null);
-                        continue;
-                    }
-                    
-                    let curParts = currentLabels[i].split(' ')[0].split('-');
-                    let currentTime = new Date(curParts[0], curParts[1] - 1, curParts[2]).getTime();
-                    let sum = 0;
-                    let count = 0;
-                    
-                    for (let j = i; j >= 0; j--) {
-                        let pastParts = currentLabels[j].split(' ')[0].split('-');
-                        let pastTime = new Date(pastParts[0], pastParts[1] - 1, pastParts[2]).getTime();
+        if (viewType !== 'group'){
+            let maDatasets = [];
+            activeDatasets.forEach(ds => {
+                if (!ds.isLimitLine) { 
+                    let maDataArray = [];
+                    for (let i = 0; i < currentLabels.length; i++) {
+                        if (ds.data[i] === null) {
+                            maDataArray.push(null);
+                            continue;
+                        }
                         
-                        if (currentTime - pastTime <= 7 * 24 * 60 * 60 * 1000) {
-                            if (ds.data[j] !== null) {
-                                sum += ds.data[j];
-                                count++;
+                        let curParts = currentLabels[i].split(' ')[0].split('-');
+                        let currentTime = new Date(curParts[0], curParts[1] - 1, curParts[2]).getTime();
+                        let sum = 0;
+                        let count = 0;
+                        
+                        for (let j = i; j >= 0; j--) {
+                            let pastParts = currentLabels[j].split(' ')[0].split('-');
+                            let pastTime = new Date(pastParts[0], pastParts[1] - 1, pastParts[2]).getTime();
+                            
+                            if (currentTime - pastTime <= 7 * 24 * 60 * 60 * 1000) {
+                                if (ds.data[j] !== null) {
+                                    sum += ds.data[j];
+                                    count++;
+                                }
+                            } else {
+                                break; 
                             }
+                        }
+                        
+                        if (count > 0) {
+                            maDataArray.push(parseFloat((sum / count).toFixed(2)));
                         } else {
-                            break; 
+                            maDataArray.push(null);
                         }
                     }
-                    
-                    if (count > 0) {
-                        maDataArray.push(parseFloat((sum / count).toFixed(2)));
-                    } else {
-                        maDataArray.push(null);
-                    }
-                }
 
-                maDatasets.push({
-                    label: `ค่าเฉลี่ย 7 วัน (${ds.label})`,
-                    data: maDataArray,
-                    borderColor: '#bdc3c7', 
-                    borderWidth: 2,
-                    borderDash: [3, 3], 
-                    pointRadius: 0, 
-                    fill: false,
-                    tension: 0.3,
-                    spanGaps: true,
-                    isLimitLine: true 
-                });
-            }
-        });
-        
-        activeDatasets.push(...maDatasets);
+                    maDatasets.push({
+                        label: `ค่าเฉลี่ย 7 วัน (${ds.label})`,
+                        data: maDataArray,
+                        borderColor: '#bdc3c7', 
+                        borderWidth: 2,
+                        borderDash: [3, 3], 
+                        pointRadius: 0, 
+                        fill: false,
+                        tension: 0.3,
+                        spanGaps: true,
+                        isLimitLine: true 
+                    });
+                }
+            });
+            
+            activeDatasets.push(...maDatasets);
+        }
 
         let limitsToAdd = [];
         if (globalLimits) {
