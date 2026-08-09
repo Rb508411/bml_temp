@@ -4,9 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard อุณหภูมิและความชื้น</title>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #eaf2f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 900px; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
@@ -110,7 +114,16 @@
     
     <div id="export-content" style="padding: 10px; background: white;">
         <h3 id="report-title" style="text-align: center; display: none; color: #2c3e50; margin-bottom: 20px;">รายงานข้อมูล</h3>
-        <div class="chart-container">
+
+        <div id="ai-prediction-container" style="display: none; background-color: #fdf2e9; border-left: 5px solid #e67e22; padding: 15px; margin-bottom: 15px; border-radius: 8px;">
+            <h4 style="margin-top: 0; color: #d35400; margin-bottom: 10px;">🤖 AI Predictive Alert (ระบบคาดการณ์แนวโน้มความผิดปกติ)</h4>
+            <ul id="ai-prediction-list" style="margin: 0; padding-left: 20px; font-size: 0.95rem; color: #34495e;"></ul>
+        </div>
+
+        <div class="chart-container" style="position: relative;">
+            <button onclick="resetZoom()" id="btn-reset-zoom" style="position: absolute; top: 10px; right: 10px; z-index: 10; padding: 6px 12px; background-color: #34495e; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); display: none;">
+                🔍 คืนค่ามุมมอง (Reset Zoom)
+            </button>
             <canvas id="myChart"></canvas>
         </div>
         <div id="data-table-container" style="overflow-x: auto;"></div>
@@ -501,6 +514,29 @@
             });
         });
 
+const aiContainer = document.getElementById('ai-prediction-container');
+        const aiList = document.getElementById('ai-prediction-list');
+        aiList.innerHTML = '';
+        let hasWarnings = false;
+
+        activeDatasets.forEach(ds => {
+            if (!ds.isLimitLine && ds.limitRange) {
+                let warning = analyzeTrend(ds.data, ds.limitRange, ds.label);
+                if (warning) {
+                    let li = document.createElement('li');
+                    li.innerHTML = warning;
+                    aiList.appendChild(li);
+                    hasWarnings = true;
+                }
+            }
+        });
+
+        if (hasWarnings) {
+            aiContainer.style.display = 'block';
+        } else {
+            aiContainer.style.display = 'none';
+        }
+
         drawChart();
         renderDataTable();
         
@@ -508,7 +544,48 @@
         if (reportTargetText) reportTargetText.innerText = `รายงานผล: ${selectedTarget}`;
     }
 
-    function drawChart() {
+    // ==========================================
+    // ML Algorithm: Simple Linear Regression
+    // ==========================================
+    function analyzeTrend(dataArray, limitRange, label) {
+        if (!limitRange || !dataArray) return null;
+        
+        let validPoints = [];
+        for(let i=0; i<dataArray.length; i++) {
+            if(dataArray[i] !== null) validPoints.push(dataArray[i]);
+        }
+        
+        if (validPoints.length < 5) return null; 
+        
+        let recentData = validPoints.slice(-10); 
+        let n = recentData.length;
+        let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+        
+        recentData.forEach((y, x) => {
+            sumX += x;
+            sumY += y;
+            sumXY += x * y;
+            sumXX += x * x;
+        });
+        
+        let slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+        let intercept = (sumY - slope * sumX) / n;
+        
+        let nextX = n + 2; 
+        let predictedY = (slope * nextX) + intercept;
+        
+        const significantSlope = 0.05;
+
+        if (slope > significantSlope && predictedY >= limitRange.max) {
+            return `📈 <b>${label}:</b> อุณหภูมิมีแนวโน้ม <span style="color:#e74c3c; font-weight:bold;">สูงขึ้นต่อเนื่อง</span> (พยากรณ์: ${predictedY.toFixed(2)}) อาจทะลุเกณฑ์ขีดจำกัดบน (${limitRange.max}) เร็วๆ นี้`;
+        }
+        if (slope < -significantSlope && predictedY <= limitRange.min) {
+            return `📉 <b>${label}:</b> อุณหภูมิมีแนวโน้ม <span style="color:#3498db; font-weight:bold;">ลดลงต่อเนื่อง</span> (พยากรณ์: ${predictedY.toFixed(2)}) อาจทะลุเกณฑ์ขีดจำกัดล่าง (${limitRange.min}) เร็วๆ นี้`;
+        }
+        return null;
+    }
+
+function drawChart() {
         const ctx = document.getElementById('myChart').getContext('2d');
         if (myChart) myChart.destroy();
 
@@ -519,9 +596,36 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: { x: { ticks: { maxRotation: 45, minRotation: 45 } } },
-                animation: false
+                animation: false,
+                plugins: {
+                    zoom: {
+                        pan: {
+                            enabled: true,
+                            mode: 'x', // อนุญาตให้คลิกแล้วลากซ้ายขวาได้
+                        },
+                        zoom: {
+                            wheel: { enabled: true }, // ใช้ลูกกลิ้งเมาส์ซูม
+                            pinch: { enabled: true }, // ใช้นิ้วซูมบนมือถือ
+                            mode: 'x',
+                            onZoomComplete: function() {
+                                // โชว์ปุ่ม Reset เวลาซูม
+                                document.getElementById('btn-reset-zoom').style.display = 'block';
+                            }
+                        }
+                    }
+                }
             }
         });
+        
+        const btnReset = document.getElementById('btn-reset-zoom');
+        if(btnReset) btnReset.style.display = 'none';
+    }
+
+    function resetZoom() {
+        if (myChart) {
+            myChart.resetZoom();
+            document.getElementById('btn-reset-zoom').style.display = 'none';
+        }
     }
 
     // 📍 คืนค่าตารางแบบปกติ (ไม่ซอย) แต่ใช้ thead หุ้มหัวตารางไว้
