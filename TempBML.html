@@ -94,6 +94,10 @@
         .room-card.locked { border-color: #e67e22; background-color: #fdf2e9; }
         .room-card.locked h3 { color: #d35400; }
         .room-card.locked .status-badge { background-color: #e67e22; }
+        
+        .room-card.optional-blue { border-color: #3498db; background-color: #e0e0ff; }
+        .room-card.optional-blue h3 { color: #2980b9; }
+        .room-card.optional-blue .status-badge { background-color: #3498db; color: white; }
 
         .room-icon { font-size: 1.8rem; margin-bottom: 8px; }
         .room-card h3 { margin: 0; font-size: 1rem; color: #2c3e50; line-height: 1.3;}
@@ -322,6 +326,7 @@
 
 
     const LAB_CONFIG = {
+           
             "Stock Room": [],
             "Sample Preparation Room": [
                 "ตู้เย็น (BML-MOL-210)",
@@ -335,20 +340,20 @@
                 "ตู้เย็น (BML-MOL-353)",
                 "ตู้เย็น -20 °C (BML-MOL-353)"
             ],
-            "PCR Mix Room": [],
-            "PCR Room I (หน้าห้อง MMX)": [
+            "PCR Setup Room": [],
+            "PCR 1 (หน้าห้อง MMX)": [
                 "ตู้เย็น (BML-MOL-211)",
                 "ตู้เย็น -30 °C (BML-MOL-206)",
                 "ตู้เย็น -20 °C (BML-MOL-489)",
                 "ตู้เย็น (BML-MOL-352)"
             ],
-            "PCR Room I (หน้าห้อง Post PCR)": [],
+            "PCR 1 (หน้าห้อง Post PCR)": [],
             "BSL-2 Room": [
                 "ตู้เย็น -70 °C (BML-MOL-220)",
                 "ตู้เย็น -70 °C (BML-MOL-125)",
                 "ตู้เย็น -70 °C (BML-MOL-124)"
             ],
-            "FFPE Extraction":[],
+            "Sample Prep 2 Room":[],
             "Pre-PCR Room":[],
             "Library Preparation": [
                 "ตู้เย็น (BML-MOL-539)",
@@ -359,7 +364,7 @@
                 "ตู้เย็น (BML-MOL-616)"
             ], 
             "Cobas 6800 Room": [],
-            "Cobas 4800 Zone": [
+            "Automation Zone": [
                 "ตู้เย็น (BML-MOL-139)"
             ], 
             "Sequencing Room": [],
@@ -367,7 +372,8 @@
                 "ตู้เย็น (BML-MOL-619)",
                 "ตู้เย็น -20 °C (BML-MOL-620)",
                 "ตู้เย็น -20 °C (BML-MOL-680)"
-            ]
+            ],
+            "Stock 1st floor": ["ตู้เย็น (Stock 1st floor)"]
         };
 
         let currentSessionName = null;
@@ -460,12 +466,12 @@
             const hour = now.getHours();
             const banner = document.getElementById('session-banner');
             
-            if (hour >= 6 && hour < 12) {
-                currentSessionName = "MORN";
+            if (hour >= 6 && hour < 13) {
+                currentSessionName = "6AM-12";
                 banner.innerText = "☀️ เปิดรับข้อมูลรอบเช้า 06:00 - 11:59 น.";
                 banner.className = "session-banner active-morn";
             } else if (hour >= 15 && hour < 23) {
-                currentSessionName = "EVE";
+                currentSessionName = "3PM-11PM";
                 banner.innerText = "🌙 เปิดรับข้อมูลรอบเย็น 15:00 - 22:59 น.";
                 banner.className = "session-banner active-eve";
             } else {
@@ -578,6 +584,10 @@
                     card.onclick = () => alert(`ห้องนี้กำลังถูกจดบันทึกโดย ${roomInfo.user} โปรดรอสักครู่ครับ`);
                 } 
                 else {
+                        if (roomName === "Stock 1st floor") {
+                            card.classList.add('optional-blue');
+                            badgeText = 'ว่าง (บันทึกรายสัปดาห์)';
+                        }
                     card.onclick = () => requestLockRoom(roomName);
                 }
 
@@ -640,7 +650,22 @@
         function openRoomForm(roomName) {
             currentEditingRoom = roomName;
             document.getElementById('room-title').innerText = `${roomName}`;
+
+            let noticeEl = document.getElementById('optional-notice');
+            if (!noticeEl) {
+                 noticeEl = document.createElement('div');
+                 noticeEl.id = 'optional-notice';
+                 noticeEl.style.cssText = "color: #2980b9; font-weight: bold; background: #eaf2f8; padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: center;";
+                 document.getElementById('room-form').insertBefore(noticeEl, document.getElementById('room-form').firstChild);
+            }
+            if (roomName === "Stock 1st floor") {
+                 noticeEl.innerText = "ℹ️ ห้องนี้บันทึกเพียง 1 ครั้ง/สัปดาห์ (สามารถเว้นว่างข้อมูลแล้วกดบันทึกได้เลย)";
+                 noticeEl.style.display = "block";
+            } else {
+                 noticeEl.style.display = "none";
+            }
             
+
             const data = sessionData[roomName] || {};
             document.getElementById('room-temp').value = data.rTemp || '';
             document.getElementById('room-hum').value = data.rHum || '';
@@ -703,11 +728,12 @@
         }
 
         async function saveRoom() {
-
             if (!currentSessionName) {
                 alert("🚫 หมดเวลาการบันทึกแล้ว ไม่สามารถส่งข้อมูลได้ครับ");
                 return;
             }
+
+            const isOptionalRoom = (currentEditingRoom === "Stock 1st floor");
 
             const rTempEl = document.getElementById('room-temp');
             const rHumEl = document.getElementById('room-hum');
@@ -715,27 +741,18 @@
             const rTemp = rTempEl.value;
             const rHum = rHumEl.value;
             
-            if (!rTemp || !rHum) {
+            if (!isOptionalRoom && (!rTemp || !rHum)) {
                 alert("กรุณากรอก อุณหภูมิ และ ความชื้นของห้องให้ครบถ้วนครับ");
                 return;
             }
 
-            // --- โค้ดที่เพิ่มใหม่: เช็คว่าช่องห้องเป็นสีดำหรือไม่ ---
             if (rTempEl.classList.contains('input-error') || rHumEl.classList.contains('input-error')) {
                 alert("อุณหภูมิ หรือ ความชื้นของห้อง อยู่นอกช่วงที่อนุญาต (ช่องสีดำ) กรุณาตรวจสอบและห้ามบันทึกครับ");
                 return;
             }
-            
-            if (!rTemp || !rHum) {
-                alert("กรุณากรอก อุณหภูมิ และ ความชื้นของห้องให้ครบถ้วนครับ");
-                return;
-            }
-
-
-            
 
             let equipsData = {};
-            let equipArray = []; // เปลี่ยนจาก String เป็น Array เพื่อส่งไปแยกแถว
+            let equipArray = []; 
             
             let isMissingValue = false;
             let isInvalidValue = false;
@@ -748,12 +765,18 @@
                 
                 if (n) {
                     if (t === '') {
-                        isMissingValue = true;
-                        tempInput.style.border = "2px solid red";
+                        if (isOptionalRoom) {
+                            tempInput.style.border = "1px solid #ccc";
+                            equipsData[n] = "-";
+                            equipArray.push({ name: n, temp: "-" });
+                        } else {
+                            isMissingValue = true;
+                            tempInput.style.border = "2px solid red";
+                        }
                     } else {
                         tempInput.style.border = "1px solid #ccc";
                         equipsData[n] = t;
-                        equipArray.push({ name: n, temp: t }); // เก็บเป็น Object ลง Array
+                        equipArray.push({ name: n, temp: t }); 
                         
                         const rules = getValidationRules(n);
                         if (rules) {
@@ -766,7 +789,7 @@
                 }
             });
 
-            if (isMissingValue) {
+            if (!isOptionalRoom && isMissingValue) {
                 alert("คุณยังกรอกอุณหภูมิเครื่องมือไม่ครบทุกชิ้น กรุณาตรวจสอบและกรอกให้ครบครับ");
                 return;
             }
@@ -785,13 +808,11 @@
                 room: currentEditingRoom,
                 user: currentUser,
                 session: currentSessionName,
-                rTemp: rTemp,
-                rHum: rHum,
-                equipments: equipArray, // ส่งข้อมูลเป็น Array
+                rTemp: rTemp || "-",
+                rHum: rHum || "-",
+                equipments: equipArray, 
                 remark: actionText
             };
-
-            // โค้ดส่ง fetch ด้านล่างปล่อยไว้เหมือนเดิมครับ ...
 
             sessionData[currentEditingRoom] = {
                 rTemp: rTemp, rHum: rHum, equips: equipsData, action: actionText
