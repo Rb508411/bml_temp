@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard อุณหภูมิและความชื้น</title>
+    <title>Dashboard - SmartLab SmartTemp v.2</title>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
@@ -12,6 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <style>
+        
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #eaf2f8; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 900px; background-color: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
         h1 { text-align: center; color: #f0f4f8; margin-top: 0; margin-bottom: 0}
@@ -295,7 +296,7 @@
             let mm = String(d.getMonth() + 1).padStart(2, '0');
             let dd = String(d.getDate()).padStart(2, '0');
             let hour = d.getHours();
-            let session = (hour < 14) ? "MORN" : "EVE";
+            let session = (hour < 12) ? "6AM-12" : "3PM-11PM";
             return `${yyyy}-${mm}-${dd} (${session})`;
         };
 
@@ -306,9 +307,11 @@
         
         if (viewType === 'room_temp' || selectedTarget === "อุณหภูมิห้องทั้งหมด") {
             globalLimits = { min: 18, max: 25 };
+            fixedYMin = 10; fixedYMax = 35;
         }
         else if (viewType === 'room_hum' || selectedTarget === "ความชื้นห้องทั้งหมด") {
             globalLimits = { min: 20, max: 60 };
+            fixedYMin = 10; fixedYMax = 80;
         }
         else if (lowerTarget.includes("-70")) {
             globalLimits = { min: -75, max: -65 };
@@ -324,7 +327,7 @@
         }
         else if (lowerTarget.includes("ตู้เย็น")) {
             globalLimits = { min: 2, max: 8 };
-            fixedYMin = 0; fixedYMax = 25;    // 📍 ล็อกแกน Y สำหรับตู้เย็นปกติ (2-8)
+            fixedYMin = -5; fixedYMax = 25;    // 📍 ล็อกแกน Y สำหรับตู้เย็นปกติ (2-8)
         }
 
         if (viewType === 'room_temp') {
@@ -397,10 +400,10 @@
                             let val = parseFloat(String(eqValStr).replace('°C', '').trim());
                             let isMatch = false;
 
-                            if (selectedTarget === "ตู้เย็น (2-8 °C)" && eqName.includes("ตู้เย็น") && !eqName.includes("-")) isMatch = true;
-                            else if (selectedTarget === "ตู้เย็น -20 °C" && eqName.includes("-20")) isMatch = true;
+                            if (selectedTarget === "ตู้เย็น -20 °C" && eqName.includes("-20")) isMatch = true;
                             else if (selectedTarget === "ตู้เย็น -30 °C" && eqName.includes("-30")) isMatch = true;
                             else if (selectedTarget === "ตู้เย็น -70 °C" && eqName.includes("-70")) isMatch = true;
+                            else if (selectedTarget === "ตู้เย็น (2-8 °C)" && eqName.includes("ตู้เย็น") && !eqName.includes("-")) isMatch = true;
 
                             if (isMatch && !isNaN(val)) {
                                 tempTimestamps.add(tsKey);
@@ -435,8 +438,8 @@
             
             if (timeA !== timeB) return timeA - timeB;
             
-            let sessionA = a.includes('MORN') ? 0 : 1;
-            let sessionB = b.includes('MORN') ? 0 : 1;
+            let sessionA = a.includes("6AM-12") ? 0 : 1;
+            let sessionB = b.includes("6AM-12") ? 0 : 1;
             return sessionA - sessionB;
         });
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>รายงานสรุปสถานะห้องปฏิบัติการ</title>
+    <title>รายงานสรุปสถานะ - SmartLab SmartTemp v.2</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
@@ -136,8 +136,8 @@
         <!-- เพิ่ม onchange -->
         <select id="filter-session" onchange="generateReport()">
             <option value="ALL">รวมทุกรอบ</option>
-            <option value="MORN">☀️ รอบเช้า (06:00 - 13:59)</option>
-            <option value="EVE">🌙 รอบบ่าย/เย็น (14:00 - 23:59)</option>
+            <option value="6AM-12">☀️ รอบเช้า (06:00 - 11:59)</option>
+            <option value="3PM-11PM">🌙 รอบบ่าย/เย็น (15:00 - 22:59)</option>
         </select>
     </div>
 
@@ -219,6 +219,7 @@
 
     // โครงสร้างมาตรฐาน (นำมาจากหน้าบันทึก เพื่อใช้ตรวจหาของที่หายไป)
     const LAB_CONFIG = {
+           
             "Stock Room": [],
             "Sample Preparation Room": [
                 "ตู้เย็น (BML-MOL-210)",
@@ -232,20 +233,20 @@
                 "ตู้เย็น (BML-MOL-353)",
                 "ตู้เย็น -20 °C (BML-MOL-353)"
             ],
-            "PCR Mix Room": [],
-            "PCR Room I (หน้าห้อง MMX)": [
+            "PCR Setup Room": [],
+            "PCR 1 (หน้าห้อง MMX)": [
                 "ตู้เย็น (BML-MOL-211)",
                 "ตู้เย็น -30 °C (BML-MOL-206)",
                 "ตู้เย็น -20 °C (BML-MOL-489)",
                 "ตู้เย็น (BML-MOL-352)"
             ],
-            "PCR Room I (หน้าห้อง Post PCR)": [],
+            "PCR 1 (หน้าห้อง Post PCR)": [],
             "BSL-2 Room": [
                 "ตู้เย็น -70 °C (BML-MOL-220)",
                 "ตู้เย็น -70 °C (BML-MOL-125)",
                 "ตู้เย็น -70 °C (BML-MOL-124)"
             ],
-            "FFPE Extraction":[],
+            "Sample Prep 2 Room":[],
             "Pre-PCR Room":[],
             "Library Preparation": [
                 "ตู้เย็น (BML-MOL-539)",
@@ -256,7 +257,7 @@
                 "ตู้เย็น (BML-MOL-616)"
             ], 
             "Cobas 6800 Room": [],
-            "Cobas 4800 Zone": [
+            "Automation Zone": [
                 "ตู้เย็น (BML-MOL-139)"
             ], 
             "Sequencing Room": [],
@@ -264,7 +265,8 @@
                 "ตู้เย็น (BML-MOL-619)",
                 "ตู้เย็น -20 °C (BML-MOL-620)",
                 "ตู้เย็น -20 °C (BML-MOL-680)"
-            ]
+            ],
+            "Stock 1st floor": ["ตู้เย็น (Stock 1st floor)"]
         };
 
     // โหลดข้อมูลทั้งหมดเมื่อเปิดหน้าเว็บ
@@ -315,7 +317,7 @@
         }
 
         const reportTitle = document.getElementById('report-title');
-        let sessionText = selectedSession === "ALL" ? "รวมทุกรอบ" : (selectedSession === "MORN" ? "รอบเช้า" : "รอบบ่าย/เย็น");
+        let sessionText = selectedSession === "ALL" ? "รวมทุกรอบ" : (selectedSession === "6AM-12" ? "รอบเช้า" : "รอบบ่าย/เย็น");
         reportTitle.innerText = `รายงานผลการตรวจสอบประจำวันที่ ${selectedDateStr} (${sessionText})`;
 
         let roomStatus = {};
@@ -336,7 +338,7 @@
             let d = new Date(row.timestamp);
             let rowDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
             let hour = d.getHours();
-            let rowSession = (hour >= 6 && hour < 14) ? "MORN" : "EVE";
+            let rowSession = (hour >= 6 && hour < 14) ? "6AM-12" : "3PM-11PM";
 
             if (rowDate === selectedDateStr && (selectedSession === "ALL" || selectedSession === rowSession)) {
                 let room = row.room;

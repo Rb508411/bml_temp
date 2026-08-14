@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Map - แผนผังห้องปฏิบัติการ</title>
+    <title>Live Map - SmartLab SmartTemp v.2</title>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 1000px; background-color: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -287,6 +287,7 @@
 
 
     const LAB_CONFIG = {
+           
             "Stock Room": [],
             "Sample Preparation Room": [
                 "ตู้เย็น (BML-MOL-210)",
@@ -332,22 +333,23 @@
                 "ตู้เย็น (BML-MOL-619)",
                 "ตู้เย็น -20 °C (BML-MOL-620)",
                 "ตู้เย็น -20 °C (BML-MOL-680)"
-            ]
+            ],
+            "Stock 1st floor": ["ตู้เย็น (Stock 1st floor)"]
         };
 
     const ROOM_ID_MAP = {
         "Stock Room": "r-stock",
         "Sample Preparation Room": "r-sample",
         "BSL-2 Room": "r-bsl2",
-        "PCR Room I (หน้าห้อง MMX)": "r-pcr1m",
+        "PCR 1 (หน้าห้อง MMX)": "r-pcr1m",
         "MMX Room": "r-mmx",
         "PCR Mix Room": "r-pcrmix",
-        "FFPE Extraction": "r-pcr2",
+        "Sample Prep 2 Room": "r-pcr2",
         "Pre-PCR Room": "r-prepcr",
-        "PCR Room I (หน้าห้อง Post PCR)": "r-pcr1p",
+        "PCR 1 (หน้าห้อง Post PCR)": "r-pcr1p",
         "Post PCR Room": "r-post",
         "Cobas 6800 Room": "r-cobas6800",
-        "Cobas 4800 Zone": "r-cobas4800",
+        "Automation Zone": "r-cobas4800",
         "Library Preparation": "r-lib",
         "Sequencing Room": "r-seq",
         "Analysis Room": "r-analysis"
