@@ -37,7 +37,7 @@
         .history-table tr:hover { background-color: #f8f9fa; }
         .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
         .status-completed { background-color: #eafaf1; color: #27ae60; }
-        .btn-reload { background-color: #3498db; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+        .btn-reload { background-color: #3498db; color: white; border: none; padding: 6px 15px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
         #history-loading { text-align: center; color: #7f8c8d; padding: 20px; font-style: italic; }
     </style>
 </head>
@@ -167,13 +167,13 @@
 
         <div class="history-container">
             <div class="history-title">
-                <span>📋 ประวัติการเปิดตู้/ละลายน้ำแข็ง (30 รายการล่าสุด)</span>
+                <span>📋 ประวัติการเปิดตู้/ละลายน้ำแข็ง</span>
                 <div style="display: flex; gap: 10px; align-items: center; font-size: 0.9rem; flex-wrap: wrap;">
                     <label>ตั้งแต่:</label>
                     <input type="date" id="export-start" class="form-control" style="width: auto; padding: 5px;">
                     <label>ถึง:</label>
                     <input type="date" id="export-end" class="form-control" style="width: auto; padding: 5px;">
-                    <button type="button" class="btn-reload" style="background-color: #27ae60;" onclick="exportDefrostExcel()">📥 Export Excel</button>
+                    <button type="button" class="btn-reload" style="background-color: #001f5c;" onclick="exportDefrostExcel()">📥 Export Excel</button>
                     <button type="button" class="btn-reload" onclick="loadDefrostHistory()">🔄 รีเฟรช</button>
                 </div>
             </div>
