@@ -357,7 +357,8 @@
             "Pre-PCR Room":[],
             "Library Preparation": [
                 "ตู้เย็น (BML-MOL-539)",
-                "ตู้เย็น -20 °C (BML-MOL-617)",
+                "ตู้เย็น -20 °C (BML-MOL-617) บน",
+                "ตู้เย็น -20 °C (BML-MOL-617) ล่าง",
                 "ตู้เย็น -70 °C (BML-MOL-566)"
             ],
             "Post PCR Room": [], 
@@ -368,8 +369,10 @@
             "Sequencing Room": [],
             "Analysis Room": [
                 "ตู้เย็น (BML-MOL-619)",
-                "ตู้เย็น -20 °C (BML-MOL-620)",
-                "ตู้เย็น -20 °C (BML-MOL-680)"
+                "ตู้เย็น -20 °C (BML-MOL-620) บน",
+                "ตู้เย็น -20 °C (BML-MOL-620) ล่าง",
+                "ตู้เย็น -20 °C (BML-MOL-680) บน",
+                "ตู้เย็น -20 °C (BML-MOL-680) ล่าง"
             ],
             "Stock 1st floor": ["ตู้เย็น (Stock 1st floor)"]
         };
@@ -464,7 +467,7 @@
             const hour = now.getHours();
             const banner = document.getElementById('session-banner');
             
-            if (hour >= 6 && hour < 15) {
+            if (hour >= 6 && hour < 12) {
                 currentSessionName = "6AM-12";
                 banner.innerText = "☀️ เปิดรับข้อมูลรอบเช้า 06:00 - 11:59 น.";
                 banner.className = "session-banner active-morn";
@@ -474,7 +477,7 @@
                 banner.className = "session-banner active-eve";
             } else {
                 currentSessionName = null;
-                banner.innerText = "🚫 นอกเวลาการบันทึก (รับเฉพาะ 06-11 น. และ 15-22 น.)";
+                banner.innerText = "🚫 นอกเวลาการบันทึก (รับเฉพาะ 06-11:59 น. และ 15-22:59 น.)";
                 banner.className = "session-banner inactive";
                 
                 // ระบบล็อกแบบ Strict: หากหมดเวลาแล้วมีคนค้างอยู่ในห้อง จะเตะออกและปลดล็อกอัตโนมัติ
