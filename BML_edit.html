@@ -133,11 +133,14 @@
             <input type="date" id="search-date" class="form-control" required>
         </div>
         <div class="form-group">
-            <!-- อ้างอิง Value รอบเวลาจาก TempBML.html[cite: 8] -->
             <label>⏰ รอบเวลา (Session)</label>
             <select id="search-session" class="form-control" required>
-                <option value="6AM-12">☀️ รอบเช้า (06:00 - 11:59)</option>
-                <option value="3PM-11PM">🌙 รอบเย็น (15:00 - 22:59)</option>
+                <option value="6AM-12">☀️ รอบ 6AM-12</option>
+                <option value="3PM-11PM">🌙 รอบ 3PM-11PM</option>
+                
+                <!-- (ตัวเลือกเสริม) เผื่อกรณีต้องกลับไปแก้ไขข้อมูลของสัปดาห์ก่อนที่ยังใช้ชื่อรอบเก่า -->
+                <option value="MORN" style="color: #8ca8c4;">☀️ รอบ MORN (ข้อมูลเดิม)</option>
+                <option value="EVE" style="color: #8ca8c4;">🌙 รอบ EVE (ข้อมูลเดิม)</option>
             </select>
         </div>
     </div>
