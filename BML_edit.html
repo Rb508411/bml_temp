@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>แก้ไขข้อมูลอุณหภูมิ (Edit Mode)</title>
     <style>
-        /* 📍 ธีม Arcade & Muted Blue */
+        /* 📍 ธีม Muted Blue */
         body { 
             font-family: 'Helvetica Neue', Arial, sans-serif; 
-            background-color: #121a23; /* พื้นหลังสีกรมท่าเข้มจัด */
+            background-color: #121a23; 
             color: #ecf0f1; 
             margin: 0; 
             padding: 20px; 
@@ -21,15 +21,14 @@
         .container { 
             width: 100%; 
             max-width: 700px; 
-            background-color: #1e2a38; /* สีน้ำเงินหม่น (Muted Blue) สำหรับกล่องหลัก */
+            background-color: #1e2a38; 
             padding: 25px; 
             border-radius: 12px; 
-            box-shadow: 0 0 20px rgba(0, 229, 255, 0.1); /* เรืองแสงสีฟ้าอ่อนๆ */
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.1); 
             border: 1px solid #2e4359;
             margin-bottom: 20px; 
         }
         
-        /* Header Style อ้างอิงจาก TempBML.html */
         .header { 
             background: linear-gradient(135deg, #00338D, #1e3a5f); 
             color: white; 
@@ -40,7 +39,6 @@
         }
         .header h1 { margin: 0; font-size: 1.4rem; line-height: 1.4; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
         
-        /* Menu Links Style อ้างอิงจาก TempBML.html */
         .menu-bar {
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; 
             background-color: #151e28; padding: 12px; border-radius: 8px; border-left: 4px solid #00e5ff; flex-wrap: wrap; gap: 10px;
@@ -54,18 +52,17 @@
         .menu-btn-dash { background-color: #3498db; } .menu-btn-dash:hover { background-color: #2980b9; border-color: #00e5ff; }
         .menu-btn-edit { background-color: #e67e22; box-shadow: 0 0 10px rgba(230, 126, 34, 0.5); } 
 
-        /* Form & Input Style (Arcade Theme) */
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; font-weight: bold; color: #8ca8c4; margin-bottom: 8px; font-size: 0.95rem; letter-spacing: 0.5px;}
         .form-control { 
             width: 100%; padding: 12px; box-sizing: border-box; font-size: 1.1rem; 
-            background-color: #0a0f14; /* สีพื้นหลังช่องกรอกดำสนิท */
-            color: #00e5ff; /* สีตัวหนังสือ Cyan เรืองแสง */
+            background-color: #0a0f14; 
+            color: #00e5ff; 
             border: 2px solid #2e4359; 
             border-radius: 6px; 
-            font-family: 'Courier New', Courier, monospace; /* ฟอนต์สไตล์คอมพิวเตอร์ยุคเก่า */
             font-weight: bold;
             transition: all 0.3s;
+            font-family: inherit; /* ใช้ฟอนต์ธรรมดา */
         }
         .form-control:focus { outline: none; border-color: #00e5ff; box-shadow: 0 0 10px rgba(0, 229, 255, 0.2); }
         .form-control option { background-color: #1e2a38; color: #fff; }
@@ -73,44 +70,43 @@
         .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         @media (max-width: 600px) { .grid-2-col { grid-template-columns: 1fr; } }
 
-        /* Buttons */
         .btn { width: 100%; padding: 14px; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; letter-spacing: 1px;}
         .btn-search { background-color: #34495e; color: white; border: 1px solid #8ca8c4; } 
         .btn-search:hover { background-color: #4a6278; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
-        .btn-save { background-color: #00e5ff; color: #0a0f14; } /* ปุ่มเซฟสี Cyan สว่าง */
-        .btn-save:hover { background-color: #00b3cc; box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); }
+        .btn-save { background-color: #00e5ff; color: #0a0f14; } 
+        .btn-save:hover:not(:disabled) { background-color: #00b3cc; box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); }
+        .btn-save:disabled { cursor: not-allowed; }
 
-        /* Edit Section */
         #edit-section { 
             display: none; background-color: #151e28; padding: 25px; border-radius: 8px; 
             border: 2px dashed #e67e22; margin-top: 25px; position: relative;
         }
         .val-display { 
             background: #000; padding: 15px; border-radius: 6px; border: 2px solid #3498db; 
-            text-align: center; font-size: 1.3rem; color: #8ca8c4; margin-bottom: 20px; 
+            text-align: center; font-size: 1.2rem; color: #8ca8c4; margin-bottom: 20px; 
         }
-        .old-val-text { color: #39ff14; font-family: 'Courier New', Courier, monospace; font-size: 1.8rem; text-shadow: 0 0 8px rgba(57, 255, 20, 0.5); display: block; margin-top: 5px; } /* สีเขียวเรืองแสงแบบ Arcade Score */
+        .old-val-text { 
+            font-size: 1.8rem; font-weight: bold; display: block; margin-top: 5px; font-family: inherit;
+        } 
         
         #loading { display: none; text-align: center; color: #00e5ff; font-weight: bold; margin-top: 15px; letter-spacing: 2px; }
         
-        /* สไตล์ช่องเหตุผลตอนที่โดนล็อก */
+        /* สไตล์สำหรับฟิลด์ที่ถูกล็อก (สีแดง/สีเขียว) */
         .reason-locked { background-color: #0a0f14 !important; color: #e74c3c !important; border-color: #e74c3c !important; text-align: center; }
+        .input-normal-locked { background-color: #0a1f14 !important; color: #2ecc71 !important; border-color: #27ae60 !important; cursor: not-allowed; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- โลโก้[cite: 8] -->
     <div style="text-align: center; padding-top: 10px; margin-bottom: 15px;">
         <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo" style="max-height: 70px; width: auto; object-fit: contain;">
     </div>
 
-    <!-- Header[cite: 8] -->
     <div class="header">
         <h1>🛠️ EDIT MODE (โหมดแก้ไขข้อมูล)<br><small style="font-weight:normal; font-size:1rem; color:#a9cce3;">Molecular Laboratory</small></h1>
     </div>
 
-    <!-- เมนูลิงก์[cite: 8] -->
     <div class="menu-bar">
         <h3 style="margin:0; color: #8ca8c4; font-size: 1.1rem;">เลือกหน้าต่าง</h3>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -121,12 +117,10 @@
         </div>
     </div>
 
-    <!-- ข้อมูลผู้ใช้งาน -->
     <div id="user-profile" style="text-align: center; background-color: #151e28; padding: 10px; border-radius: 6px; color: #8ca8c4; font-size: 0.95rem; margin-bottom: 25px; display: none; border: 1px solid #2e4359;">
         👤 ผู้ดำเนินการ (Admin): <strong id="display-name" style="color: #00e5ff;"></strong>
     </div>
 
-    <!-- ส่วนที่ 1: ค้นหาข้อมูล -->
     <div class="grid-2-col">
         <div class="form-group">
             <label>📅 วันที่บันทึก (Date)</label>
@@ -137,8 +131,6 @@
             <select id="search-session" class="form-control" required>
                 <option value="6AM-12">☀️ รอบ 6AM-12</option>
                 <option value="3PM-11PM">🌙 รอบ 3PM-11PM</option>
-                
-                <!-- (ตัวเลือกเสริม) เผื่อกรณีต้องกลับไปแก้ไขข้อมูลของสัปดาห์ก่อนที่ยังใช้ชื่อรอบเก่า -->
                 <option value="MORN" style="color: #8ca8c4;">☀️ รอบ MORN (ข้อมูลเดิม)</option>
                 <option value="EVE" style="color: #8ca8c4;">🌙 รอบ EVE (ข้อมูลเดิม)</option>
             </select>
@@ -150,7 +142,6 @@
             <label>🚪 ห้องปฏิบัติการ (Room)</label>
             <select id="search-room" class="form-control" onchange="updateEquipmentList()" required>
                 <option value="" disabled selected>-- เลือกห้อง --</option>
-                <!-- รายชื่อห้องดึงจาก TempBML.html[cite: 8] -->
                 <option value="Stock Room">Stock Room</option>
                 <option value="Sample Preparation Room">Sample Preparation Room</option>
                 <option value="MMX Room">MMX Room</option>
@@ -180,7 +171,6 @@
     <button type="button" class="btn btn-search" onclick="fetchOldData()">[ SCAN DATA ] ค้นหาข้อมูลเดิม</button>
     <div id="loading">SCANNING DATABASE... █▒▒▒▒▒▒▒▒▒</div>
 
-    <!-- ส่วนที่ 2: ฟอร์มแก้ไข -->
     <div id="edit-section">
         <h3 style="margin-top: 0; color: #e67e22; text-align: center; letter-spacing: 1px;">/// RECORD FOUND ///</h3>
         <div class="val-display">
@@ -191,7 +181,7 @@
         <div class="grid-2-col">
             <div class="form-group">
                 <label>▶ ค่าใหม่ที่ถูกต้อง (New Value)</label>
-                <input type="number" step="0.1" id="new-val" class="form-control" placeholder="_ _ . _" required>
+                <input type="number" step="0.1" id="new-val" class="form-control" placeholder="ระบุตัวเลข" required>
             </div>
             <div class="form-group">
                 <label>▶ เหตุผลการแก้ไข (Reason)</label>
@@ -199,7 +189,7 @@
             </div>
         </div>
 
-        <button type="button" class="btn btn-save" onclick="saveEdit()">[ OVERWRITE ] ยืนยันการแก้ไขข้อมูล</button>
+        <button type="button" id="btn-save" class="btn btn-save" onclick="saveEdit()">[ OVERWRITE ] ยืนยันการแก้ไขข้อมูล</button>
     </div>
 </div>
 
@@ -207,7 +197,6 @@
     // 📍 นำ URL ของ Google Apps Script มาใส่ตรงนี้
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
 
-    // อ้างอิงรายชื่อห้องและเครื่องมือให้ตรงกับ TempBML.html[cite: 8]
     const LAB_CONFIG = {
         "Stock Room": [],
         "Sample Preparation Room": ["ตู้เย็น (BML-MOL-210)", "ตู้เย็น (BML-MOL-488)", "ตู้เย็น -20 °C (BML-MOL-488)", "ตู้เย็น -20 °C (BML-MOL-121)", "ตู้เย็น -20 °C (BML-MOL-123)", "ตู้เย็น -30 °C (BML-MOL-207)"],
@@ -227,17 +216,31 @@
         "Stock 1st floor": ["ตู้เย็น (Stock 1st floor)"]
     };
 
+    // --- กฎการตรวจสอบความผิดปกติ (อ้างอิงจาก TempBML) ---
+    function getValidationRules(name) {
+        const lowerName = name.toLowerCase();
+        if (lowerName.includes("-70")) return { minNorm: -75, maxNorm: -65 };
+        if (lowerName.includes("-20")) return { minNorm: -35, maxNorm: -15 };
+        if (lowerName.includes("-30")) return { minNorm: -40, maxNorm: -20 };
+        if (lowerName.includes("ตู้เย็น")) return { minNorm: 2, maxNorm: 8 };
+        return null;
+    }
+
+    const ROOM_CRITERIA = {
+        temp: { minNorm: 18, maxNorm: 25 },
+        hum:  { minNorm: 20, maxNorm: 60 }
+    };
+
     function checkLoginExpiration() {
         const savedUser = localStorage.getItem('lab_logged_in_user');
         const savedTime = localStorage.getItem('lab_login_timestamp');
         
         if (savedUser && savedTime) {
             const now = Date.now();
-            const ONE_HOUR = 60 * 60 * 1000;
-            if (now - parseInt(savedTime) > ONE_HOUR) {
+            if (now - parseInt(savedTime) > 60 * 60 * 1000) {
                 localStorage.removeItem('lab_logged_in_user');
                 localStorage.removeItem('lab_login_timestamp');
-                alert("⏱️ เซสชันหมดอายุ (เกิน 1 ชั่วโมง) ระบบจะพากลับไปหน้าเข้าสู่ระบบครับ");
+                alert("⏱️ เซสชันหมดอายุ ระบบจะพากลับไปหน้าเข้าสู่ระบบครับ");
                 window.location.href = "https://rb508411.github.io/bml_temp/TempBML.html"; 
                 return false;
             }
@@ -250,16 +253,13 @@
 
     window.onload = () => {
         if (!checkLoginExpiration()) return;
-
         const savedUser = localStorage.getItem('lab_logged_in_user');
         if (savedUser) {
             document.getElementById('display-name').innerText = savedUser;
             document.getElementById('user-profile').style.display = 'block';
         }
-
         const today = new Date();
         document.getElementById('search-date').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-        
         setInterval(checkLoginExpiration, 60000);
     };
 
@@ -298,7 +298,6 @@
         loadingText.style.display = 'block';
         document.getElementById('edit-section').style.display = 'none';
 
-        // เอฟเฟกต์โหลดหลอกตาแบบอาร์เคด
         let loadStep = 0;
         const loadAnim = setInterval(() => {
             loadStep++;
@@ -320,24 +319,75 @@
                 
                 const displayVal = document.getElementById('display-old-val');
                 const reasonEl = document.getElementById('edit-reason');
+                const newValEl = document.getElementById('new-val');
+                const saveBtn = document.getElementById('btn-save');
                 
-                document.getElementById('new-val').value = '';
+                // รีเซ็ตค่า UI เสมอ
+                newValEl.value = '';
+                newValEl.readOnly = false;
+                newValEl.classList.remove('input-normal-locked');
+                reasonEl.classList.remove('reason-locked', 'input-normal-locked');
+                saveBtn.disabled = false;
+                saveBtn.style.opacity = '1';
+                saveBtn.innerText = "[ OVERWRITE ] ยืนยันการแก้ไขข้อมูล";
+                document.getElementById('edit-section').style.borderColor = '#e67e22';
 
-                // ล็อกเหตุผลหากเป็นการลืมบันทึก
+                // กรณีที่ 1: ลืมบันทึก หรือค่าว่าง
                 if (!result.found || result.oldValue === "-" || result.oldValue === "") {
                     displayVal.innerText = "[ NO RECORD ]";
-                    displayVal.style.color = "#e74c3c"; // แดงแจ้งเตือน
+                    displayVal.style.color = "#e74c3c";
+                    displayVal.style.textShadow = "none";
                     
                     reasonEl.value = "ลืมบันทึก";
                     reasonEl.readOnly = true;
                     reasonEl.classList.add("reason-locked");
-                } else {
+                } 
+                // กรณีพบตัวเลข
+                else {
+                    const oldValNum = parseFloat(result.oldValue);
                     displayVal.innerText = result.oldValue;
-                    displayVal.style.color = "#39ff14"; // เขียวเรืองแสง
                     
-                    reasonEl.value = "";
-                    reasonEl.readOnly = false;
-                    reasonEl.classList.remove("reason-locked");
+                    // ตรวจสอบเงื่อนไขว่าผิดปกติหรือไม่
+                    let isAbnormal = false;
+                    let rules = null;
+                    
+                    if (equip === "อุณหภูมิห้อง") rules = ROOM_CRITERIA.temp;
+                    else if (equip === "ความชื้นห้อง") rules = ROOM_CRITERIA.hum;
+                    else rules = getValidationRules(equip);
+
+                    if (rules && !isNaN(oldValNum)) {
+                        if (oldValNum < rules.minNorm || oldValNum > rules.maxNorm) {
+                            isAbnormal = true;
+                        }
+                    } else if (isNaN(oldValNum)) {
+                        isAbnormal = true; // ถ้าเป็น text แปลกๆ ให้ถือว่าผิดปกติและยอมให้แก้
+                    }
+
+                    // กรณีที่ 2: ค่าผิดปกติ (หลุดช่วง Norm) -> อนุญาตให้แก้
+                    if (isAbnormal) {
+                        displayVal.style.color = "#e67e22"; 
+                        displayVal.style.textShadow = "none";
+                        reasonEl.value = "";
+                        reasonEl.readOnly = false;
+                    } 
+                    // กรณีที่ 3: ค่าปกติ -> ล็อก ไม่ให้แก้!
+                    else {
+                        displayVal.style.color = "#2ecc71"; // สีเขียว
+                        displayVal.style.textShadow = "none";
+                        document.getElementById('edit-section').style.borderColor = '#27ae60';
+                        
+                        newValEl.value = result.oldValue;
+                        newValEl.readOnly = true;
+                        newValEl.classList.add("input-normal-locked");
+
+                        reasonEl.value = "🔒 ค่าอยู่ในเกณฑ์ปกติ ไม่อนุญาตให้แก้ไข";
+                        reasonEl.readOnly = true;
+                        reasonEl.classList.add("input-normal-locked");
+
+                        saveBtn.disabled = true;
+                        saveBtn.style.opacity = '0.5';
+                        saveBtn.innerText = "🔒 ล็อกการแก้ไข (ค่าปกติ)";
+                    }
                 }
             }, 300);
 
