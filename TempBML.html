@@ -417,7 +417,7 @@
                     if (adminUsers.includes(empId)) {
                         localStorage.setItem('lab_user_role', 'admin');
                     } else {
-                        localStorage.removeItem('lab_user_role');
+                        localStorage.removeItem('lab_user_role', 'admin');
                     }
                     
                     logUserActivity("หน้าหลัก", "เข้าสู่ระบบ", `รหัสพนักงาน: ${empId}`);

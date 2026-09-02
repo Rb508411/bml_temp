@@ -113,7 +113,6 @@
             <a href="https://rb508411.github.io/bml_temp/TempBML.html" class="menu-link-btn menu-btn-main">🏠 หน้าหลัก</a>
             <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">🗺️ ผังห้อง</a>
             <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash">📊 Dashboard</a>
-            <a href="#" class="menu-link-btn menu-btn-edit">✏️ แก้ไขข้อมูล</a>
         </div>
     </div>
 
@@ -131,8 +130,6 @@
             <select id="search-session" class="form-control" required>
                 <option value="6AM-12">☀️ รอบ 6AM-12</option>
                 <option value="3PM-11PM">🌙 รอบ 3PM-11PM</option>
-                <option value="MORN" style="color: #8ca8c4;">☀️ รอบ MORN (ข้อมูลเดิม)</option>
-                <option value="EVE" style="color: #8ca8c4;">🌙 รอบ EVE (ข้อมูลเดิม)</option>
             </select>
         </div>
     </div>
@@ -161,7 +158,7 @@
             </select>
         </div>
         <div class="form-group">
-            <label>🔬 พารามิเตอร์/เครื่องมือ (Parameter)</label>
+            <label>🔬 พารามิเตอร์</label>
             <select id="search-equip" class="form-control" required>
                 <option value="" disabled selected>-- กรุณาเลือกห้องก่อน --</option>
             </select>
@@ -180,11 +177,11 @@
         
         <div class="grid-2-col">
             <div class="form-group">
-                <label>▶ ค่าใหม่ที่ถูกต้อง (New Value)</label>
+                <label>▶ ค่าใหม่ที่ถูกต้อง</label>
                 <input type="number" step="0.1" id="new-val" class="form-control" placeholder="ระบุตัวเลข" required>
             </div>
             <div class="form-group">
-                <label>▶ เหตุผลการแก้ไข (Reason)</label>
+                <label>▶ เหตุผลการแก้ไข</label>
                 <input type="text" id="edit-reason" class="form-control" placeholder="ระบุเหตุผล..." required>
             </div>
         </div>
