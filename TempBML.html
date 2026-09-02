@@ -122,7 +122,7 @@
         
         /* สไตล์แจ้งเตือนตอนกรอกค่า Validations */
         .input-warning { background-color: #ffb3b3 !important; color: #d35400 !important; }
-        .input-warning-low { background-color: #aed6f1 !important; color: blue !important; } /* สีฟ้า (ค่าต่ำกว่าปกติ) */
+        .input-warning-low { background-color: #aed6f1 !important; color: blue !important; }
         .input-error { background-color: #000000 !important; color: #ffffff !important; }
 
         .section-title {
@@ -195,67 +195,35 @@
                 </div>
                 
                 <style>
-                    /* สไตล์สำหรับปุ่มลิงก์เมนู (ปุ่มจะลอยขึ้นเล็กน้อยและเปลี่ยนสีตอน Hover) */
                     .menu-link-btn {
-                        color: white !important;
-                        padding: 10px 15px;
-                        border-radius: 6px;
-                        text-decoration: none;
-                        font-size: 0.95rem;
-                        font-weight: bold;
-                        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-                        transition: all 0.3s ease;
+                        color: white !important; padding: 10px 15px; border-radius: 6px; text-decoration: none;
+                        font-size: 0.95rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: all 0.3s ease;
                     }
-                    
-                    .menu-btn-map { background-color: #00338D; }
-                    .menu-btn-map:hover { background-color: #001f5c; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-dash { background-color: #3498db; }
-                    .menu-btn-dash:hover { background-color: #2980b9; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-main { background-color: #2c3e50; }
-                    .menu-btn-main:hover { background-color: #939393; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-
-                    .menu-btn-sum { background-color: #e67e22; }
-                    .menu-btn-sum:hover { background-color: #d35400; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-        
-                    .menu-btn-frost { background-color: #3a2dec; }
-                    .menu-btn-frost:hover { background-color: #595beb; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
-        
-            </style>
+                    .menu-btn-map { background-color: #00338D; } .menu-btn-map:hover { background-color: #001f5c; transform: translateY(-2px); }
+                    .menu-btn-dash { background-color: #3498db; } .menu-btn-dash:hover { background-color: #2980b9; transform: translateY(-2px); }
+                    .menu-btn-main { background-color: #2c3e50; } .menu-btn-main:hover { background-color: #939393; transform: translateY(-2px); }
+                    .menu-btn-sum { background-color: #e67e22; } .menu-btn-sum:hover { background-color: #d35400; transform: translateY(-2px); }
+                    .menu-btn-frost { background-color: #3a2dec; } .menu-btn-frost:hover { background-color: #595beb; transform: translateY(-2px); }
+                    .menu-btn-edit { background-color: #e74c3c; } .menu-btn-edit:hover { background-color: #c0392b; transform: translateY(-2px); }
+                </style>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #00338D; flex-wrap: wrap; gap: 10px;">
                     <h3 style="margin-top:0; margin-bottom:0; color: #2c3e50;">เลือกหน้าต่าง</h3>
                     
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        
-                        <!--<a href="https://rb508411.github.io/bml_temp/TempBML.html" target="_blank" class="menu-link-btn menu-btn-main">
-                            🏠 หน้าหลัก
-                        </a>-->
-        
-                        <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">
-                            🗺️ ผังห้อง
-                        </a>
-                        <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash">
-                            📊 Dashboard
-                        </a>
-                        <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">
-                            📝 รายงานสรุป
-                        </a>
-                        <a href="https://rb508411.github.io/bml_temp/BML_defrost.html" target="_blank" class="menu-link-btn menu-btn-frost">
-                                    ❄️ กิจกรรมตู้เย็น
-                        </a>
-
-
+                        <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">🗺️ ผังห้อง</a>
+                        <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash">📊 Dashboard</a>
+                        <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">📝 รายงานสรุป</a>
+                        <a href="https://rb508411.github.io/bml_temp/BML_defrost.html" target="_blank" class="menu-link-btn menu-btn-frost">❄️ กิจกรรมตู้เย็น</a>
+                        <a href="https://rb508411.github.io/bml_temp/BML_edit.html" target="_blank" id="btn-menu-edit" class="menu-link-btn menu-btn-edit" style="display: none;">✏️ แก้ไขข้อมูล</a>
                     </div>
                 </div>
                 <div class="grid-container" id="room-grid">
                     <!-- จะถูกสร้างด้วย JavaScript -->
                 </div>
             </div>
+
             <!-- ================= VIEW 3: ROOM FORM ================= -->
-
-
             <div id="view-room">
                 <div class="room-header">
                     <span id="room-title">Lab X</span>
@@ -265,12 +233,10 @@
                 <form id="room-form">
                     <div class="form-group">
                         <label>🌡️ อุณหภูมิห้อง (°C) <span style="color:#EA2839;">*</span></label>
-                        <!-- เพิ่ม oninput -->
                         <input type="number" id="room-temp" step="0.1" oninput="validateRoom(this, 'temp')" required>
                     </div>
                     <div class="form-group">
                         <label>💧 ความชื้นห้อง (%) <span style="color:#EA2839;">*</span></label>
-                        <!-- เพิ่ม oninput -->
                         <input type="number" id="room-hum" step="0.1" oninput="validateRoom(this, 'hum')" required>
                     </div>
 
@@ -299,23 +265,19 @@
         // *** ให้นำ URL ของ Google Apps Script มาใส่ตรงนี้ ***
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
 
-
         function checkLoginExpiration() {
             const savedUser = localStorage.getItem('lab_logged_in_user');
             const savedTime = localStorage.getItem('lab_login_timestamp');
             
             if (savedUser && savedTime) {
                 const now = Date.now();
-                const ONE_HOUR = 60 * 60 * 1000; // 1 ชั่วโมง = 3,600,000 มิลลิวินาที
+                const ONE_HOUR = 60 * 60 * 1000;
                 
                 if (now - parseInt(savedTime) > ONE_HOUR) {
-                    // หากเวลาผ่านไปเกิน 1 ชั่วโมง ให้ล้างค่าการล็อกอิน
                     localStorage.removeItem('lab_logged_in_user');
                     localStorage.removeItem('lab_login_timestamp');
-                    
+                    localStorage.removeItem('lab_user_role');
                     alert("⏱️ เซสชันหมดอายุ (เกิน 1 ชั่วโมง) กรุณาเข้าสู่ระบบใหม่ครับ");
-                    
-                    // รีเฟรชหน้าเว็บเพื่อกลับสู่หน้า Login
                     window.location.reload();
                     return false;
                 }
@@ -324,56 +286,22 @@
             return false;
         }
 
-
-    const LAB_CONFIG = {
-           
+        const LAB_CONFIG = {
             "Stock Room": [],
-            "Sample Preparation Room": [
-                "ตู้เย็น (BML-MOL-210)",
-                "ตู้เย็น (BML-MOL-488)",
-                "ตู้เย็น -20 °C (BML-MOL-488)",
-                "ตู้เย็น -20 °C (BML-MOL-121)",
-                "ตู้เย็น -20 °C (BML-MOL-123)",
-                "ตู้เย็น -30 °C (BML-MOL-207)"
-            ],
-            "MMX Room": [
-                "ตู้เย็น (BML-MOL-353)",
-                "ตู้เย็น -20 °C (BML-MOL-353)"
-            ],
+            "Sample Preparation Room": ["ตู้เย็น (BML-MOL-210)", "ตู้เย็น (BML-MOL-488)", "ตู้เย็น -20 °C (BML-MOL-488)", "ตู้เย็น -20 °C (BML-MOL-121)", "ตู้เย็น -20 °C (BML-MOL-123)", "ตู้เย็น -30 °C (BML-MOL-207)"],
+            "MMX Room": ["ตู้เย็น (BML-MOL-353)", "ตู้เย็น -20 °C (BML-MOL-353)"],
             "PCR Setup Room": [],
-            "PCR 1 (หน้าห้อง MMX)": [
-                "ตู้เย็น (BML-MOL-211)",
-                "ตู้เย็น -30 °C (BML-MOL-206)",
-                "ตู้เย็น -20 °C (BML-MOL-489)",
-                "ตู้เย็น (BML-MOL-352)"
-            ],
+            "PCR 1 (หน้าห้อง MMX)": ["ตู้เย็น (BML-MOL-211)", "ตู้เย็น -30 °C (BML-MOL-206)", "ตู้เย็น -20 °C (BML-MOL-489)", "ตู้เย็น (BML-MOL-352)"],
             "PCR 1 (หน้าห้อง Post PCR)": ["ตู้เย็น (BML-MOL-616)"],
-            "BSL-2 Room": [
-                "ตู้เย็น -70 °C (BML-MOL-220)",
-                "ตู้เย็น -70 °C (BML-MOL-125)",
-                "ตู้เย็น -70 °C (BML-MOL-124)"
-            ],
+            "BSL-2 Room": ["ตู้เย็น -70 °C (BML-MOL-220)", "ตู้เย็น -70 °C (BML-MOL-125)", "ตู้เย็น -70 °C (BML-MOL-124)"],
             "Sample Prep 2 Room":[],
             "Pre-PCR Room":[],
-            "Library Preparation": [
-                "ตู้เย็น (BML-MOL-539)",
-                "ตู้เย็น -20 °C (BML-MOL-617) บน",
-                "ตู้เย็น -20 °C (BML-MOL-617) ล่าง",
-                "ตู้เย็น -70 °C (BML-MOL-566)"
-            ],
+            "Library Preparation": ["ตู้เย็น (BML-MOL-539)", "ตู้เย็น -20 °C (BML-MOL-617) บน", "ตู้เย็น -20 °C (BML-MOL-617) ล่าง", "ตู้เย็น -70 °C (BML-MOL-566)"],
             "Post PCR Room": [], 
             "Cobas 6800 Room": [],
-            "Automation Zone": [
-                "ตู้เย็น (BML-MOL-139)"
-            ], 
+            "Automation Zone": ["ตู้เย็น (BML-MOL-139)"], 
             "Sequencing Room": [],
-            "Analysis Room": [
-                "ตู้เย็น (BML-MOL-619)",
-                "ตู้เย็น -20 °C (BML-MOL-620) บน",
-                "ตู้เย็น -20 °C (BML-MOL-620) ล่าง",
-                "ตู้เย็น -20 °C (BML-MOL-680) บน",
-                "ตู้เย็น -20 °C (BML-MOL-680) ล่าง"
-            ],
+            "Analysis Room": ["ตู้เย็น (BML-MOL-619)", "ตู้เย็น -20 °C (BML-MOL-620) บน", "ตู้เย็น -20 °C (BML-MOL-620) ล่าง", "ตู้เย็น -20 °C (BML-MOL-680) บน", "ตู้เย็น -20 °C (BML-MOL-680) ล่าง"],
             "Stock 1st floor": ["ตู้เย็น (Stock 1st floor)"]
         };
 
@@ -392,75 +320,57 @@
             document.getElementById('overlay').style.display = 'none';
         }
 
-        // ================= Validation Rules =================
         function getValidationRules(name) {
             const lowerName = name.toLowerCase();
             if (lowerName.includes("-70")) return { minAllow: -85, maxAllow: 0, minNorm: -75, maxNorm: -65 };
             if (lowerName.includes("-20")) return { minAllow: -50, maxAllow: 0, minNorm: -35, maxNorm: -15 };
             if (lowerName.includes("-30")) return { minAllow: -50, maxAllow: 0, minNorm: -40, maxNorm: -20 };
             if (lowerName.includes("ตู้เย็น")) return { minAllow: 0, maxAllow: 20, minNorm: 2, maxNorm: 8 };
-
-            return null; // ไม่มีเกณฑ์
+            return null;
         }
 
         const ROOM_CRITERIA = {
-                temp: { minAllow: 10, maxAllow: 50, minNorm: 18, maxNorm: 25 }, // อุณหภูมิห้อง
-                hum:  { minAllow: 10, maxAllow: 100, minNorm: 20, maxNorm: 60 }  // ความชื้นห้อง
-            };
+            temp: { minAllow: 10, maxAllow: 50, minNorm: 18, maxNorm: 25 },
+            hum:  { minAllow: 10, maxAllow: 100, minNorm: 20, maxNorm: 60 }
+        };
 
         function validateRoom(inputEl, type) {
-
             inputEl.classList.remove('input-warning', 'input-warning-low', 'input-error');
             const valStr = inputEl.value;
             if (valStr === '') return;
-
             const val = parseFloat(valStr);
             const rules = ROOM_CRITERIA[type];
 
             if (val < rules.minAllow || val > rules.maxAllow) {
-                inputEl.classList.add('input-error'); // หลุดเกณฑ์บังคับ (สูงหรือต่ำเกินไป) -> สีดำ
+                inputEl.classList.add('input-error');
             } else if (val > rules.maxNorm) {
-                inputEl.classList.add('input-warning'); // สูงกว่าเกณฑ์ปกติ -> สีชมพู
+                inputEl.classList.add('input-warning');
             } else if (val < rules.minNorm) {
-                inputEl.classList.add('input-warning-low'); // ต่ำกว่าเกณฑ์ปกติ -> สีฟ้า
+                inputEl.classList.add('input-warning-low');
             }
         }
 
-
         function validateEquip(tempInputEl) {
-
             const row = tempInputEl.parentElement;
             const nameInputEl = row.querySelector('.eq-name');
             const eqName = nameInputEl.value;
             const tempValStr = tempInputEl.value;
 
-
-            // เคลียร์สีเดิม
             tempInputEl.classList.remove('input-warning', 'input-warning-low', 'input-error');
-            
-
-            
             if (tempValStr === '') return;
             
             const rules = getValidationRules(eqName);
             if (!rules) return;
 
             const val = parseFloat(tempValStr);
-
-            // เช็คว่าอยู่นอกช่วงบังคับไหม (ห้ามบันทึก -> สีดำ)
             if (val < rules.minAllow || val > rules.maxAllow) {
-                tempInputEl.classList.add('input-error'); // หลุดเกณฑ์บังคับ (สูงหรือต่ำเกินไป) -> สีดำ
+                tempInputEl.classList.add('input-error');
             } else if (val > rules.maxNorm) {
-                tempInputEl.classList.add('input-warning'); // สูงกว่าเกณฑ์ปกติ -> สีชมพู
+                tempInputEl.classList.add('input-warning');
             } else if (val < rules.minNorm) {
-                tempInputEl.classList.add('input-warning-low'); // ต่ำกว่าเกณฑ์ปกติ -> สีฟ้า
+                tempInputEl.classList.add('input-warning-low');
             }
         }
-
-        
-
-
-        // ====================================================
 
         function checkSession() {
             const now = new Date();
@@ -480,7 +390,6 @@
                 banner.innerText = "🚫 นอกเวลาการบันทึก (รับเฉพาะ 06-11:59 น. และ 15-22:59 น.)";
                 banner.className = "session-banner inactive";
                 
-                // ระบบล็อกแบบ Strict: หากหมดเวลาแล้วมีคนค้างอยู่ในห้อง จะเตะออกและปลดล็อกอัตโนมัติ
                 if (currentEditingRoom) {
                     alert("⏰ หมดเวลารับข้อมูลของรอบนี้แล้ว ระบบจะปิดฟอร์มและกลับสู่หน้าหลักอัตโนมัติครับ");
                     cancelRoom(); 
@@ -503,6 +412,14 @@
                     currentUser = result.name;
                     localStorage.setItem('lab_logged_in_user', currentUser);
                     localStorage.setItem('lab_login_timestamp', Date.now());
+                    
+                    const adminUsers = ["508411", "511149", "516841"];
+                    if (adminUsers.includes(empId)) {
+                        localStorage.setItem('lab_user_role', 'admin');
+                    } else {
+                        localStorage.removeItem('lab_user_role');
+                    }
+                    
                     logUserActivity("หน้าหลัก", "เข้าสู่ระบบ", `รหัสพนักงาน: ${empId}`);
                     showDashboard();
                 } else {
@@ -518,6 +435,8 @@
             if(confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
                 localStorage.removeItem('lab_logged_in_user');
                 localStorage.removeItem('lab_login_timestamp');
+                localStorage.removeItem('lab_user_role');
+                
                 currentUser = "";
                 clearInterval(refreshInterval);
                 document.getElementById('view-dashboard').style.display = 'none';
@@ -532,6 +451,17 @@
             document.getElementById('view-room').style.display = 'none';
             document.getElementById('view-dashboard').style.display = 'block';
             
+            const userRole = localStorage.getItem('lab_user_role');
+            const editBtn = document.getElementById('btn-menu-edit');
+            
+            if (editBtn) {
+                if (userRole === 'admin') {
+                    editBtn.style.display = 'inline-block';
+                } else {
+                    editBtn.style.display = 'none';
+                }
+            }
+
             fetchRoomStatus();
             if(!refreshInterval) {
                 refreshInterval = setInterval(() => {
@@ -585,10 +515,10 @@
                     card.onclick = () => alert(`ห้องนี้กำลังถูกจดบันทึกโดย ${roomInfo.user} โปรดรอสักครู่ครับ`);
                 } 
                 else {
-                        if (roomName === "Stock 1st floor") {
-                            card.classList.add('optional-blue');
-                            badgeText = 'ว่าง (บันทึกรายสัปดาห์)';
-                        }
+                    if (roomName === "Stock 1st floor") {
+                        card.classList.add('optional-blue');
+                        badgeText = 'ว่าง (บันทึกรายสัปดาห์)';
+                    }
                     card.onclick = () => requestLockRoom(roomName);
                 }
 
@@ -602,7 +532,6 @@
         }
 
         async function requestLockRoom(roomName) {
-
             if (!currentSessionName) {
                 alert("🚫 อยู่นอกเวลาการบันทึกผล ไม่สามารถเข้าห้องได้ครับ");
                 return;
@@ -626,13 +555,11 @@
             hideOverlay();
         }
 
-        // เพิ่มพารามิเตอร์ isDefault เพื่อแยกว่าเครื่องมือไหนมาจากลิสต์บังคับ
         function addEquipField(name = '', temp = '', isDefault = false) {
             const container = document.getElementById('equip-container');
             const div = document.createElement('div');
             div.className = 'equip-row';
             
-            // ถ้าเป็นเครื่องมือจากลิสต์ บังคับแก้ไขชื่อไม่ได้ และปิดปุ่มลบ
             const nameAttr = isDefault ? `readonly style="flex: 3; background-color: #ecf0f1; cursor: not-allowed; border-color: #bdc3c7;"` : `style="flex: 3;"`;
             const btnHtml = isDefault ? `<div style="width: 32px; visibility: hidden;"></div>` : `<button type="button" class="btn-remove-eq" onclick="this.parentElement.remove()">✖</button>`;
 
@@ -643,7 +570,6 @@
             `;
             container.appendChild(div);
             
-            // สั่งตรวจสอบสีทันทีถ้ามีค่าอยู่แล้ว
             const tempInput = div.querySelector('.eq-temp');
             if(temp) validateEquip(tempInput);
         }
@@ -666,7 +592,6 @@
                  noticeEl.style.display = "none";
             }
             
-
             const data = sessionData[roomName] || {};
             document.getElementById('room-temp').value = data.rTemp || '';
             document.getElementById('room-hum').value = data.rHum || '';
@@ -678,13 +603,11 @@
             const savedEquips = data.equips || {};
             const defaultEquips = LAB_CONFIG[roomName] || [];
             
-            // โหลดเครื่องมือจากลิสต์ตายตัวก่อน (isDefault = true)
             defaultEquips.forEach(eqName => {
                 addEquipField(eqName, savedEquips[eqName] || '', true);
-                delete savedEquips[eqName]; // ลบออกจาก saved list เพื่อไม่ให้ซ้ำ
+                delete savedEquips[eqName]; 
             });
             
-            // โหลดเครื่องมืออื่นๆ ที่พนักงานกด Add เพิ่มเอง
             Object.keys(savedEquips).forEach(eqName => {
                 addEquipField(eqName, savedEquips[eqName] || '', false);
             });
@@ -735,7 +658,6 @@
             }
 
             const isOptionalRoom = (currentEditingRoom === "Stock 1st floor");
-
             const rTempEl = document.getElementById('room-temp');
             const rHumEl = document.getElementById('room-hum');
             
@@ -754,7 +676,6 @@
 
             let equipsData = {};
             let equipArray = []; 
-            
             let isMissingValue = false;
             let isInvalidValue = false;
 
@@ -841,7 +762,6 @@
 
         window.onload = function() {
             checkSession();
-            
             const savedUser = localStorage.getItem('lab_logged_in_user');
             if (savedUser) {
                 currentUser = savedUser;
@@ -853,35 +773,13 @@
             }
         };
 
-    function logUserActivity(pageName, actionName, detailsStr = "") {
-        const scriptUrl = SCRIPT_URL; 
-        const currentUser = localStorage.getItem('lab_logged_in_user') || "ไม่ระบุชื่อ (Guest)";
-        
-        const logPayload = {
-            user: currentUser,
-            page: pageName,
-            action: actionName,
-            details: detailsStr
-        };
-
-        const url = `${scriptUrl}?action=logActivity&data=${encodeURIComponent(JSON.stringify(logPayload))}`;
-
-        // เพิ่มการอ่านค่าที่ Google ตอบกลับมา เพื่อเช็ค Error
-        fetch(url)
-            .then(response => response.text())
-            .then(text => {
-                console.log("Log Backend Response:", text); // พิมพ์ลง Console
-                if (text !== "Success") {
-                    alert("แจ้งเตือนจากระบบ Log: " + text); // เด้งบอกบนหน้าจอ
-                }
-            })
-            .catch(error => {
-                console.error("Log Fetch Error:", error);
-                alert("Log Fetch Error: ไม่สามารถเชื่อมต่อ Apps Script ได้");
-            });
-    }
-
-
+        function logUserActivity(pageName, actionName, detailsStr = "") {
+            const scriptUrl = SCRIPT_URL; 
+            const currentUser = localStorage.getItem('lab_logged_in_user') || "ไม่ระบุชื่อ (Guest)";
+            const logPayload = { user: currentUser, page: pageName, action: actionName, details: detailsStr };
+            const url = `${scriptUrl}?action=logActivity&data=${encodeURIComponent(JSON.stringify(logPayload))}`;
+            fetch(url).catch(() => {});
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แก้ไขข้อมูลอุณหภูมิ (Edit Mode)</title>
+    <style>
+        /* 📍 ธีม Arcade & Muted Blue */
+        body { 
+            font-family: 'Helvetica Neue', Arial, sans-serif; 
+            background-color: #121a23; /* พื้นหลังสีกรมท่าเข้มจัด */
+            color: #ecf0f1; 
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+        
+        .container { 
+            width: 100%; 
+            max-width: 700px; 
+            background-color: #1e2a38; /* สีน้ำเงินหม่น (Muted Blue) สำหรับกล่องหลัก */
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.1); /* เรืองแสงสีฟ้าอ่อนๆ */
+            border: 1px solid #2e4359;
+            margin-bottom: 20px; 
+        }
+        
+        /* Header Style อ้างอิงจาก TempBML.html */
+        .header { 
+            background: linear-gradient(135deg, #00338D, #1e3a5f); 
+            color: white; 
+            padding: 20px; 
+            text-align: center; 
+            margin: 0 -25px 20px -25px; 
+            border-bottom: 3px solid #3498db;
+        }
+        .header h1 { margin: 0; font-size: 1.4rem; line-height: 1.4; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        
+        /* Menu Links Style อ้างอิงจาก TempBML.html */
+        .menu-bar {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; 
+            background-color: #151e28; padding: 12px; border-radius: 8px; border-left: 4px solid #00e5ff; flex-wrap: wrap; gap: 10px;
+        }
+        .menu-link-btn { 
+            color: white !important; padding: 8px 12px; border-radius: 6px; text-decoration: none; 
+            font-size: 0.9rem; font-weight: bold; transition: all 0.2s ease; border: 1px solid transparent;
+        }
+        .menu-btn-main { background-color: #2c3e50; } .menu-btn-main:hover { background-color: #34495e; border-color: #ecf0f1; }
+        .menu-btn-map { background-color: #00338D; } .menu-btn-map:hover { background-color: #0044cc; border-color: #00e5ff; }
+        .menu-btn-dash { background-color: #3498db; } .menu-btn-dash:hover { background-color: #2980b9; border-color: #00e5ff; }
+        .menu-btn-edit { background-color: #e67e22; box-shadow: 0 0 10px rgba(230, 126, 34, 0.5); } 
+
+        /* Form & Input Style (Arcade Theme) */
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-weight: bold; color: #8ca8c4; margin-bottom: 8px; font-size: 0.95rem; letter-spacing: 0.5px;}
+        .form-control { 
+            width: 100%; padding: 12px; box-sizing: border-box; font-size: 1.1rem; 
+            background-color: #0a0f14; /* สีพื้นหลังช่องกรอกดำสนิท */
+            color: #00e5ff; /* สีตัวหนังสือ Cyan เรืองแสง */
+            border: 2px solid #2e4359; 
+            border-radius: 6px; 
+            font-family: 'Courier New', Courier, monospace; /* ฟอนต์สไตล์คอมพิวเตอร์ยุคเก่า */
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .form-control:focus { outline: none; border-color: #00e5ff; box-shadow: 0 0 10px rgba(0, 229, 255, 0.2); }
+        .form-control option { background-color: #1e2a38; color: #fff; }
+        
+        .grid-2-col { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .grid-2-col { grid-template-columns: 1fr; } }
+
+        /* Buttons */
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; letter-spacing: 1px;}
+        .btn-search { background-color: #34495e; color: white; border: 1px solid #8ca8c4; } 
+        .btn-search:hover { background-color: #4a6278; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+        .btn-save { background-color: #00e5ff; color: #0a0f14; } /* ปุ่มเซฟสี Cyan สว่าง */
+        .btn-save:hover { background-color: #00b3cc; box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); }
+
+        /* Edit Section */
+        #edit-section { 
+            display: none; background-color: #151e28; padding: 25px; border-radius: 8px; 
+            border: 2px dashed #e67e22; margin-top: 25px; position: relative;
+        }
+        .val-display { 
+            background: #000; padding: 15px; border-radius: 6px; border: 2px solid #3498db; 
+            text-align: center; font-size: 1.3rem; color: #8ca8c4; margin-bottom: 20px; 
+        }
+        .old-val-text { color: #39ff14; font-family: 'Courier New', Courier, monospace; font-size: 1.8rem; text-shadow: 0 0 8px rgba(57, 255, 20, 0.5); display: block; margin-top: 5px; } /* สีเขียวเรืองแสงแบบ Arcade Score */
+        
+        #loading { display: none; text-align: center; color: #00e5ff; font-weight: bold; margin-top: 15px; letter-spacing: 2px; }
+        
+        /* สไตล์ช่องเหตุผลตอนที่โดนล็อก */
+        .reason-locked { background-color: #0a0f14 !important; color: #e74c3c !important; border-color: #e74c3c !important; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- โลโก้[cite: 8] -->
+    <div style="text-align: center; padding-top: 10px; margin-bottom: 15px;">
+        <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo" style="max-height: 70px; width: auto; object-fit: contain;">
+    </div>
+
+    <!-- Header[cite: 8] -->
+    <div class="header">
+        <h1>🛠️ EDIT MODE (โหมดแก้ไขข้อมูล)<br><small style="font-weight:normal; font-size:1rem; color:#a9cce3;">Molecular Laboratory</small></h1>
+    </div>
+
+    <!-- เมนูลิงก์[cite: 8] -->
+    <div class="menu-bar">
+        <h3 style="margin:0; color: #8ca8c4; font-size: 1.1rem;">เลือกหน้าต่าง</h3>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <a href="https://rb508411.github.io/bml_temp/TempBML.html" class="menu-link-btn menu-btn-main">🏠 หน้าหลัก</a>
+            <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">🗺️ ผังห้อง</a>
+            <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash">📊 Dashboard</a>
+            <a href="#" class="menu-link-btn menu-btn-edit">✏️ แก้ไขข้อมูล</a>
+        </div>
+    </div>
+
+    <!-- ข้อมูลผู้ใช้งาน -->
+    <div id="user-profile" style="text-align: center; background-color: #151e28; padding: 10px; border-radius: 6px; color: #8ca8c4; font-size: 0.95rem; margin-bottom: 25px; display: none; border: 1px solid #2e4359;">
+        👤 ผู้ดำเนินการ (Admin): <strong id="display-name" style="color: #00e5ff;"></strong>
+    </div>
+
+    <!-- ส่วนที่ 1: ค้นหาข้อมูล -->
+    <div class="grid-2-col">
+        <div class="form-group">
+            <label>📅 วันที่บันทึก (Date)</label>
+            <input type="date" id="search-date" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <!-- อ้างอิง Value รอบเวลาจาก TempBML.html[cite: 8] -->
+            <label>⏰ รอบเวลา (Session)</label>
+            <select id="search-session" class="form-control" required>
+                <option value="6AM-12">☀️ รอบเช้า (06:00 - 11:59)</option>
+                <option value="3PM-11PM">🌙 รอบเย็น (15:00 - 22:59)</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="grid-2-col">
+        <div class="form-group">
+            <label>🚪 ห้องปฏิบัติการ (Room)</label>
+            <select id="search-room" class="form-control" onchange="updateEquipmentList()" required>
+                <option value="" disabled selected>-- เลือกห้อง --</option>
+                <!-- รายชื่อห้องดึงจาก TempBML.html[cite: 8] -->
+                <option value="Stock Room">Stock Room</option>
+                <option value="Sample Preparation Room">Sample Preparation Room</option>
+                <option value="MMX Room">MMX Room</option>
+                <option value="PCR Setup Room">PCR Setup Room</option>
+                <option value="PCR 1 (หน้าห้อง MMX)">PCR 1 (หน้าห้อง MMX)</option>
+                <option value="PCR 1 (หน้าห้อง Post PCR)">PCR 1 (หน้าห้อง Post PCR)</option>
+                <option value="BSL-2 Room">BSL-2 Room</option>
+                <option value="Sample Prep 2 Room">Sample Prep 2 Room</option>
+                <option value="Pre-PCR Room">Pre-PCR Room</option>
+                <option value="Library Preparation">Library Preparation</option>
+                <option value="Post PCR Room">Post PCR Room</option>
+                <option value="Cobas 6800 Room">Cobas 6800 Room</option>
+                <option value="Automation Zone">Automation Zone</option>
+                <option value="Sequencing Room">Sequencing Room</option>
+                <option value="Analysis Room">Analysis Room</option>
+                <option value="Stock 1st floor">Stock 1st floor</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>🔬 พารามิเตอร์/เครื่องมือ (Parameter)</label>
+            <select id="search-equip" class="form-control" required>
+                <option value="" disabled selected>-- กรุณาเลือกห้องก่อน --</option>
+            </select>
+        </div>
+    </div>
+
+    <button type="button" class="btn btn-search" onclick="fetchOldData()">[ SCAN DATA ] ค้นหาข้อมูลเดิม</button>
+    <div id="loading">SCANNING DATABASE... █▒▒▒▒▒▒▒▒▒</div>
+
+    <!-- ส่วนที่ 2: ฟอร์มแก้ไข -->
+    <div id="edit-section">
+        <h3 style="margin-top: 0; color: #e67e22; text-align: center; letter-spacing: 1px;">/// RECORD FOUND ///</h3>
+        <div class="val-display">
+            CURRENT VALUE
+            <span id="display-old-val" class="old-val-text">-</span>
+        </div>
+        
+        <div class="grid-2-col">
+            <div class="form-group">
+                <label>▶ ค่าใหม่ที่ถูกต้อง (New Value)</label>
+                <input type="number" step="0.1" id="new-val" class="form-control" placeholder="_ _ . _" required>
+            </div>
+            <div class="form-group">
+                <label>▶ เหตุผลการแก้ไข (Reason)</label>
+                <input type="text" id="edit-reason" class="form-control" placeholder="ระบุเหตุผล..." required>
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-save" onclick="saveEdit()">[ OVERWRITE ] ยืนยันการแก้ไขข้อมูล</button>
+    </div>
+</div>
+
+<script>
+    // 📍 นำ URL ของ Google Apps Script มาใส่ตรงนี้
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
+
+    // อ้างอิงรายชื่อห้องและเครื่องมือให้ตรงกับ TempBML.html[cite: 8]
+    const LAB_CONFIG = {
+        "Stock Room": [],
+        "Sample Preparation Room": ["ตู้เย็น (BML-MOL-210)", "ตู้เย็น (BML-MOL-488)", "ตู้เย็น -20 °C (BML-MOL-488)", "ตู้เย็น -20 °C (BML-MOL-121)", "ตู้เย็น -20 °C (BML-MOL-123)", "ตู้เย็น -30 °C (BML-MOL-207)"],
+        "MMX Room": ["ตู้เย็น (BML-MOL-353)", "ตู้เย็น -20 °C (BML-MOL-353)"],
+        "PCR Setup Room": [],
+        "PCR 1 (หน้าห้อง MMX)": ["ตู้เย็น (BML-MOL-211)", "ตู้เย็น -30 °C (BML-MOL-206)", "ตู้เย็น -20 °C (BML-MOL-489)", "ตู้เย็น (BML-MOL-352)"],
+        "PCR 1 (หน้าห้อง Post PCR)": ["ตู้เย็น (BML-MOL-616)"],
+        "BSL-2 Room": ["ตู้เย็น -70 °C (BML-MOL-220)", "ตู้เย็น -70 °C (BML-MOL-125)", "ตู้เย็น -70 °C (BML-MOL-124)"],
+        "Sample Prep 2 Room":[],
+        "Pre-PCR Room":[],
+        "Library Preparation": ["ตู้เย็น (BML-MOL-539)", "ตู้เย็น -20 °C (BML-MOL-617) บน", "ตู้เย็น -20 °C (BML-MOL-617) ล่าง", "ตู้เย็น -70 °C (BML-MOL-566)"],
+        "Post PCR Room": [], 
+        "Cobas 6800 Room": [],
+        "Automation Zone": ["ตู้เย็น (BML-MOL-139)"], 
+        "Sequencing Room": [],
+        "Analysis Room": ["ตู้เย็น (BML-MOL-619)", "ตู้เย็น -20 °C (BML-MOL-620) บน", "ตู้เย็น -20 °C (BML-MOL-620) ล่าง", "ตู้เย็น -20 °C (BML-MOL-680) บน", "ตู้เย็น -20 °C (BML-MOL-680) ล่าง"],
+        "Stock 1st floor": ["ตู้เย็น (Stock 1st floor)"]
+    };
+
+    function checkLoginExpiration() {
+        const savedUser = localStorage.getItem('lab_logged_in_user');
+        const savedTime = localStorage.getItem('lab_login_timestamp');
+        
+        if (savedUser && savedTime) {
+            const now = Date.now();
+            const ONE_HOUR = 60 * 60 * 1000;
+            if (now - parseInt(savedTime) > ONE_HOUR) {
+                localStorage.removeItem('lab_logged_in_user');
+                localStorage.removeItem('lab_login_timestamp');
+                alert("⏱️ เซสชันหมดอายุ (เกิน 1 ชั่วโมง) ระบบจะพากลับไปหน้าเข้าสู่ระบบครับ");
+                window.location.href = "https://rb508411.github.io/bml_temp/TempBML.html"; 
+                return false;
+            }
+            return true;
+        }
+        alert("🔒 คุณยังไม่ได้เข้าสู่ระบบ กรุณาเข้าสู่ระบบผ่านหน้าหลักก่อนครับ");
+        window.location.href = "https://rb508411.github.io/bml_temp/TempBML.html";
+        return false;
+    }
+
+    window.onload = () => {
+        if (!checkLoginExpiration()) return;
+
+        const savedUser = localStorage.getItem('lab_logged_in_user');
+        if (savedUser) {
+            document.getElementById('display-name').innerText = savedUser;
+            document.getElementById('user-profile').style.display = 'block';
+        }
+
+        const today = new Date();
+        document.getElementById('search-date').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        
+        setInterval(checkLoginExpiration, 60000);
+    };
+
+    function updateEquipmentList() {
+        const room = document.getElementById('search-room').value;
+        const equipSelect = document.getElementById('search-equip');
+        
+        equipSelect.innerHTML = '<option value="" disabled selected>-- เลือกพารามิเตอร์ --</option>';
+        equipSelect.innerHTML += '<option value="อุณหภูมิห้อง">🌡️ อุณหภูมิห้อง (Room Temp)</option>';
+        equipSelect.innerHTML += '<option value="ความชื้นห้อง">💧 ความชื้นห้อง (Room Hum)</option>';
+
+        if (LAB_CONFIG[room] && LAB_CONFIG[room].length > 0) {
+            LAB_CONFIG[room].forEach(eq => {
+                let opt = document.createElement('option');
+                opt.value = eq;
+                opt.innerText = `🔬 ${eq}`;
+                equipSelect.appendChild(opt);
+            });
+        }
+    }
+
+    async function fetchOldData() {
+        if (!checkLoginExpiration()) return;
+
+        const date = document.getElementById('search-date').value;
+        const session = document.getElementById('search-session').value;
+        const room = document.getElementById('search-room').value;
+        const equip = document.getElementById('search-equip').value;
+
+        if (!date || !session || !room || !equip) {
+            alert("⚠️ กรุณาเลือกเงื่อนไขการค้นหาให้ครบถ้วน"); return;
+        }
+
+        const loadingText = document.getElementById('loading');
+        loadingText.innerText = "SCANNING DATABASE... █▒▒▒▒▒▒▒▒▒";
+        loadingText.style.display = 'block';
+        document.getElementById('edit-section').style.display = 'none';
+
+        // เอฟเฟกต์โหลดหลอกตาแบบอาร์เคด
+        let loadStep = 0;
+        const loadAnim = setInterval(() => {
+            loadStep++;
+            if(loadStep===1) loadingText.innerText = "SCANNING DATABASE... ████▒▒▒▒▒▒";
+            if(loadStep===2) loadingText.innerText = "SCANNING DATABASE... ███████▒▒▒";
+        }, 300);
+
+        try {
+            const url = `${SCRIPT_URL}?action=getRecordForEdit&date=${date}&session=${session}&room=${encodeURIComponent(room)}&equip=${encodeURIComponent(equip)}`;
+            const response = await fetch(url);
+            const result = await response.json();
+
+            clearInterval(loadAnim);
+            loadingText.innerText = "SCAN COMPLETE! ██████████";
+            
+            setTimeout(() => {
+                loadingText.style.display = 'none';
+                document.getElementById('edit-section').style.display = 'block';
+                
+                const displayVal = document.getElementById('display-old-val');
+                const reasonEl = document.getElementById('edit-reason');
+                
+                document.getElementById('new-val').value = '';
+
+                // ล็อกเหตุผลหากเป็นการลืมบันทึก
+                if (!result.found || result.oldValue === "-" || result.oldValue === "") {
+                    displayVal.innerText = "[ NO RECORD ]";
+                    displayVal.style.color = "#e74c3c"; // แดงแจ้งเตือน
+                    
+                    reasonEl.value = "ลืมบันทึก";
+                    reasonEl.readOnly = true;
+                    reasonEl.classList.add("reason-locked");
+                } else {
+                    displayVal.innerText = result.oldValue;
+                    displayVal.style.color = "#39ff14"; // เขียวเรืองแสง
+                    
+                    reasonEl.value = "";
+                    reasonEl.readOnly = false;
+                    reasonEl.classList.remove("reason-locked");
+                }
+            }, 300);
+
+        } catch (error) {
+            clearInterval(loadAnim);
+            alert("❌ ระบบขัดข้อง ไม่สามารถดึงข้อมูลได้");
+            loadingText.style.display = 'none';
+        }
+    }
+
+    async function saveEdit() {
+        if (!checkLoginExpiration()) return;
+
+        const payload = {
+            date: document.getElementById('search-date').value,
+            session: document.getElementById('search-session').value,
+            room: document.getElementById('search-room').value,
+            equip: document.getElementById('search-equip').value,
+            newVal: document.getElementById('new-val').value,
+            reason: document.getElementById('edit-reason').value,
+            user: localStorage.getItem('lab_logged_in_user')
+        };
+
+        if (!payload.newVal || !payload.reason) {
+            alert("⚠️ กรุณาระบุค่าใหม่และเหตุผลให้ครบถ้วน"); return;
+        }
+
+        const loadingText = document.getElementById('loading');
+        loadingText.innerText = "OVERWRITING DATA... ▒▒▒▒▒▒▒▒▒▒";
+        loadingText.style.display = 'block';
+        document.getElementById('edit-section').style.display = 'none';
+
+        try {
+            const url = `${SCRIPT_URL}?action=saveEditRecord&data=${encodeURIComponent(JSON.stringify(payload))}`;
+            const response = await fetch(url);
+            const result = await response.text();
+
+            if (result === "Success") {
+                loadingText.innerText = "DATA OVERWRITTEN SUCCESSFUL! ✅";
+                setTimeout(() => {
+                    alert("✅ บันทึกการแก้ไขข้อมูลลงฐานข้อมูลสำเร็จ!");
+                    logUserActivity("หน้าแก้ไข", "แก้ไขข้อมูลสำเร็จ", `แก้ ${payload.equip} ของ ${payload.room}`);
+                    document.getElementById('search-equip').value = "";
+                    loadingText.style.display = 'none';
+                }, 500);
+            } else {
+                alert("❌ เกิดข้อผิดพลาดจากเซิร์ฟเวอร์: " + result);
+                loadingText.style.display = 'none';
+            }
+        } catch (error) {
+            alert("❌ สัญญาณขัดข้อง ไม่สามารถเชื่อมต่อฐานข้อมูลได้");
+            loadingText.style.display = 'none';
+        }
+    }
+
+    function logUserActivity(pageName, actionName, detailsStr = "") {
+        const currentUser = localStorage.getItem('lab_logged_in_user') || "ไม่ระบุชื่อ";
+        const logPayload = { user: currentUser, page: pageName, action: actionName, details: detailsStr };
+        const url = `${SCRIPT_URL}?action=logActivity&data=${encodeURIComponent(JSON.stringify(logPayload))}`;
+        fetch(url).catch(() => {});
+    }
+</script>
+</body>
+</html>
