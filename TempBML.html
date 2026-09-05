@@ -145,6 +145,10 @@
         .btn-save { flex: 2; background-color: #00338D; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
         .btn-cancel { flex: 1; background-color: #EA2839; color: white; border: none; padding: 15px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; }
 
+        .menu-btn-unlock { background-color: #8e44ad; } 
+        .menu-btn-unlock:hover { background-color: #732d91; transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+
         #overlay {
             position: absolute; top:0; left:0; width:100%; height:100%;
             background: rgba(255,255,255,0.9); display: none;
@@ -216,6 +220,7 @@
                         <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">📝 รายงานสรุป</a>
                         <a href="https://rb508411.github.io/bml_temp/BML_defrost.html" target="_blank" class="menu-link-btn menu-btn-frost">❄️ กิจกรรมตู้เย็น</a>
                         <a href="https://rb508411.github.io/bml_temp/BML_edit.html" target="_blank" id="btn-menu-edit" class="menu-link-btn menu-btn-edit" style="display: none;">✏️ แก้ไขข้อมูล</a>
+                        <a href="https://rb508411.github.io/bml_temp/Unlock_BML.html" target="_blank" id="btn-menu-unlock" class="menu-link-btn menu-btn-unlock" style="display: none;">🔓 ปลดล็อกห้อง</a>
                     </div>
                 </div>
                 <div class="grid-container" id="room-grid">
@@ -453,13 +458,14 @@
             
             const userRole = localStorage.getItem('lab_user_role');
             const editBtn = document.getElementById('btn-menu-edit');
+            const unlockBtn = document.getElementById('btn-menu-unlock');
             
-            if (editBtn) {
-                if (userRole === 'admin') {
-                    editBtn.style.display = 'inline-block';
-                } else {
-                    editBtn.style.display = 'none';
-                }
+            if (userRole === 'admin') {
+                if (editBtn) editBtn.style.display = 'inline-block';
+                if (unlockBtn) unlockBtn.style.display = 'inline-block'; // โชว์ปุ่มปลดล็อก
+            } else {
+                if (editBtn) editBtn.style.display = 'none';
+                if (unlockBtn) unlockBtn.style.display = 'none'; // ซ่อนปุ่มปลดล็อก
             }
 
             fetchRoomStatus();
