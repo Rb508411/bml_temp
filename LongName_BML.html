@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLab Training System</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4f8; color: #00338D; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 600px; background-color: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.1); display: flex; flex-direction: column; position: relative; }
+        
+        .logo-container { text-align: center; padding-top: 20px; padding-bottom: 10px; background-color: #fff; }
+        .logo-container img { max-height: 70px; width: auto; object-fit: contain; }
+        .header { background: linear-gradient(135deg, #00338D, #34495e); color: white; padding: 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 1.4rem; }
+        .content { padding: 20px; flex-grow: 1; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #34495e; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        
+        .btn-primary { width: 100%; background-color: #00338D; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-primary:hover { background-color: #3498db; }
+        .btn-secondary { background-color: #f39c12; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom:10px; }
+        .btn-secondary:hover { background-color: #d35400; }
+        .btn-logout { background-color: #EA2839; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; float: right; }
+        
+        .view-section { display: none; }
+        .active-view { display: block; }
+        
+        .card-menu { background-color: #fff; border: 2px solid #bdc3c7; border-radius: 10px; padding: 15px; text-align: center; cursor: pointer; margin-bottom: 10px; font-weight: bold; }
+        .card-menu:hover { border-color: #00338D; background-color: #ebf5fb; }
+        
+        /* สไตล์ชุดกรองช่วงเวลา */
+        .filter-bar { background: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+        .filter-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px; }
+        .filter-col { flex: 1; }
+        .filter-col label { font-size: 0.85rem; color: #2c3e50; font-weight: bold; display: block; margin-bottom: 5px; }
+        .filter-col input { width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box;}
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        th { background-color: #00338D; color: white; }
+        
+        .btn-pdf { background-color: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 0.85rem; font-weight: bold; }
+        .btn-pdf:hover { background-color: #2ecc71; }
+
+        #overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.9); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; }
+        .spinner { border: 5px solid #f3f3f3; border-top: 5px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div id="overlay"><div class="spinner"></div><h2 style="color:#00338D; margin-top:15px;" id="overlay-text">กำลังประมวลผล...</h2></div>
+        
+        <div class="logo-container">
+            <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo">
+        </div>
+        <div class="header">
+            <h1>ระบบจัดการการฝึกอบรม<br><small style="font-size:1rem; font-weight:normal;">BML Training Center</small></h1>
+        </div>
+
+        <div class="content">
+            <!-- VIEW 1: LOGIN -->
+            <div id="view-login" class="view-section active-view" style="text-align: center; padding-top: 30px;">
+                <h2>🔐 เข้าสู่ระบบ</h2>
+                <div class="form-group"><input type="text" id="empId" placeholder="รหัสพนักงาน" style="text-align: center; font-size: 1.2rem; letter-spacing: 2px;"></div>
+                <button class="btn-primary" onclick="login()">เข้าสู่ระบบ</button>
+            </div>
+
+            <!-- VIEW 2: DASHBOARD -->
+            <div id="view-dashboard" class="view-section">
+                <div style="background-color: #ecf0f1; padding: 15px; border-radius: 8px; margin-bottom: 20px; overflow: hidden;">
+                    <span style="font-weight: bold; color: #2c3e50;" id="user-name">ชื่อ นามสกุล</span>
+                    <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+                </div>
+
+                <div id="admin-menu" style="display: none;">
+                    <h3 style="border-bottom: 2px solid #3498db; padding-bottom: 5px;">สำหรับผู้ดูแลระบบ</h3>
+                    <div class="card-menu" onclick="switchView('view-create-course')">📝 สร้างคอร์สอบรมใหม่</div>
+                </div>
+
+                <h3 style="border-bottom: 2px solid #3498db; padding-bottom: 5px; margin-top: 20px;">เมนูหลัก</h3>
+                <div class="card-menu" onclick="switchView('view-sign-in')">✍️ ลงนามเข้าอบรม</div>
+                <div class="card-menu" onclick="fetchRecords()">📊 ดูประวัติและชั่วโมงอบรมของฉัน</div>
+                <div class="card-menu" onclick="switchView('view-attendees')">📋 ตรวจสอบผู้เข้าอบรม (รายคอร์ส)</div>
+            </div>
+
+            <!-- VIEW 3: CREATE COURSE -->
+            <div id="view-create-course" class="view-section">
+                <button style="margin-bottom: 15px; cursor: pointer;" onclick="switchView('view-dashboard')">⬅️ กลับหน้าหลัก</button>
+                <h3>📝 สร้างคอร์สอบรมใหม่</h3>
+                <div class="form-group">
+                    <label>หมวดหมู่ (Prefix)</label>
+                    <select id="c-prefix">
+                        <option value="TM">TM - Technical</option>
+                        <option value="QM">QM - Quality</option>
+                        <option value="GN">GN - General</option>
+                        <option value="SF">SF - Safety</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>หัวข้อการอบรม</label><input type="text" id="c-topic"></div>
+                <div class="form-group"><label>ชื่อผู้สอน</label><input type="text" id="c-instructor"></div>
+                <div class="form-group"><label>วันที่</label><input type="date" id="c-date"></div>
+                <div class="form-group"><label>เวลา</label><input type="time" id="c-time"></div>
+                <div class="form-group"><label>ชั่วโมง (Hrs)</label><input type="number" id="c-period" step="0.5"></div>
+                <button class="btn-primary" onclick="createCourse()">สร้างคอร์ส</button>
+            </div>
+
+            <!-- VIEW 4: SIGN IN -->
+            <div id="view-sign-in" class="view-section">
+                <button style="margin-bottom: 15px; cursor: pointer;" onclick="switchView('view-dashboard')">⬅️ กลับหน้าหลัก</button>
+                <h3>✍️ ลงนามเข้าอบรม</h3>
+                <div class="form-group"><label>รหัสคอร์ส</label><input type="text" id="s-code" placeholder="เช่น QM-2609-X9A" style="text-transform: uppercase;"></div>
+                <div class="form-group"><label>สถานะ</label>
+                    <select id="s-status">
+                        <option value="เข้าร่วมแบบสด (Live)">เข้าร่วมแบบสด (Live)</option>
+                        <option value="ติดตามย้อนหลัง (VOD)">ติดตามย้อนหลัง (VOD)</option>
+                    </select>
+                </div>
+                <button class="btn-primary" onclick="signInCourse()">บันทึกการลงนาม</button>
+            </div>
+
+            <!-- VIEW 5: RECORDS (My Training) -->
+            <div id="view-records" class="view-section">
+                <button style="margin-bottom: 15px; cursor: pointer;" onclick="switchView('view-dashboard')">⬅️ กลับหน้าหลัก</button>
+                <h3>📊 ประวัติการอบรมของคุณ</h3>
+                
+                <div class="filter-bar">
+                    <div class="filter-row">
+                        <div class="filter-col"><label>เริ่มวันที่:</label><input type="date" id="filter-start"></div>
+                        <div class="filter-col"><label>ถึงวันที่:</label><input type="date" id="filter-end"></div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button style="flex:1; padding: 8px; background: #3498db; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="renderTable()">🔍 กรอง</button>
+                        <button style="flex:1; padding: 8px; background: #95a5a6; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;" onclick="clearFilter()">ล้าง</button>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-secondary" onclick="exportExcel('download')">📥 โหลด Excel</button>
+                    <button class="btn-secondary" onclick="exportExcel('email')">✉️ ส่งเข้าอีเมล</button>
+                </div>
+
+                <div style="background-color: #eafaf1; border-left: 4px solid #2ecc71; padding: 10px; margin-bottom: 15px; margin-top:10px;">
+                    <strong>ชั่วโมงสะสม (ตามที่กรอง): </strong> <span id="total-hours" style="color: #27ae60; font-size: 1.2rem; font-weight:bold;">0</span> ชม.
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="records-table">
+                        <thead><tr><th>วันที่ลงนาม</th><th>รหัสคอร์ส</th><th>หัวข้อ</th><th>สถานะ</th><th>ชั่วโมง</th><th>ขอรับรอง</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VIEW 6: ATTENDEES (Check Course) -->
+            <div id="view-attendees" class="view-section">
+                <button style="margin-bottom: 15px; cursor: pointer;" onclick="switchView('view-dashboard')">⬅️ กลับหน้าหลัก</button>
+                <h3>📋 ตรวจสอบผู้เข้าอบรม</h3>
+                <p style="font-size: 0.9rem; color: #7f8c8d;">เช็กประวัติพนักงานที่ลงนามในคอร์สต่างๆ</p>
+                
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <input type="text" id="a-code" placeholder="กรอกรหัสคอร์ส (เช่น QM-2609-X9A)" style="flex: 2; text-transform: uppercase;">
+                    <button style="flex: 1; background: #3498db; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;" onclick="fetchAttendees()">🔍 ค้นหา</button>
+                </div>
+                
+                <button id="btn-export-attendees" style="display:none; width:100%; margin-bottom:15px; padding:10px; background:#27ae60; color:white; border:none; border-radius:5px; font-weight:bold; cursor:pointer;" onclick="exportAttendeesCSV()">📥 ดาวน์โหลดรายชื่อ (Excel)</button>
+
+                <div style="background-color: #fcf3cf; border-left: 4px solid #f1c40f; padding: 10px; margin-bottom: 15px;">
+                    <strong>จำนวนผู้ลงนาม: </strong> <span id="attendees-count" style="color: #d35400; font-size: 1.2rem; font-weight:bold;">0</span> คน
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="attendees-table">
+                        <thead><tr><th>วันที่เวลา</th><th>รหัสพนักงาน</th><th>ชื่อ-สกุล</th><th>สถานะ</th></tr></thead>
+                        <tbody><tr><td colspan='4' style='text-align:center;'>พิมพ์รหัสคอร์สแล้วกดค้นหา</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqF92ZskKUgd398CIP0Np1yEYozv4_ew7wJ9IicnEtDCxefZb4zVTGAxo-7WB9zxIT/exec"; 
+        let currentUser = { id: "", name: "", role: "" };
+        let userRecordsData = []; 
+        let currentAttendeesData = []; 
+        let currentSearchedCourse = "";
+
+        function showOverlay(text) { document.getElementById('overlay-text').innerText = text; document.getElementById('overlay').style.display = 'flex'; }
+        function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+            document.getElementById(viewId).classList.add('active-view');
+        }
+        
+        function sendLog(actionName, detailsStr) {
+            if(!currentUser.id) return;
+            fetch(`${SCRIPT_URL}?action=logActivity&empId=${currentUser.id}&activity=${encodeURIComponent(actionName)}&details=${encodeURIComponent(detailsStr)}`).catch(()=>{});
+        }
+
+        async function login() {
+            const empId = document.getElementById('empId').value.trim();
+            if (!empId) return alert("กรุณากรอกรหัสพนักงาน");
+            showOverlay("กำลังตรวจสอบรหัส...");
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=login&empId=${empId}`);
+                const data = await res.json();
+                if (data.success) {
+                    currentUser = { id: empId, name: data.name, role: data.role };
+                    document.getElementById('user-name').innerText = `${data.name} (${empId})`;
+                    document.getElementById('admin-menu').style.display = (data.role === 'admin') ? 'block' : 'none';
+                    sendLog("Login", "เข้าสู่ระบบสำเร็จ");
+                    switchView('view-dashboard');
+                } else { alert(data.message); }
+            } catch (err) { alert("เชื่อมต่อล้มเหลว"); }
+            hideOverlay();
+        }
+
+        function logout() {
+            sendLog("Logout", "ออกจากระบบ");
+            currentUser = { id: "", name: "", role: "" };
+            document.getElementById('empId').value = '';
+            switchView('view-login');
+        }
+
+        async function createCourse() {
+            const payload = {
+                prefix: document.getElementById('c-prefix').value,
+                topic: document.getElementById('c-topic').value,
+                instructor: document.getElementById('c-instructor').value,
+                date: document.getElementById('c-date').value,
+                time: document.getElementById('c-time').value,
+                period: document.getElementById('c-period').value,
+                createdBy: currentUser.name
+            };
+            if(!payload.topic || !payload.date || !payload.period) return alert("กรุณากรอกข้อมูลสำคัญให้ครบถ้วน");
+
+            showOverlay("กำลังสร้างคอร์ส...");
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=createCourse&data=${encodeURIComponent(JSON.stringify(payload))}`);
+                const data = await res.json();
+                if(data.success) {
+                    alert(`✅ สร้างคอร์สสำเร็จ!\nรหัสคอร์ส: ${data.code}`);
+                    sendLog("Create Course", `สร้างคอร์ส ${data.code}`);
+                    switchView('view-dashboard');
+                } else alert(data.message);
+            } catch(e) { alert("เกิดข้อผิดพลาด"); }
+            hideOverlay();
+        }
+
+        async function signInCourse() {
+            const payload = {
+                empId: currentUser.id,
+                courseCode: document.getElementById('s-code').value.trim().toUpperCase(),
+                status: document.getElementById('s-status').value
+            };
+            if(!payload.courseCode) return alert("กรุณากรอกรหัสคอร์ส");
+
+            showOverlay("กำลังบันทึกข้อมูล...");
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=signIn&data=${encodeURIComponent(JSON.stringify(payload))}`);
+                const data = await res.json();
+                if(data.success) {
+                    alert("✅ ลงนามเข้าอบรมเรียบร้อยแล้ว");
+                    sendLog("Sign In", `ลงนามคอร์ส ${payload.courseCode}`);
+                    document.getElementById('s-code').value = "";
+                    switchView('view-dashboard');
+                } else alert(data.message);
+            } catch(e) { alert("เกิดข้อผิดพลาด"); }
+            hideOverlay();
+        }
+
+        /* --- ฝั่ง Records ส่วนตัว (View 5) --- */
+        async function fetchRecords() {
+            showOverlay("กำลังดึงข้อมูล...");
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getRecords&empId=${currentUser.id}`);
+                const data = await res.json();
+                if(data.success) {
+                    userRecordsData = data.records;
+                    clearFilter();
+                    switchView('view-records');
+                }
+            } catch(e) { alert("เกิดข้อผิดพลาด"); }
+            hideOverlay();
+        }
+
+        function clearFilter() {
+            document.getElementById('filter-start').value = "";
+            document.getElementById('filter-end').value = "";
+            renderTable();
+        }
+
+        function renderTable() {
+            const startStr = document.getElementById('filter-start').value;
+            const endStr = document.getElementById('filter-end').value;
+            
+            let filteredRecords = userRecordsData;
+            
+            if (startStr || endStr) {
+                const startDate = startStr ? new Date(startStr) : null;
+                if(startDate) startDate.setHours(0,0,0,0);
+                const endDate = endStr ? new Date(endStr) : null;
+                if(endDate) endDate.setHours(23,59,59,999);
+                
+                filteredRecords = userRecordsData.filter(r => {
+                    const rDate = new Date(r.rawDate);
+                    if (startDate && rDate < startDate) return false;
+                    if (endDate && rDate > endDate) return false;
+                    return true;
+                });
+            }
+
+            let totalHrs = 0;
+            const tbody = document.querySelector('#records-table tbody');
+            tbody.innerHTML = "";
+            
+            if(filteredRecords.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='6' style='text-align:center;'>ไม่พบข้อมูลการอบรมในช่วงเวลานี้</td></tr>";
+            } else {
+                filteredRecords.forEach(r => {
+                    totalHrs += r.period;
+                    tbody.innerHTML += `<tr>
+                        <td>${r.date}</td><td><b>${r.code}</b></td><td>${r.topic}</td>
+                        <td>${r.status}</td><td>${r.period}</td>
+                        <td><button class="btn-pdf" onclick="requestPDF('${r.code}')">📩 รับ PDF</button></td>
+                    </tr>`;
+                });
+            }
+            document.getElementById('total-hours').innerText = totalHrs;
+        }
+
+    async function exportExcel(method) {
+            const startStr = document.getElementById('filter-start').value;
+            const endStr = document.getElementById('filter-end').value;
+            
+            // ตั้งชื่อไฟล์ให้ตรงตามรหัสพนักงานและช่วงเวลา
+            let dateLabel = "AllRecords";
+            if(startStr && endStr) dateLabel = `${startStr}_to_${endStr}`;
+            else if(startStr) dateLabel = `From_${startStr}`;
+            else if(endStr) dateLabel = `Until_${endStr}`;
+            const downloadFileName = `${currentUser.id}_TrainingRecords_${dateLabel}.csv`;
+
+            if (method === 'download') {
+                sendLog("Export Data", `ดาวน์โหลดลงเครื่อง`);
+                let filteredRecords = userRecordsData;
+                if (startStr || endStr) {
+                    const startDate = startStr ? new Date(startStr) : null;
+                    if(startDate) startDate.setHours(0,0,0,0);
+                    const endDate = endStr ? new Date(endStr) : null;
+                    if(endDate) endDate.setHours(23,59,59,999);
+                    
+                    filteredRecords = userRecordsData.filter(r => {
+                        const rDate = new Date(r.rawDate);
+                        if (startDate && rDate < startDate) return false;
+                        if (endDate && rDate > endDate) return false;
+                        return true;
+                    });
+                }
+                
+                let csvContent = "\uFEFFวันที่ลงนาม,รหัสคอร์ส,หัวข้อการอบรม,สถานะ,ชั่วโมง\n";
+                filteredRecords.forEach(r => { csvContent += `"${r.date}","${r.code}","${r.topic}","${r.status}",${r.period}\n`; });
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob); 
+                link.download = downloadFileName; 
+                link.click();
+                
+            } else if (method === 'email') {
+                // ถามอีเมลผ่าน Prompt
+                const targetEmail = prompt("กรุณากรอกอีเมลที่ต้องการให้จัดส่งไฟล์ประวัติการอบรม:", "");
+                if (!targetEmail) return; // ถ้ายกเลิก หรือไม่กรอก ให้หยุดการทำงาน
+
+                showOverlay("กำลังส่งไฟล์เข้าอีเมล...");
+                sendLog("Export Data", `ส่งเข้าอีเมลไปที่ ${targetEmail}`);
+                try {
+                    const res = await fetch(`${SCRIPT_URL}?action=emailExport&empId=${currentUser.id}&startDate=${startStr}&endDate=${endStr}&email=${encodeURIComponent(targetEmail)}`);
+                    const data = await res.json();
+                    if(data.success) alert(`✅ ส่งไฟล์เข้าอีเมล ${targetEmail} เรียบร้อยแล้ว`);
+                    else alert("❌ ผิดพลาด: " + data.message);
+                } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
+                hideOverlay();
+            }
+        }
+
+        async function requestPDF(courseCode) {
+            // ถามอีเมลผ่าน Prompt
+            const targetEmail = prompt(`กรุณากรอกอีเมลที่ต้องการให้จัดส่งใบรับรองคอร์ส ${courseCode}:`, "");
+            if (!targetEmail) return; // ถ้ายกเลิก หรือไม่กรอก ให้หยุดการทำงาน
+
+            showOverlay("กำลังสร้าง PDF...");
+            sendLog("Request PDF", `ขอใบรับรองคอร์ส ${courseCode} ส่งไปที่ ${targetEmail}`);
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=sendCert&empId=${currentUser.id}&courseCode=${courseCode}&email=${encodeURIComponent(targetEmail)}`);
+                const data = await res.json();
+                if(data.success) alert(`✅ ส่งใบรับรองไปยังอีเมล ${targetEmail} สำเร็จ`);
+                else alert("❌ ผิดพลาด: " + data.message);
+            } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
+            hideOverlay();
+        }
+
+        async function requestPDF(courseCode) {
+            if(!confirm("ส่งเอกสารใบรับรอง (PDF) สำหรับคอร์ส " + courseCode + " ไปยังอีเมลของคุณ?")) return;
+            showOverlay("กำลังสร้าง PDF...");
+            sendLog("Request PDF", `ขอใบรับรองคอร์ส ${courseCode}`);
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=sendCert&empId=${currentUser.id}&courseCode=${courseCode}`);
+                const data = await res.json();
+                if(data.success) alert("✅ ส่งใบรับรองสำเร็จ");
+                else alert("❌ ผิดพลาด: " + data.message);
+            } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
+            hideOverlay();
+        }
+
+        /* --- ฝั่ง Attendees ตรวจสอบผู้เข้าอบรม (View 6) --- */
+        async function fetchAttendees() {
+            const courseCode = document.getElementById('a-code').value.trim().toUpperCase();
+            if(!courseCode) return alert("กรุณากรอกรหัสคอร์ส");
+            
+            showOverlay("กำลังตรวจสอบข้อมูล...");
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getAttendees&courseCode=${courseCode}`);
+                const data = await res.json();
+                if(data.success) {
+                    currentAttendeesData = data.attendees;
+                    currentSearchedCourse = courseCode;
+                    document.getElementById('attendees-count').innerText = data.attendees.length;
+                    const tbody = document.querySelector('#attendees-table tbody');
+                    tbody.innerHTML = "";
+                    
+                    if(data.attendees.length === 0) {
+                        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>ไม่มีผู้ลงนามในคอร์สนี้</td></tr>";
+                        document.getElementById('btn-export-attendees').style.display = 'none';
+                    } else {
+                        data.attendees.forEach(a => {
+                            tbody.innerHTML += `<tr><td>${a.date}</td><td>${a.empId}</td><td>${a.name}</td><td>${a.status}</td></tr>`;
+                        });
+                        document.getElementById('btn-export-attendees').style.display = 'block'; // แสดงปุ่มโหลด
+                    }
+                    sendLog("Check Attendees", `ตรวจสอบผู้เข้าอบรมคอร์ส ${courseCode}`);
+                } else { alert("เกิดข้อผิดพลาดในการดึงข้อมูล"); }
+            } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
+            hideOverlay();
+        }
+
+        function exportAttendeesCSV() {
+            sendLog("Export Attendees", `ดาวน์โหลดรายชื่อคอร์ส ${currentSearchedCourse}`);
+            let csvContent = "\uFEFFวันที่เวลา,รหัสพนักงาน,ชื่อ-สกุล,สถานะ\n";
+            currentAttendeesData.forEach(a => {
+                csvContent += `"${a.date}","${a.empId}","${a.name}","${a.status}"\n`;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `Attendees_${currentSearchedCourse}.csv`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
