@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบปลดล็อกห้อง (Admin)</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f4f8; color: #00338D; margin: 0; padding: 0; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 600px; background-color: #fff; box-shadow: 0 0 20px rgba(0,0,0,0.1); position: relative; display: flex; flex-direction: column; }
+        
+        .header { background: linear-gradient(135deg, #c0392b, #8e44ad); color: white; padding: 20px; text-align: center; }
+        .header h1 { margin: 0; font-size: 1.4rem; line-height: 1.4; }
+        
+        .session-banner { background-color: #f39c12; color: white; text-align: center; padding: 10px; font-weight: bold; font-size: 0.95rem; }
+        .session-banner.active-morn { background-color: #27ae60; }
+        .session-banner.active-eve { background-color: #8e44ad; }
+        .session-banner.inactive { background-color: #393939; }
+
+        .content { padding: 20px; flex-grow: 1; }
+
+        #view-login { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; text-align: center; }
+        #view-login h2 { color: #c0392b; margin-bottom: 10px; }
+        .login-input { width: 100%; max-width: 300px; padding: 15px; font-size: 1.2rem; text-align: center; border: 2px solid #bdc3c7; border-radius: 8px; margin-bottom: 20px; letter-spacing: 2px; }
+        .login-input:focus { border-color: #c0392b; outline: none; }
+        .btn-login { width: 100%; max-width: 300px; background-color: #c0392b; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; }
+        .btn-login:hover { background-color: #e74c3c; }
+
+        .recorder-info { background-color: #fdf2e9; border: 1px solid #e67e22; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        .recorder-name { font-size: 1.1rem; font-weight: bold; color: #d35400; }
+        .btn-logout { background-color: #EA2839; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 0.85rem; }
+
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        
+        .room-card { background-color: #fff; border: 2px solid #bdc3c7; border-radius: 10px; padding: 15px 10px; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* สไตล์พิเศษสำหรับหน้า Unlock */
+        .room-card.disabled { cursor: not-allowed; opacity: 0.6; background-color: #f8f9fa; }
+        .room-card.completed { border-color: #2ecc71; background-color: #eafaf1; opacity: 0.5; }
+        .room-card.completed h3 { color: #27ae60; }
+        .room-card.completed .status-badge { background-color: #2ecc71; }
+        
+        .room-card.locked { border-color: #e74c3c; background-color: #fdedec; cursor: pointer; box-shadow: 0 0 10px rgba(231, 76, 60, 0.3); }
+        .room-card.locked:hover { transform: translateY(-3px); background-color: #fadbd8; }
+        .room-card.locked h3 { color: #c0392b; }
+        .room-card.locked .status-badge { background-color: #e74c3c; animation: pulse 1.5s infinite; }
+
+        .room-icon { font-size: 1.8rem; margin-bottom: 8px; }
+        .room-card h3 { margin: 0; font-size: 1rem; color: #2c3e50; line-height: 1.3;}
+        .status-badge { font-size: 0.8rem; margin-top: 8px; padding: 4px 10px; border-radius: 12px; background-color: #bdc3c7; color: white; line-height: 1.2; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        #view-dashboard { display: none; }
+        
+        #overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.9); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; }
+        .spinner { border: 5px solid #f3f3f3; border-top: 5px solid #c0392b; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* สไตล์สำหรับเมนูลิงก์ */
+        .menu-link-btn { color: white !important; padding: 10px 15px; border-radius: 6px; text-decoration: none; font-size: 0.95rem; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: all 0.3s ease; }
+        .menu-btn-map { background-color: #00338D; } .menu-btn-map:hover { background-color: #001f5c; transform: translateY(-2px); }
+        .menu-btn-dash { background-color: #3498db; } .menu-btn-dash:hover { background-color: #2980b9; transform: translateY(-2px); }
+        .menu-btn-main { background-color: #2c3e50; } .menu-btn-main:hover { background-color: #939393; transform: translateY(-2px); }
+        .menu-btn-sum { background-color: #e67e22; } .menu-btn-sum:hover { background-color: #d35400; transform: translateY(-2px); }
+        .menu-btn-frost { background-color: #3a2dec; } .menu-btn-frost:hover { background-color: #595beb; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div id="overlay">
+            <div class="spinner"></div>
+            <h2 id="overlay-text" style="color:#c0392b;">กำลังประมวลผล...</h2>
+        </div>
+
+        <div style="text-align: center; padding-top: 10px; margin-bottom: 15px;">
+            <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo" style="max-height: 70px; width: auto; object-fit: contain;">
+        </div>
+
+        <div class="header">
+            <h1>🔓 ระบบปลดล็อกห้อง (Admin Only)<br><small style="font-weight:normal; font-size:1rem;">Molecular Laboratory</small></h1>
+        </div>
+        <div id="session-banner" class="session-banner">กำลังตรวจสอบเวลา...</div>
+
+        <div class="content">
+            <div id="view-login">
+                <h2>🔐 ยืนยันตัวตน Admin</h2>
+                <p>กรุณากรอกรหัสพนักงานเพื่อเข้าสู่ระบบปลดล็อก</p>
+                <input type="text" id="empId" class="login-input" maxlength="6" placeholder="รหัสพนักงาน">
+                <button class="btn-login" onclick="login()">เข้าสู่ระบบ</button>
+            </div>
+
+            <div id="view-dashboard">
+                <div class="recorder-info">
+                    <div>
+                        <span style="color:#e67e22; font-size:0.9rem;">ผู้ควบคุมระบบ:</span><br>
+                        <span id="display-recorder-name" class="recorder-name">ชื่อ นามสกุล</span>
+                    </div>
+                    <button class="btn-logout" onclick="logout()">ออกจากระบบ</button>
+                </div>
+
+                <!-- แถบเมนูลิงก์ -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background-color: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #c0392b; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="margin-top:0; margin-bottom:0; color: #2c3e50;">เลือกหน้าต่าง</h3>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <a href="https://rb508411.github.io/bml_temp/TempBML.html" class="menu-link-btn menu-btn-main">🏠 หน้าหลัก</a>
+                        <a href="https://rb508411.github.io/bml_temp/BML_map.html" target="_blank" class="menu-link-btn menu-btn-map">🗺️ ผังห้อง</a>
+                        <a href="https://rb508411.github.io/bml_temp/BML_dashboard.html" target="_blank" class="menu-link-btn menu-btn-dash">📊 Dashboard</a>
+                        <a href="https://rb508411.github.io/bml_temp/Summarize_BML.html" target="_blank" class="menu-link-btn menu-btn-sum">📝 รายงานสรุป</a>
+                        <a href="https://rb508411.github.io/bml_temp/BML_defrost.html" target="_blank" class="menu-link-btn menu-btn-frost">❄️ กิจกรรมตู้เย็น</a>
+                    </div>
+                </div>
+                
+                <div style="background-color: #fdf2e9; padding: 10px; border-radius: 8px; border-left: 4px solid #e67e22; margin-bottom: 15px; font-size: 0.9rem; color: #d35400;">
+                    💡 <b>คำแนะนำ:</b> เลือกคลิกเฉพาะห้องที่เป็นสีแดง (กำลังจด...) เพื่อปลดล็อกให้พนักงานท่านอื่นเข้าใช้งานต่อได้
+                </div>
+
+                <div class="grid-container" id="room-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 📍 นำ URL ของ Google Apps Script มาใส่ตรงนี้
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYzohslXOIFKacZ_4UcFQrJ5WL_FE8FWuresqT3_TkpciFBrGXM_wIY1a2l5A5TE/exec";
+
+        const LAB_CONFIG = {
+            "Stock Room": [],
+            "Sample Preparation Room": [],
+            "MMX Room": [],
+            "PCR Setup Room": [],
+            "PCR 1 (หน้าห้อง MMX)": [],
+            "PCR 1 (หน้าห้อง Post PCR)": [],
+            "BSL-2 Room": [],
+            "Sample Prep 2 Room":[],
+            "Pre-PCR Room":[],
+            "Library Preparation": [],
+            "Post PCR Room": [], 
+            "Cobas 6800 Room": [],
+            "Automation Zone": [], 
+            "Sequencing Room": [],
+            "Analysis Room": [],
+            "Stock 1st floor": []
+        };
+
+        const ADMIN_USERS = ['521002', '505556', '511149', '516841', '566566', '140001', '593690', '569548', '511540','508411'];
+
+        let currentSessionName = null;
+        let refreshInterval = null;
+        let currentUser = "";
+        
+        function showOverlay(text) {
+            document.getElementById('overlay-text').innerText = text;
+            document.getElementById('overlay').style.display = 'flex';
+        }
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        function checkSession() {
+            const now = new Date();
+            const hour = now.getHours();
+            const banner = document.getElementById('session-banner');
+            
+            if (hour >= 6 && hour < 12) {
+                currentSessionName = "6AM-12";
+                banner.innerText = "☀️ รอบเช้า 06:00 - 11:59 น.";
+                banner.className = "session-banner active-morn";
+            } else if (hour >= 15 && hour < 23) {
+                currentSessionName = "3PM-11PM";
+                banner.innerText = "🌙 รอบเย็น 15:00 - 22:59 น.";
+                banner.className = "session-banner active-eve";
+            } else {
+                currentSessionName = null;
+                banner.innerText = "🚫 นอกเวลาการบันทึก (ไม่สามารถปลดล็อกได้)";
+                banner.className = "session-banner inactive";
+            }
+        }
+
+        async function login() {
+            const empId = document.getElementById('empId').value.trim();
+            if (!empId) { alert("กรุณากรอกรหัสพนักงาน"); return; }
+            
+            if (!ADMIN_USERS.includes(empId)) {
+                alert("❌ ขออภัย ระบบนี้อนุญาตเฉพาะระดับ Admin เท่านั้นครับ");
+                return;
+            }
+
+            showOverlay("กำลังตรวจสอบสิทธิ์...");
+            try {
+                const url = `${SCRIPT_URL}?action=login&empId=${encodeURIComponent(empId)}`;
+                const response = await fetch(url);
+                const result = await response.json();
+                if (result.success) {
+                    currentUser = result.name;
+                    localStorage.setItem('lab_logged_in_user', currentUser);
+                    localStorage.setItem('lab_login_timestamp', Date.now());
+                    localStorage.setItem('lab_user_role', 'admin');
+                    
+                    logUserActivity("หน้าปลดล็อก", "เข้าสู่ระบบ (Unlock Mode)", `รหัส: ${empId}`);
+                    showDashboard();
+                } else {
+                    alert(result.message);
+                }
+            } catch (error) {
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+            }
+            hideOverlay();
+        }
+
+        function logout() {
+            if(confirm("ต้องการออกจากระบบใช่หรือไม่?")) {
+                localStorage.removeItem('lab_logged_in_user');
+                localStorage.removeItem('lab_login_timestamp');
+                localStorage.removeItem('lab_user_role');
+                
+                currentUser = "";
+                clearInterval(refreshInterval);
+                document.getElementById('view-dashboard').style.display = 'none';
+                document.getElementById('view-login').style.display = 'flex';
+                document.getElementById('empId').value = '';
+            }
+        }
+
+        function showDashboard() {
+            document.getElementById('display-recorder-name').innerText = currentUser;
+            document.getElementById('view-login').style.display = 'none';
+            document.getElementById('view-dashboard').style.display = 'block';
+            
+            fetchRoomStatus();
+            if(!refreshInterval) {
+                refreshInterval = setInterval(() => {
+                    checkSession();
+                    fetchRoomStatus();
+                }, 3000);
+            }
+        }
+
+        async function fetchRoomStatus() {
+            if (!currentSessionName) return; 
+            try {
+                const url = `${SCRIPT_URL}?action=getStatus&session=${currentSessionName}`;
+                const response = await fetch(url);
+                const statusData = await response.json();
+                renderGrid(statusData);
+            } catch (error) { console.error("Error fetching status"); }
+        }
+
+        function renderGrid(statusData = {}) {
+            const grid = document.getElementById('room-grid');
+            grid.innerHTML = '';
+            const isOutOfTime = (currentSessionName === null);
+            const rooms = Object.keys(LAB_CONFIG);
+
+            for (let i = 0; i < rooms.length; i++) {
+                const roomName = rooms[i];
+                const roomInfo = statusData[roomName] || { status: 'Available', user: '' };
+                
+                const card = document.createElement('div');
+                card.className = 'room-card';
+                let icon = '🚪';
+                let badgeText = 'ว่าง';
+
+                if (isOutOfTime) {
+                    card.classList.add('disabled');
+                    badgeText = 'นอกเวลา';
+                    card.onclick = () => alert("อยู่นอกรอบการบันทึก ไม่สามารถดำเนินการได้");
+                } 
+                else if (roomInfo.status === 'Completed') {
+                    card.classList.add('completed', 'disabled');
+                    icon = '✅';
+                    badgeText = `บันทึกแล้ว`;
+                    card.onclick = () => alert("ห้องนี้บันทึกเสร็จสิ้นแล้ว ไม่สามารถแก้ไขสถานะได้");
+                } 
+                else if (roomInfo.status === 'Locked') {
+                    card.classList.add('locked');
+                    icon = '🔒';
+                    badgeText = `ติดล็อกโดย ${roomInfo.user}<br>👉 คลิกเพื่อปลดล็อก`;
+                    card.onclick = () => confirmUnlock(roomName, roomInfo.user);
+                } 
+                else {
+                    card.classList.add('disabled');
+                    badgeText = 'ว่าง (Available)';
+                    card.onclick = () => alert("ห้องนี้สถานะว่างอยู่แล้ว ไม่จำเป็นต้องปลดล็อกครับ");
+                }
+
+                card.innerHTML = `
+                    <div class="room-icon">${icon}</div>
+                    <h3>${roomName}</h3>
+                    <div class="status-badge">${badgeText}</div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        function confirmUnlock(roomName, stuckUser) {
+            if(confirm(`⚠️ ยืนยันการบังคับปลดล็อกห้อง ${roomName} ใช่หรือไม่?\n(ห้องนี้กำลังค้างสถานะล็อกโดย: ${stuckUser})`)) {
+                forceUnlock(roomName);
+            }
+        }
+
+        async function forceUnlock(roomName) {
+            if (!currentSessionName) {
+                alert("🚫 อยู่นอกเวลา ไม่สามารถปลดล็อกได้ครับ");
+                return;
+            }
+
+            showOverlay(`กำลังบังคับปลดล็อก...`);
+            try {
+                const url = `${SCRIPT_URL}?action=unlock&room=${encodeURIComponent(roomName)}&session=${currentSessionName}`;
+                await fetch(url);
+                
+                logUserActivity("หน้าปลดล็อก", "บังคับปลดล็อกห้อง", roomName);
+                alert(`✅ ปลดล็อกห้อง ${roomName} สำเร็จ!`);
+                fetchRoomStatus();
+            } catch(e) {
+                alert("การเชื่อมต่อมีปัญหา กรุณาลองอีกครั้ง");
+            }
+            hideOverlay();
+        }
+
+        window.onload = function() {
+            checkSession();
+            const savedUser = localStorage.getItem('lab_logged_in_user');
+            const savedRole = localStorage.getItem('lab_user_role');
+            
+            if (savedUser && savedRole === 'admin') {
+                currentUser = savedUser;
+                showDashboard();
+                setInterval(() => {
+                    const now = Date.now();
+                    const savedTime = localStorage.getItem('lab_login_timestamp');
+                    if (now - parseInt(savedTime) > 60 * 60 * 1000) logout();
+                }, 60000);
+            } else {
+                document.getElementById('view-login').style.display = 'flex';
+                document.getElementById('view-dashboard').style.display = 'none';
+            }
+        };
+
+        function logUserActivity(pageName, actionName, detailsStr = "") {
+            const currentUser = localStorage.getItem('lab_logged_in_user') || "Admin";
+            const logPayload = { user: currentUser, page: pageName, action: actionName, details: detailsStr };
+            const url = `${SCRIPT_URL}?action=logActivity&data=${encodeURIComponent(JSON.stringify(logPayload))}`;
+            fetch(url).catch(() => {});
+        }
+    </script>
+</body>
+</html>
