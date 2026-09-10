@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLab - Manual Sign In</title>
+    <style>
+        /* ธีม Console Gaming UI */
+        body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; background-color: #0F172A; color: #1E293B; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 600px; background-color: #FFFFFF; box-shadow: 0 0 40px rgba(56, 189, 248, 0.15); display: flex; flex-direction: column; position: relative; }
+        
+        .logo-container { text-align: center; padding-top: 25px; padding-bottom: 15px; background-color: #FFFFFF; }
+        .logo-container img { max-height: 75px; width: auto; object-fit: contain; }
+        
+        .header { background: linear-gradient(135deg, #0F172A, #1D4ED8); color: #FFFFFF; padding: 20px; text-align: center; border-bottom: 3px solid #10B981; }
+        .header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
+        .content { padding: 25px; flex-grow: 1; background-color: #F8FAFC; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: #334155; font-size: 0.95rem; }
+        .form-group input, .form-group select { 
+            width: 100%; padding: 12px 15px; border: 2px solid #E2E8F0; border-radius: 8px; box-sizing: border-box; 
+            font-size: 1rem; color: #0F172A; background-color: #FFFFFF; transition: all 0.3s ease; 
+        }
+        .form-group input:focus, .form-group select:focus { border-color: #38BDF8; outline: none; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
+        
+        .btn-primary { 
+            width: 100%; background: linear-gradient(90deg, #1D4ED8, #2563EB); color: #FFFFFF; border: none; padding: 15px; border-radius: 8px; 
+            font-size: 1.1rem; font-weight: 800; cursor: pointer; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+        }
+        .btn-primary:hover { background: linear-gradient(90deg, #2563EB, #38BDF8); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); transform: translateY(-2px); }
+        
+        .btn-secondary { 
+            background-color: #64748B; color: #FFFFFF; border: none; padding: 12px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom:10px; 
+            box-shadow: 0 4px 10px rgba(100, 116, 139, 0.2); transition: all 0.3s ease; 
+        }
+        .btn-secondary:hover { background-color: #38BDF8; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4); transform: translateY(-2px); }
+
+        #overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.92); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; border-radius: inherit;}
+        .spinner { border: 5px solid #E2E8F0; border-top: 5px solid #38BDF8; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div id="overlay"><div class="spinner"></div><h2 style="color:#1E4ED8; margin-top:15px; font-weight:800;" id="overlay-text">SAVING...</h2></div>
+        
+        <div class="logo-container">
+            <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo">
+        </div>
+        <div class="header">
+            <h1>ระบบรับทราบการสื่อสาร<br><small style="font-size:0.95rem; font-weight:normal; color:#38BDF8; letter-spacing: 2px;">BML COMMUNICATION CENTER</small></h1>
+        </div>
+
+        <div class="content">
+            
+            <!-- User Profile Bar -->
+            <div style="background-color: #FFFFFF; padding: 15px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; border: 2px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
+                <div style="font-weight: 800; color: #1E293B; font-size:1.1rem;" id="user-name">กำลังโหลดข้อมูล...</div>
+            </div>
+
+            <button class="btn-secondary" style="width:auto;" onclick="goToMainMenu()">⬅️ กลับหน้าหลัก</button>
+            <h3 style="color:#0F172A; font-weight:800; margin-top:15px;">✍️ ลงนามรับทราบการสื่อสาร</h3>
+            <p style="font-size: 0.9rem; color: #64748B;">กรุณากรอกรหัสการสื่อสารที่คุณได้รับจากผู้จัด เพื่อบันทึกการรับทราบข้อมูล</p>
+            
+            <div class="form-group" style="margin-top: 25px;">
+                <label>รหัสการสื่อสาร (Code)</label>
+                <input type="text" id="s-code" placeholder="เช่น QM-2609-X9A" style="text-transform: uppercase; font-weight:bold; font-size:1.2rem; text-align:center; letter-spacing: 2px;">
+            </div>
+            
+            <div class="form-group">
+                <label>สถานะการรับทราบ</label>
+                <select id="s-status">
+                    <option value="เข้าร่วมแบบสด (Live)">เข้าร่วมแบบสด (Live)</option>
+                    <option value="ติดตามย้อนหลัง (VOD)">ติดตามย้อนหลัง (VOD)</option>
+                </select>
+            </div>
+            
+            <button class="btn-primary" onclick="signInCourse()">บันทึกการลงนาม</button>
+
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqF92ZskKUgd398CIP0Np1yEYozv4_ew7wJ9IicnEtDCxefZb4zVTGAxo-7WB9zxIT/exec"; // นำ URL ของ Web App มาใส่ตรงนี้
+        
+        let currentUser = { id: "", name: "", role: "" };
+
+        function showOverlay(text) { document.getElementById('overlay-text').innerText = text; document.getElementById('overlay').style.display = 'flex'; }
+        function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
+        function goToMainMenu() { window.location.href = "https://rb508411.github.io/bml_temp/LongName_BML.html"; }
+
+        function sendLog(actionName, detailsStr) {
+            if(!currentUser.id) return;
+            fetch(`${SCRIPT_URL}?action=logActivity&empId=${currentUser.id}&activity=${encodeURIComponent(actionName)}&details=${encodeURIComponent(detailsStr)}`).catch(()=>{});
+        }
+
+        window.onload = function() {
+            // เช็กข้อมูล Login จาก localStorage
+            const empId = localStorage.getItem('bml_emp_id');
+            const empName = localStorage.getItem('bml_emp_name');
+            const empRole = localStorage.getItem('bml_emp_role');
+            
+            if(!empId) {
+                alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
+                window.location.href = "https://rb508411.github.io/bml_temp/LongName_BML.html"; 
+                return;
+            }
+            
+            currentUser = { id: empId, name: empName, role: empRole };
+            document.getElementById('user-name').innerText = `${empName} (${empId})`;
+        };
+
+        async function signInCourse() {
+            const payload = {
+                empId: currentUser.id,
+                courseCode: document.getElementById('s-code').value.trim().toUpperCase(),
+                status: document.getElementById('s-status').value
+            };
+            
+            if(!payload.courseCode) return alert("กรุณากรอกรหัสการสื่อสาร (Code) ให้ครบถ้วน");
+
+            showOverlay("SAVING...");
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=signIn&data=${encodeURIComponent(JSON.stringify(payload))}`);
+                const data = await res.json();
+                if(data.success) {
+                    alert("✅ บันทึกการลงนามรับทราบการสื่อสารเรียบร้อยแล้ว");
+                    sendLog("Sign In", `ลงนามรับทราบการสื่อสารรหัส ${payload.courseCode} (พิมพ์เอง)`);
+                    document.getElementById('s-code').value = "";
+                    window.location.href = "https://rb508411.github.io/bml_temp/LongName_BML.html"; // กลับไปหน้าเมนูหลักอัตโนมัติ
+                } else alert("❌ ผิดพลาด: " + data.message);
+            } catch(e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
+            hideOverlay();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartLab Training - Admin Management</title>
+    <style>
+        /* ธีม Console Gaming UI */
+        body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; background-color: #0F172A; color: #1E293B; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 600px; background-color: #FFFFFF; box-shadow: 0 0 40px rgba(56, 189, 248, 0.15); display: flex; flex-direction: column; position: relative; }
+        
+        .logo-container { text-align: center; padding-top: 25px; padding-bottom: 15px; background-color: #FFFFFF; }
+        .logo-container img { max-height: 75px; width: auto; object-fit: contain; }
+        
+        .header { background: linear-gradient(135deg, #0F172A, #1D4ED8); color: #FFFFFF; padding: 20px; text-align: center; border-bottom: 3px solid #10B981; }
+        .header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 1px; }
+        .content { padding: 25px; flex-grow: 1; background-color: #F8FAFC; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: #334155; font-size: 0.95rem; }
+        .form-group input, .form-group select { 
+            width: 100%; padding: 12px 15px; border: 2px solid #E2E8F0; border-radius: 8px; box-sizing: border-box; 
+            font-size: 1rem; color: #0F172A; background-color: #FFFFFF; transition: all 0.3s ease; 
+        }
+        .form-group input:focus, .form-group select:focus { border-color: #38BDF8; outline: none; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
+        
+        .btn-primary { 
+            width: 100%; background: linear-gradient(90deg, #1D4ED8, #2563EB); color: #FFFFFF; border: none; padding: 15px; border-radius: 8px; 
+            font-size: 1.1rem; font-weight: 800; cursor: pointer; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+        }
+        .btn-primary:hover { background: linear-gradient(90deg, #2563EB, #38BDF8); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); transform: translateY(-2px); }
+        
+        .btn-secondary { 
+            background-color: #64748B; color: #FFFFFF; border: none; padding: 12px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom:10px; 
+            box-shadow: 0 4px 10px rgba(100, 116, 139, 0.2); transition: all 0.3s ease; 
+        }
+        .btn-secondary:hover { background-color: #38BDF8; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4); transform: translateY(-2px); }
+        
+        /* สไตล์แท็บเมนูย่อยของ Admin */
+        .admin-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { 
+            flex: 1; padding: 12px; text-align: center; font-weight: 800; border-radius: 8px; cursor: pointer; 
+            background-color: #E2E8F0; color: #64748B; border: 2px solid transparent; transition: all 0.2s;
+        }
+        .tab-btn.active { background-color: #F0F9FF; color: #0EA5E9; border-color: #38BDF8; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2); }
+        
+        .view-section { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .active-view { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; font-size: 0.9rem; background-color: #FFFFFF; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; }
+        th, td { padding: 12px 10px; border-bottom: 1px solid #E2E8F0; text-align: left; color: #334155; }
+        th { background-color: #0F172A; color: #FFFFFF; border-bottom: none; font-weight: 600; letter-spacing: 0.5px;}
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #F8FAFC; }
+        
+        .btn-pdf { 
+            background-color: #10B981; color: #FFFFFF; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: bold; 
+            box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); transition: all 0.3s ease; width: 100%;
+        }
+        .btn-pdf:hover { background-color: #059669; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); transform: translateY(-2px); }
+
+        #overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.92); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; border-radius: inherit;}
+        .spinner { border: 5px solid #E2E8F0; border-top: 5px solid #38BDF8; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div id="overlay"><div class="spinner"></div><h2 style="color:#1E4ED8; margin-top:15px; font-weight:800;" id="overlay-text">PROCESSING...</h2></div>
+        
+        <div class="logo-container">
+            <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo">
+        </div>
+        <div class="header">
+            <h1>ระบบจัดการคอร์สสำหรับแอดมิน<br><small style="font-size:0.95rem; font-weight:normal; color:#38BDF8; letter-spacing: 2px;">ADMIN DASHBOARD</small></h1>
+        </div>
+
+        <div class="content">
+            <button class="btn-secondary" style="width:auto; margin-bottom: 20px;" onclick="goToMainMenu()">⬅️ กลับเมนูหลัก</button>
+            
+            <div class="admin-tabs">
+                <div class="tab-btn active" id="tab-create" onclick="switchAdminView('view-create-course', 'tab-create')">📝 สร้างคอร์สใหม่</div>
+                <div class="tab-btn" id="tab-attendees" onclick="switchAdminView('view-attendees', 'tab-attendees')">📋 ตรวจสอบผู้เข้าอบรม</div>
+            </div>
+
+            <!-- VIEW 1: CREATE COURSE -->
+            <div id="view-create-course" class="view-section active-view">
+                <h3 style="color:#0F172A; font-weight:800; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px;">สร้างประชุมหรือคอร์สใหม่</h3>
+                <div class="form-group">
+                    <label>หมวดหมู่ (Prefix)</label>
+                    <select id="c-prefix">
+                        <option value="TM">TM - Technical Management</option>
+                        <option value="QM">QM - Quality Management</option>
+                        <option value="GN">GN - General</option>
+                        <option value="SF">SF - Safety</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>หัวข้อการอบรม</label><input type="text" id="c-topic" placeholder="ระบุหัวข้อ..."></div>
+                <div class="form-group"><label>ชื่อผู้สอน</label><input type="text" id="c-instructor" placeholder="ระบุชื่อวิทยากร..."></div>
+                <div class="form-group"><label>วันที่</label><input type="date" id="c-date"></div>
+                <div class="form-group"><label>เวลา</label><input type="time" id="c-time"></div>
+                <div class="form-group"><label>ชั่วโมง (Hrs)</label><input type="number" id="c-period" step="0.5" placeholder="เช่น 1.5"></div>
+                <button class="btn-primary" onclick="createCourse()">+ สร้างคอร์ส</button>
+            </div>
+
+            <!-- VIEW 2: ATTENDEES (Check Course) -->
+            <div id="view-attendees" class="view-section">
+                <h3 style="color:#0F172A; font-weight:800; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px;">ตรวจสอบรายชื่อและออกรายงาน</h3>
+                
+                <div class="form-group" style="display: flex; gap: 10px;">
+                    <input type="text" id="a-code" placeholder="รหัสคอร์ส (เช่น QM-2609-X9A)" style="flex: 2; text-transform: uppercase; font-weight:bold;">
+                    <button style="flex: 1; background: #2563EB; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; text-transform:uppercase;" onmouseover="this.style.backgroundColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563EB'" onclick="fetchAttendees()">🔍 ค้นหา</button>
+                </div>
+                
+                <div id="attendees-action-btns" style="display:none; gap: 10px; margin-bottom:15px;">
+                    <button class="btn-secondary" style="flex: 1; margin-bottom:0; background:#38BDF8;" onmouseover="this.style.backgroundColor='#0EA5E9'" onmouseout="this.style.backgroundColor='#38BDF8'" onclick="exportAttendeesExcel()">📥 โหลด EXCEL</button>
+                    <button class="btn-pdf" style="flex: 1; margin-top:0;" onclick="requestMeetingReportPDF()">📩 ขอ PDF (ISO Form)</button>
+                </div>
+
+                <div style="background-color: #F8FAFC; border-left: 5px solid #38BDF8; padding: 12px; margin-bottom: 15px; border-radius:4px;">
+                    <strong style="color: #0F172A;">จำนวนผู้ลงนาม: </strong> <span id="attendees-count" style="color: #0EA5E9; font-size: 1.3rem; font-weight:900;">0</span> คน
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="attendees-table">
+                        <thead><tr><th>วันที่เวลา</th><th>รหัสพนักงาน</th><th>ชื่อ-สกุล</th><th>สถานะ</th></tr></thead>
+                        <tbody><tr><td colspan='4' style='text-align:center; padding:20px;'>กรอกรหัสคอร์สด้านบนแล้วกดค้นหา</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqF92ZskKUgd398CIP0Np1yEYozv4_ew7wJ9IicnEtDCxefZb4zVTGAxo-7WB9zxIT/exec"; // นำ URL ของ Web App มาใส่ตรงนี้
+        
+        let currentUser = { id: "", name: "", role: "" };
+        let currentAttendeesData = []; 
+        let currentSearchedCourse = "";
+
+        function showOverlay(text) { document.getElementById('overlay-text').innerText = text; document.getElementById('overlay').style.display = 'flex'; }
+        function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
+        function goToMainMenu() { window.location.href = "https://rb508411.github.io/bml_temp/LongName_BML.html"; }
+        
+        function switchAdminView(viewId, tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active-view');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function sendLog(actionName, detailsStr) {
+            if(!currentUser.id) return;
+            fetch(`${SCRIPT_URL}?action=logActivity&empId=${currentUser.id}&activity=${encodeURIComponent(actionName)}&details=${encodeURIComponent(detailsStr)}`).catch(()=>{});
+        }
+
+        window.onload = function() {
+            // เช็กข้อมูล Login จาก localStorage
+            const empId = localStorage.getItem('bml_emp_id');
+            const empName = localStorage.getItem('bml_emp_name');
+            const empRole = localStorage.getItem('bml_emp_role');
+            
+            if(!empId) {
+                alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
+                window.location.href = "https://rb508411.github.io/bml_temp/LongName_BML.html"; 
+                return;
+            }
+            
+            // เช็กสิทธิ์ Admin ป้องกันคนพิมพ์ URL เข้ามาตรงๆ
+            if(empRole !== 'admin') {
+                alert("❌ ขออภัย คุณไม่มีสิทธิ์เข้าถึงหน้านี้ (เฉพาะแอดมินเท่านั้น)");
+                window.location.href = "https://rb508411.github.io/bml_temp/LongName_BML.html"; 
+                return;
+            }
+            
+            currentUser = { id: empId, name: empName, role: empRole };
+        };
+
+        async function createCourse() {
+            const payload = {
+                prefix: document.getElementById('c-prefix').value,
+                topic: document.getElementById('c-topic').value,
+                instructor: document.getElementById('c-instructor').value,
+                date: document.getElementById('c-date').value,
+                time: document.getElementById('c-time').value,
+                period: document.getElementById('c-period').value,
+                createdBy: currentUser.name
+            };
+            if(!payload.topic || !payload.date || !payload.period) return alert("กรุณากรอกข้อมูลสำคัญให้ครบถ้วน");
+
+            showOverlay("CREATING...");
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=createCourse&data=${encodeURIComponent(JSON.stringify(payload))}`);
+                const data = await res.json();
+                if(data.success) {
+                    alert(`✅ สร้างคอร์สสำเร็จ!\nรหัสคอร์สของคุณคือ: ${data.code}\n\nพนักงานสามารถลงนามผ่านเมนู "รายการคลาสอบรม" ได้ทันทีครับ`);
+                    sendLog("Create Course", `แอดมินสร้างคอร์ส ${data.code}`);
+                    
+                    // เคลียร์ฟอร์ม
+                    document.getElementById('c-topic').value = "";
+                    document.getElementById('c-period').value = "";
+                } else alert(data.message);
+            } catch(e) { alert("เกิดข้อผิดพลาด"); }
+            hideOverlay();
+        }
+
+        async function fetchAttendees() {
+            const courseCode = document.getElementById('a-code').value.trim().toUpperCase();
+            if(!courseCode) return alert("กรุณากรอกรหัสคอร์ส");
+            
+            showOverlay("SEARCHING...");
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=getAttendees&courseCode=${courseCode}`);
+                const data = await res.json();
+                if(data.success) {
+                    currentAttendeesData = data.attendees;
+                    currentSearchedCourse = courseCode;
+                    document.getElementById('attendees-count').innerText = data.attendees.length;
+                    const tbody = document.querySelector('#attendees-table tbody');
+                    tbody.innerHTML = "";
+                    
+                    if(data.attendees.length === 0) {
+                        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding:20px;'>ไม่มีผู้ลงนามในคอร์สนี้</td></tr>";
+                        document.getElementById('attendees-action-btns').style.display = 'none';
+                    } else {
+                        data.attendees.forEach(a => {
+                            tbody.innerHTML += `<tr><td>${a.date}</td><td>${a.empId}</td><td>${a.name}</td><td>${a.status}</td></tr>`;
+                        });
+                        document.getElementById('attendees-action-btns').style.display = 'flex';
+                    }
+                    sendLog("Check Attendees", `แอดมินตรวจสอบผู้เข้าอบรมคอร์ส ${courseCode}`);
+                } else { alert("เกิดข้อผิดพลาดในการดึงข้อมูล"); }
+            } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
+            hideOverlay();
+        }
+
+        async function requestMeetingReportPDF() {
+            const courseCode = currentSearchedCourse;
+            const targetEmail = prompt(`กรุณากรอกอีเมลที่ต้องการให้จัดส่งรายงาน FP-BML-BIO-00-008/4 (คอร์ส ${courseCode}):`, "");
+            if (!targetEmail) return; 
+
+            showOverlay("GENERATING PDF...");
+            sendLog("Request Meeting Report", `แอดมินขอรายงานประชุมคอร์ส ${courseCode} ไปที่ ${targetEmail}`);
+            try {
+                const res = await fetch(`${SCRIPT_URL}?action=sendMeetingReport&courseCode=${courseCode}&email=${encodeURIComponent(targetEmail)}`);
+                const data = await res.json();
+                if(data.success) alert(`✅ ส่งรายงานการประชุม (PDF) ไปยังอีเมล ${targetEmail} สำเร็จ`);
+                else alert("❌ ผิดพลาด: " + data.message);
+            } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
+            hideOverlay();
+        }
+
+        function exportAttendeesExcel() {
+            sendLog("Export Attendees", `แอดมินดาวน์โหลดรายชื่อคอร์ส ${currentSearchedCourse} (Excel)`);
+            
+            let dataToExport = [ ["วันที่เวลา", "รหัสพนักงาน", "ชื่อ-สกุล", "สถานะ"] ];
+            currentAttendeesData.forEach(a => { dataToExport.push([a.date, a.empId, a.name, a.status]); });
+            
+            const ws = XLSX.utils.aoa_to_sheet(dataToExport);
+            ws['!cols'] = [{wch: 20}, {wch: 15}, {wch: 30}, {wch: 25}]; 
+            const wb = XLSX.utils.book_new();
+            
+            XLSX.utils.book_append_sheet(wb, ws, "Attendees");
+            XLSX.writeFile(wb, `Attendees_${currentSearchedCourse}.xlsx`);
+        }
+    </script>
+</body>
+</html>

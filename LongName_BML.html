@@ -1,26 +1,13 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartLab Training System</title>
+    <title>SmartLab Training - Login</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; 
-            background-color: #0F172A; 
-            color: #1E293B; 
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            min-height: 100vh; 
-        }
-        
-        .app-container { 
-            width: 100%; max-width: 600px; background-color: #FFFFFF; 
-            box-shadow: 0 0 40px rgba(56, 189, 248, 0.15); display: flex; 
-            flex-direction: column; position: relative; 
-        }
+        /* ธีม Console Gaming UI */
+        body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; background-color: #0F172A; color: #1E293B; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
+        .app-container { width: 100%; max-width: 600px; background-color: #FFFFFF; box-shadow: 0 0 40px rgba(56, 189, 248, 0.15); display: flex; flex-direction: column; position: relative; }
         
         .logo-container { text-align: center; padding-top: 25px; padding-bottom: 15px; background-color: #FFFFFF; }
         .logo-container img { max-height: 75px; width: auto; object-fit: contain; }
@@ -31,53 +18,23 @@
         
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 700; color: #334155; font-size: 0.95rem; }
-        .form-group input, .form-group select { 
-            width: 100%; padding: 12px 15px; border: 2px solid #E2E8F0; border-radius: 8px; box-sizing: border-box; 
-            font-size: 1rem; color: #0F172A; background-color: #FFFFFF; transition: all 0.3s ease; 
-        }
-        .form-group input:focus, .form-group select:focus { border-color: #38BDF8; outline: none; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
+        .form-group input { width: 100%; padding: 12px 15px; border: 2px solid #E2E8F0; border-radius: 8px; box-sizing: border-box; font-size: 1.1rem; color: #0F172A; background-color: #FFFFFF; transition: all 0.3s ease; text-align: center; letter-spacing: 1px;}
+        .form-group input:focus { border-color: #38BDF8; outline: none; box-shadow: 0 0 12px rgba(56, 189, 248, 0.4); }
         
-        .btn-primary { 
-            width: 100%; background: linear-gradient(90deg, #1D4ED8, #2563EB); color: #FFFFFF; border: none; padding: 15px; border-radius: 8px; 
-            font-size: 1.1rem; font-weight: 800; cursor: pointer; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
-        }
+        .btn-primary { width: 100%; background: linear-gradient(90deg, #1D4ED8, #2563EB); color: #FFFFFF; border: none; padding: 15px; border-radius: 8px; font-size: 1.1rem; font-weight: 800; cursor: pointer; margin-top: 10px; letter-spacing: 1px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .btn-primary:hover { background: linear-gradient(90deg, #2563EB, #38BDF8); box-shadow: 0 6px 20px rgba(56, 189, 248, 0.5); transform: translateY(-2px); }
         
-        .btn-secondary { 
-            background-color: #64748B; color: #FFFFFF; border: none; padding: 12px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom:10px; 
-            box-shadow: 0 4px 10px rgba(100, 116, 139, 0.2); transition: all 0.3s ease; 
-        }
-        .btn-secondary:hover { background-color: #38BDF8; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4); transform: translateY(-2px); }
-        
-        .btn-logout { background-color: #94A3B8; color: #FFFFFF; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; float: right; font-weight: bold; transition: background-color 0.2s; }
+        .btn-logout { background-color: #94A3B8; color: #FFFFFF; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background-color 0.2s; }
         .btn-logout:hover { background-color: #64748B; }
         
         .view-section { display: none; }
         .active-view { display: block; animation: fadeIn 0.4s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .card-menu { 
-            background-color: #FFFFFF; border: 2px solid #E2E8F0; border-radius: 12px; padding: 18px; text-align: center; cursor: pointer; 
-            margin-bottom: 15px; font-weight: 800; color: #1E293B; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.04); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
+        /* Menu Links */
+        .card-menu { display: block; text-decoration: none; background-color: #FFFFFF; border: 2px solid #E2E8F0; border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 15px; font-weight: 800; color: #1E293B; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.04); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
         .card-menu:hover { border-color: #38BDF8; background-color: #F0F9FF; color: #0EA5E9; box-shadow: 0 8px 25px rgba(56, 189, 248, 0.3); transform: scale(1.03); }
         
-        .filter-bar { background: #FFFFFF; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #E2E8F0; box-shadow: 0 2px 8px rgba(0,0,0,0.02);}
-        .filter-row { display: flex; gap: 10px; align-items: flex-end; margin-bottom: 10px; }
-        .filter-col { flex: 1; }
-        .filter-col label { font-size: 0.85rem; color: #475569; font-weight: bold; display: block; margin-bottom: 5px; }
-        .filter-col input { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #CBD5E1; box-sizing: border-box;}
-        
-        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; font-size: 0.9rem; background-color: #FFFFFF; border-radius: 8px; overflow: hidden; border: 1px solid #E2E8F0; }
-        th, td { padding: 12px 10px; border-bottom: 1px solid #E2E8F0; text-align: left; color: #334155; }
-        th { background-color: #0F172A; color: #FFFFFF; border-bottom: none; font-weight: 600; letter-spacing: 0.5px;}
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background-color: #F8FAFC; }
-        
-        .btn-pdf { background-color: #10B981; color: #FFFFFF; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: bold; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2); transition: all 0.3s ease; }
-        .btn-pdf:hover { background-color: #059669; box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4); transform: translateY(-2px); }
-
         #overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.92); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; border-radius: inherit;}
         .spinner { border: 5px solid #E2E8F0; border-top: 5px solid #38BDF8; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -92,156 +49,52 @@
             <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo">
         </div>
         <div class="header">
-            <h1>บันทึกการสื่อสารและฝึกอบรม<br><small style="font-size:0.95rem; font-weight:normal; color:#38BDF8; letter-spacing: 2px;">BML/NNG TRAINING CENTER</small></h1>
+            <h1>ระบบจัดการการสื่อสาร<br><small style="font-size:0.95rem; font-weight:normal; color:#38BDF8; letter-spacing: 2px;">BML/NNG Communiction CENTER</small></h1>
         </div>
 
         <div class="content">
             <!-- VIEW 1: LOGIN -->
-            <div id="view-login" class="view-section active-view" style="text-align: center; padding-top: 30px;">
-                <h2 style="color: #0F172A; font-weight: 800;">🔐 เข้าสู่ระบบ</h2>
-                <div class="form-group"><input type="text" id="empId" placeholder="รหัสพนักงาน" style="text-align: center; font-size: 1.2rem; letter-spacing: 2px; font-weight:bold;"></div>
+            <div id="view-login" class="view-section active-view" style="text-align: center; padding-top: 15px;">
+                <h2 style="color: #0F172A; font-weight: 800; margin-bottom: 25px;">🔐 เข้าสู่ระบบ</h2>
+                
+                <div class="form-group">
+                    <label style="text-align: left;">รหัสพนักงาน:</label>
+                    <input type="text" id="empId" placeholder="Emp ID" autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label style="text-align: left;">รหัสผ่าน (วันเดือนปีเกิด YYYYMMDD):</label>
+                    <input type="password" id="empPwd" placeholder="เช่น 19901231" autocomplete="current-password">
+                </div>
+                
                 <button class="btn-primary" onclick="login()">เข้าสู่ระบบ</button>
             </div>
 
-            <!-- VIEW 2: DASHBOARD -->
+            <!-- VIEW 2: DASHBOARD MAIN MENU -->
             <div id="view-dashboard" class="view-section">
+                <!-- User Profile Bar -->
                 <div style="background-color: #FFFFFF; padding: 15px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; border: 2px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="font-weight: 800; color: #1E293B; font-size:1.1rem;" id="user-name">ชื่อ นามสกุล</div>
+                    <div style="font-weight: 800; color: #1E293B; font-size:1.1rem;" id="user-name">กำลังโหลดข้อมูล...</div>
                     <button class="btn-logout" onclick="logout()">LOGOUT</button>
                 </div>
 
-                <div id="admin-menu" style="display: none;">
-                    <h3 style="border-bottom: 2px solid #38BDF8; color: #0EA5E9; padding-bottom: 8px; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">สำหรับผู้จัดอบรม/ประชุม</h3>
-                    <div class="card-menu" onclick="switchView('view-create-course')">📝 สร้างคอร์สอบรมใหม่</div>
-                </div>
-
-                <h3 style="border-bottom: 2px solid #64748B; color: #64748B; padding-bottom: 8px; margin-top: 25px; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">เมนูหลัก (Main Menu)</h3>
+                <h3 style="border-bottom: 2px solid #64748B; color: #64748B; padding-bottom: 8px; margin-top: 10px; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">สำหรับพนักงาน (User)</h3>
                 
-                <!-- เพิ่มเมนู ดูรายการคลาส -->
-                <div class="card-menu" onclick="fetchCourseList()">📅 รายการคลาสอบรม (คลิกเพื่อลงนาม)</div>
+                <!-- ลิงก์ไปหน้าต่างๆ (แก้ไขชื่อไฟล์ตามที่คุณต้องการได้เลย) -->
+                <a href="https://rb508411.github.io/bml_temp/CheckIn_FromList.html" class="card-menu">📅 ลงนามเข้าสื่อสาร (List)</a>
+                <a href="https://rb508411.github.io/bml_temp/ChekIn_Manual.html" class="card-menu">✍️ ลงนามเข้าสื่อสาร (Manual)</a>
+                <a href="https://rb508411.github.io/bml_temp/MyCheckIn.html" class="card-menu">📊 ประวัติและชั่วโมงการสื่อสารของฉัน</a>
                 
-                <div class="card-menu" onclick="switchView('view-sign-in')">✍️ กรอกรหัสลงนามด้วยตนเอง</div>
-                <div class="card-menu" onclick="fetchRecords()">📊 ดูประวัติและชั่วโมงอบรมของฉัน</div>
-                <div class="card-menu" onclick="switchView('view-attendees')">📋 ตรวจสอบผู้เข้าอบรม (รายคอร์ส)</div>
-            </div>
-
-            <!-- VIEW 3: CREATE COURSE -->
-            <div id="view-create-course" class="view-section">
-                <button class="btn-secondary" style="width:auto;" onclick="switchView('view-dashboard')">⬅️ กลับหน้าหลัก</button>
-                <h3 style="color:#0F172A; font-weight:800;">📝 สร้างประชุมหรือคอร์สใหม่</h3>
-                <div class="form-group">
-                    <label>หมวดหมู่ (Prefix)</label>
-                    <select id="c-prefix">
-                        <option value="TM">TM - Technical</option>
-                        <option value="QM">QM - Quality</option>
-                        <option value="GN">GN - General</option>
-                        <option value="SF">SF - Safety</option>
-                    </select>
-                </div>
-                <div class="form-group"><label>หัวข้อการอบรม</label><input type="text" id="c-topic"></div>
-                <div class="form-group"><label>ชื่อผู้สอน</label><input type="text" id="c-instructor"></div>
-                <div class="form-group"><label>วันที่</label><input type="date" id="c-date"></div>
-                <div class="form-group"><label>เวลา</label><input type="time" id="c-time"></div>
-                <div class="form-group"><label>ชั่วโมง (Hrs)</label><input type="number" id="c-period" step="0.5"></div>
-                <button class="btn-primary" onclick="createCourse()">สร้างคอร์ส</button>
-            </div>
-
-            <!-- VIEW 4: SIGN IN (MANUAL) -->
-            <div id="view-sign-in" class="view-section">
-                <button class="btn-secondary" style="width:auto;" onclick="switchView('view-dashboard')">⬅️ กลับหน้าหลัก</button>
-                <h3 style="color:#0F172A; font-weight:800;">✍️ ลงนามเข้าอบรม</h3>
-                <div class="form-group"><label>รหัสคอร์ส</label><input type="text" id="s-code" placeholder="เช่น QM-2609-X9A" style="text-transform: uppercase; font-weight:bold;"></div>
-                <div class="form-group"><label>สถานะ</label>
-                    <select id="s-status">
-                        <option value="ผู้สื่อสาร/บรรยาย">ผู้สื่อสาร/บรรยาย</option>
-                        <option value="เข้าร่วมแบบสด">เข้าร่วมแบบสด</option>
-                        <option value="ติดตามย้อนหลัง">ติดตามย้อนหลัง</option>
-                    </select>
-                </div>
-                <button class="btn-primary" onclick="signInCourse()">บันทึกการลงนาม</button>
-            </div>
-            
-            <!-- VIEW 7: COURSE LIST (NEW) -->
-            <div id="view-course-list" class="view-section">
-                <button class="btn-secondary" style="width:auto;" onclick="switchView('view-dashboard')">⬅️ กลับหน้าหลัก</button>
-                <h3 style="color:#0F172A; font-weight:800;">📅 รายการคลาสอบรม</h3>
-                <p style="font-size: 0.9rem; color: #64748B;">* คลิกที่แถวของคลาสเพื่อไปหน้าลงนามทันที (ล่าสุดอยู่บนสุด)</p>
-                
-                <div style="overflow-x: auto;">
-                    <table id="course-list-table">
-                        <thead><tr><th>วันที่-เวลา</th><th>รหัสคอร์ส</th><th>หัวข้อ</th><th>ผู้สอน</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+                <div id="admin-menu" style="display: none; margin-top: 30px;">
+                    <h3 style="border-bottom: 2px solid #38BDF8; color: #0EA5E9; padding-bottom: 8px; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px;">สำหรับผู้จัด (Admin)</h3>
+                    <a href="https://rb508411.github.io/bml_temp/CourseLongName.html" class="card-menu" style="border-color: #38BDF8;">⚙️ จัดการการสื่อสาร & ตรวจสอบผู้เข้าร่วม</a>
                 </div>
             </div>
-
-            <!-- VIEW 5: RECORDS (My Training) -->
-            <div id="view-records" class="view-section">
-                <button class="btn-secondary" style="width:auto;" onclick="switchView('view-dashboard')">⬅️ กลับหน้าหลัก</button>
-                <h3 style="color:#0F172A; font-weight:800;">📊 ประวัติการอบรมของคุณ</h3>
-                
-                <div class="filter-bar">
-                    <div class="filter-row">
-                        <div class="filter-col"><label>เริ่มวันที่:</label><input type="date" id="filter-start"></div>
-                        <div class="filter-col"><label>ถึงวันที่:</label><input type="date" id="filter-end"></div>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <button style="flex:1; padding: 10px; background: #2563EB; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563EB'" onclick="renderTable()">🔍 กรอง</button>
-                        <button style="flex:1; padding: 10px; background: #94A3B8; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer; transition: 0.2s;" onmouseover="this.style.backgroundColor='#64748B'" onmouseout="this.style.backgroundColor='#94A3B8'" onclick="clearFilter()">ล้าง</button>
-                    </div>
-                </div>
-
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-secondary" onclick="exportExcel('download')">📥 โหลด EXCEL</button>
-                    <button class="btn-secondary" onclick="exportExcel('email')">✉️ ส่งเข้าอีเมล</button>
-                </div>
-
-                <div style="background-color: #F0FDF4; border-left: 5px solid #10B981; padding: 12px; margin-bottom: 15px; margin-top:10px; border-radius:4px;">
-                    <strong style="color: #064E3B;">ชั่วโมงสะสม (ตามที่กรอง): </strong> <span id="total-hours" style="color: #047857; font-size: 1.3rem; font-weight:900;">0</span> ชม.
-                </div>
-                <div style="overflow-x: auto;">
-                    <table id="records-table">
-                        <thead><tr><th>วันที่ลงนาม</th><th>รหัสคอร์ส</th><th>หัวข้อ</th><th>สถานะ</th><th>ชั่วโมง</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- VIEW 6: ATTENDEES (Check Course) -->
-            <div id="view-attendees" class="view-section">
-                <button class="btn-secondary" style="width:auto;" onclick="switchView('view-dashboard')">⬅️ กลับหน้าหลัก</button>
-                <h3 style="color:#0F172A; font-weight:800;">📋 ตรวจสอบผู้เข้าอบรม</h3>
-                
-                <div class="form-group" style="display: flex; gap: 10px;">
-                    <input type="text" id="a-code" placeholder="รหัสคอร์ส (เช่น QM-2609-X9A)" style="flex: 2; text-transform: uppercase; font-weight:bold;">
-                    <button style="flex: 1; background: #2563EB; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; text-transform:uppercase;" onmouseover="this.style.backgroundColor='#1D4ED8'" onmouseout="this.style.backgroundColor='#2563EB'" onclick="fetchAttendees()">🔍 ค้นหา</button>
-                </div>
-                
-                <div id="attendees-action-btns" style="display:none; gap: 10px; margin-bottom:15px;">
-                    <button class="btn-secondary" style="flex: 1; margin-bottom:0; background:#38BDF8;" onmouseover="this.style.backgroundColor='#0EA5E9'" onmouseout="this.style.backgroundColor='#38BDF8'" onclick="exportAttendeesExcel()">📥 โหลด EXCEL</button>
-                    <button class="btn-pdf" style="flex: 1; margin-top:0;" onclick="requestMeetingReportPDF()">📩 ขอ PDF (ISO Form)</button>
-                </div>
-
-                <div style="background-color: #F8FAFC; border-left: 5px solid #38BDF8; padding: 12px; margin-bottom: 15px; border-radius:4px;">
-                    <strong style="color: #0F172A;">จำนวนผู้ลงนาม: </strong> <span id="attendees-count" style="color: #0EA5E9; font-size: 1.3rem; font-weight:900;">0</span> คน
-                </div>
-                <div style="overflow-x: auto;">
-                    <table id="attendees-table">
-                        <thead><tr><th>วันที่เวลา</th><th>รหัสพนักงาน</th><th>ชื่อ-สกุล</th><th>สถานะ</th></tr></thead>
-                        <tbody><tr><td colspan='4' style='text-align:center;'>พิมพ์รหัสคอร์สแล้วกดค้นหา</td></tr></tbody>
-                    </table>
-                </div>
-            </div>
-
         </div>
     </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqF92ZskKUgd398CIP0Np1yEYozv4_ew7wJ9IicnEtDCxefZb4zVTGAxo-7WB9zxIT/exec"; 
-        let currentUser = { id: "", name: "", role: "" };
-        let userRecordsData = []; 
-        let currentAttendeesData = []; 
-        let currentSearchedCourse = "";
 
         function showOverlay(text) { document.getElementById('overlay-text').innerText = text; document.getElementById('overlay').style.display = 'flex'; }
         function hideOverlay() { document.getElementById('overlay').style.display = 'none'; }
@@ -249,295 +102,68 @@
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
             document.getElementById(viewId).classList.add('active-view');
         }
-        
-        function sendLog(actionName, detailsStr) {
-            if(!currentUser.id) return;
-            fetch(`${SCRIPT_URL}?action=logActivity&empId=${currentUser.id}&activity=${encodeURIComponent(actionName)}&details=${encodeURIComponent(detailsStr)}`).catch(()=>{});
-        }
+
+        // ตรวจสอบสถานะตอนเปิดหน้าเว็บ
+        window.onload = function() {
+            const savedEmpId = localStorage.getItem('bml_emp_id');
+            const savedName = localStorage.getItem('bml_emp_name');
+            const savedRole = localStorage.getItem('bml_emp_role');
+            
+            if(savedEmpId && savedName) {
+                // ถ้าเคย Login ไว้แล้ว ให้โชว์หน้าเมนูได้เลย
+                document.getElementById('user-name').innerText = `${savedName} (${savedEmpId})`;
+                if(savedRole === 'admin') document.getElementById('admin-menu').style.display = 'block';
+                switchView('view-dashboard');
+            } else {
+                switchView('view-login');
+            }
+        };
 
         async function login() {
             const empId = document.getElementById('empId').value.trim();
-            if (!empId) return alert("กรุณากรอกรหัสพนักงาน");
+            const password = document.getElementById('empPwd').value.trim();
+            
+            if (!empId || !password) return alert("กรุณากรอกรหัสพนักงานและรหัสผ่านให้ครบถ้วน");
+            
             showOverlay("VERIFYING...");
             try {
-                const res = await fetch(`${SCRIPT_URL}?action=login&empId=${empId}`);
+                // ส่งทั้ง empId และ password ไปเช็กที่หลังบ้าน
+                const res = await fetch(`${SCRIPT_URL}?action=login&empId=${empId}&password=${encodeURIComponent(password)}`);
                 const data = await res.json();
+                
                 if (data.success) {
-                    currentUser = { id: empId, name: data.name, role: data.role };
+                    // เก็บบันทึกข้อมูลลงใน Browser เพื่อให้หน้าอื่นๆ (เช่น MyCheckIn.html) ดึงไปใช้ได้
+                    localStorage.setItem('bml_emp_id', empId);
+                    localStorage.setItem('bml_emp_name', data.name);
+                    localStorage.setItem('bml_emp_role', data.role);
+                                        
                     document.getElementById('user-name').innerText = `${data.name} (${empId})`;
-                    document.getElementById('admin-menu').style.display = (data.role === 'admin') ? 'block' : 'none';
-                    sendLog("Login", "เข้าสู่ระบบสำเร็จ");
+                    if(data.role === 'admin') document.getElementById('admin-menu').style.display = 'block';
+                    else document.getElementById('admin-menu').style.display = 'none';
+                    
+                    fetch(`${SCRIPT_URL}?action=logActivity&empId=${empId}&activity=Login&details=เข้าสู่ระบบสำเร็จ`).catch(()=>{});
+                    
+                    // ล้างช่องรหัสผ่านเพื่อความปลอดภัย
+                    document.getElementById('empPwd').value = '';
                     switchView('view-dashboard');
-                } else { alert(data.message); }
-            } catch (err) { alert("เชื่อมต่อล้มเหลว"); }
+                } else { 
+                    alert(data.message); // เช่น รหัสผ่านผิด
+                }
+            } catch (err) { alert("เชื่อมต่อเซิร์ฟเวอร์ล้มเหลว กรุณาลองใหม่"); }
             hideOverlay();
         }
 
         function logout() {
-            sendLog("Logout", "ออกจากระบบ");
-            currentUser = { id: "", name: "", role: "" };
+            const empId = localStorage.getItem('bml_emp_id');
+            if(empId) {
+                fetch(`${SCRIPT_URL}?action=logActivity&empId=${empId}&activity=Logout&details=ออกจากระบบ`).catch(()=>{});
+            }
+            // ล้างข้อมูลในระบบ
+            localStorage.clear();
             document.getElementById('empId').value = '';
+            document.getElementById('empPwd').value = '';
+            document.getElementById('admin-menu').style.display = 'none';
             switchView('view-login');
-        }
-
-        async function createCourse() {
-            const payload = {
-                prefix: document.getElementById('c-prefix').value,
-                topic: document.getElementById('c-topic').value,
-                instructor: document.getElementById('c-instructor').value,
-                date: document.getElementById('c-date').value,
-                time: document.getElementById('c-time').value,
-                period: document.getElementById('c-period').value,
-                createdBy: currentUser.name
-            };
-            if(!payload.topic || !payload.date || !payload.period) return alert("กรุณากรอกข้อมูลสำคัญให้ครบถ้วน");
-
-            showOverlay("CREATING...");
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=createCourse&data=${encodeURIComponent(JSON.stringify(payload))}`);
-                const data = await res.json();
-                if(data.success) {
-                    alert(`✅ สร้างคอร์สสำเร็จ!\nรหัสคอร์ส: ${data.code}`);
-                    sendLog("Create Course", `สร้างคอร์ส ${data.code}`);
-                    switchView('view-dashboard');
-                } else alert(data.message);
-            } catch(e) { alert("เกิดข้อผิดพลาด"); }
-            hideOverlay();
-        }
-        
-        /* --- ฝั่ง Course List (View 7 ใหม่) --- */
-        async function fetchCourseList() {
-            showOverlay("LOADING COURSES...");
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=getCourseList`);
-                const data = await res.json();
-                if(data.success) {
-                    const tbody = document.querySelector('#course-list-table tbody');
-                    tbody.innerHTML = "";
-                    if(data.courses.length === 0) {
-                        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>ยังไม่มีคลาสอบรมในระบบ</td></tr>";
-                    } else {
-                        // สร้างแถวข้อมูล พร้อม event onClick เด้งไปหน้าลงนาม
-                        data.courses.forEach(c => {
-                            tbody.innerHTML += `
-                            <tr style="cursor:pointer; transition: background-color 0.2s;" 
-                                onmouseover="this.style.backgroundColor='#F0F9FF'; this.style.color='#0EA5E9';" 
-                                onmouseout="this.style.backgroundColor='transparent'; this.style.color='#334155';" 
-                                onclick="selectCourseToSignIn('${c.code}')">
-                                <td>${c.date}<br><small style="color:#64748B;">${c.time} น.</small></td>
-                                <td style="font-weight:bold; color:#1D4ED8;">${c.code}</td>
-                                <td>${c.topic}</td>
-                                <td>${c.instructor}</td>
-                            </tr>`;
-                        });
-                    }
-                    switchView('view-course-list');
-                } else { alert("เกิดข้อผิดพลาดในการดึงข้อมูลคลาส"); }
-            } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
-            hideOverlay();
-        }
-
-        // ฟังก์ชันเมื่อผู้ใช้กดเลือกคลาสจากตาราง
-        function selectCourseToSignIn(courseCode) {
-            document.getElementById('s-code').value = courseCode;
-            switchView('view-sign-in'); // สลับไปหน้า View 4
-        }
-
-        async function signInCourse() {
-            const payload = {
-                empId: currentUser.id,
-                courseCode: document.getElementById('s-code').value.trim().toUpperCase(),
-                status: document.getElementById('s-status').value
-            };
-            if(!payload.courseCode) return alert("กรุณากรอกรหัสคอร์ส");
-
-            showOverlay("SAVING...");
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=signIn&data=${encodeURIComponent(JSON.stringify(payload))}`);
-                const data = await res.json();
-                if(data.success) {
-                    alert("✅ ลงนามเข้าอบรมเรียบร้อยแล้ว");
-                    sendLog("Sign In", `ลงนามคอร์ส ${payload.courseCode}`);
-                    document.getElementById('s-code').value = "";
-                    switchView('view-dashboard');
-                } else alert(data.message);
-            } catch(e) { alert("เกิดข้อผิดพลาด"); }
-            hideOverlay();
-        }
-
-        /* --- ฝั่ง Records ส่วนตัว (View 5) --- */
-        async function fetchRecords() {
-            showOverlay("FETCHING DATA...");
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=getRecords&empId=${currentUser.id}`);
-                const data = await res.json();
-                if(data.success) {
-                    userRecordsData = data.records;
-                    clearFilter();
-                    switchView('view-records');
-                }
-            } catch(e) { alert("เกิดข้อผิดพลาด"); }
-            hideOverlay();
-        }
-
-        function clearFilter() {
-            document.getElementById('filter-start').value = "";
-            document.getElementById('filter-end').value = "";
-            renderTable();
-        }
-
-        function renderTable() {
-            const startStr = document.getElementById('filter-start').value;
-            const endStr = document.getElementById('filter-end').value;
-            
-            let filteredRecords = userRecordsData;
-            
-            if (startStr || endStr) {
-                const startDate = startStr ? new Date(startStr) : null;
-                if(startDate) startDate.setHours(0,0,0,0);
-                const endDate = endStr ? new Date(endStr) : null;
-                if(endDate) endDate.setHours(23,59,59,999);
-                
-                filteredRecords = userRecordsData.filter(r => {
-                    const rDate = new Date(r.rawDate);
-                    if (startDate && rDate < startDate) return false;
-                    if (endDate && rDate > endDate) return false;
-                    return true;
-                });
-            }
-
-            let totalHrs = 0;
-            const tbody = document.querySelector('#records-table tbody');
-            tbody.innerHTML = "";
-            
-            if(filteredRecords.length === 0) {
-                tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>ไม่พบข้อมูลการอบรมในช่วงเวลานี้</td></tr>";
-            } else {
-                filteredRecords.forEach(r => {
-                    totalHrs += r.period;
-                    tbody.innerHTML += `<tr>
-                        <td>${r.date}</td><td><b style="color:#1D4ED8;">${r.code}</b></td><td>${r.topic}</td>
-                        <td>${r.status}</td><td>${r.period}</td>
-                    </tr>`;
-                });
-            }
-            document.getElementById('total-hours').innerText = totalHrs;
-        }
-
-        async function exportExcel(method) {
-            const startStr = document.getElementById('filter-start').value;
-            const endStr = document.getElementById('filter-end').value;
-            
-            let dateLabel = "AllRecords";
-            if(startStr && endStr) dateLabel = `${startStr}_to_${endStr}`;
-            else if(startStr) dateLabel = `From_${startStr}`;
-            else if(endStr) dateLabel = `Until_${endStr}`;
-
-            if (method === 'download') {
-                sendLog("Export Data", `ดาวน์โหลดประวัติส่วนตัวลงเครื่อง`);
-                let filteredRecords = userRecordsData;
-                if (startStr || endStr) {
-                    const startDate = startStr ? new Date(startStr) : null;
-                    if(startDate) startDate.setHours(0,0,0,0);
-                    const endDate = endStr ? new Date(endStr) : null;
-                    if(endDate) endDate.setHours(23,59,59,999);
-                    
-                    filteredRecords = userRecordsData.filter(r => {
-                        const rDate = new Date(r.rawDate);
-                        if (startDate && rDate < startDate) return false;
-                        if (endDate && rDate > endDate) return false;
-                        return true;
-                    });
-                }
-                
-                let dataToExport = [ ["วันที่ลงนาม", "รหัสคอร์ส", "หัวข้อการอบรม", "สถานะ", "ชั่วโมง"] ];
-                filteredRecords.forEach(r => { 
-                    dataToExport.push([r.date, r.code, r.topic, r.status, r.period]); 
-                });
-                
-                const ws = XLSX.utils.aoa_to_sheet(dataToExport);
-                ws['!cols'] = [{wch: 20}, {wch: 15}, {wch: 40}, {wch: 20}, {wch: 10}];
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "MyTraining");
-                
-                const downloadFileName = `${currentUser.id}_TrainingRecords_${dateLabel}.xlsx`;
-                XLSX.writeFile(wb, downloadFileName);
-                
-            } else if (method === 'email') {
-                const targetEmail = prompt("กรุณากรอกอีเมลที่ต้องการให้จัดส่งไฟล์ประวัติการอบรม:", "");
-                if (!targetEmail) return;
-
-                showOverlay("SENDING EMAIL...");
-                sendLog("Export Data", `ส่งเข้าอีเมลไปที่ ${targetEmail}`);
-                try {
-                    const res = await fetch(`${SCRIPT_URL}?action=emailExport&empId=${currentUser.id}&startDate=${startStr}&endDate=${endStr}&email=${encodeURIComponent(targetEmail)}`);
-                    const data = await res.json();
-                    if(data.success) alert(`✅ ส่งไฟล์เข้าอีเมล ${targetEmail} เรียบร้อยแล้ว`);
-                    else alert("❌ ผิดพลาด: " + data.message);
-                } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
-                hideOverlay();
-            }
-        }
-
-        /* --- ฝั่ง Attendees ตรวจสอบผู้เข้าอบรม (View 6) --- */
-        async function fetchAttendees() {
-            const courseCode = document.getElementById('a-code').value.trim().toUpperCase();
-            if(!courseCode) return alert("กรุณากรอกรหัสคอร์ส");
-            
-            showOverlay("SEARCHING...");
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=getAttendees&courseCode=${courseCode}`);
-                const data = await res.json();
-                if(data.success) {
-                    currentAttendeesData = data.attendees;
-                    currentSearchedCourse = courseCode;
-                    document.getElementById('attendees-count').innerText = data.attendees.length;
-                    const tbody = document.querySelector('#attendees-table tbody');
-                    tbody.innerHTML = "";
-                    
-                    if(data.attendees.length === 0) {
-                        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>ไม่มีผู้ลงนามในคอร์สนี้</td></tr>";
-                        document.getElementById('attendees-action-btns').style.display = 'none';
-                    } else {
-                        data.attendees.forEach(a => {
-                            tbody.innerHTML += `<tr><td>${a.date}</td><td>${a.empId}</td><td>${a.name}</td><td>${a.status}</td></tr>`;
-                        });
-                        document.getElementById('attendees-action-btns').style.display = 'flex';
-                    }
-                    sendLog("Check Attendees", `ตรวจสอบผู้เข้าอบรมคอร์ส ${courseCode}`);
-                } else { alert("เกิดข้อผิดพลาดในการดึงข้อมูล"); }
-            } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
-            hideOverlay();
-        }
-
-        async function requestMeetingReportPDF() {
-            const courseCode = currentSearchedCourse;
-            const targetEmail = prompt(`กรุณากรอกอีเมลที่ต้องการให้จัดส่งรายงาน FP-BML-BIO-00-008/4 (คอร์ส ${courseCode}):`, "");
-            if (!targetEmail) return; 
-
-            showOverlay("GENERATING PDF...");
-            sendLog("Request Meeting Report", `ขอรายงานประชุมคอร์ส ${courseCode} ไปที่ ${targetEmail}`);
-            try {
-                const res = await fetch(`${SCRIPT_URL}?action=sendMeetingReport&courseCode=${courseCode}&email=${encodeURIComponent(targetEmail)}`);
-                const data = await res.json();
-                if(data.success) alert(`✅ ส่งรายงานการประชุมไปยังอีเมล ${targetEmail} สำเร็จ`);
-                else alert("❌ ผิดพลาด: " + data.message);
-            } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
-            hideOverlay();
-        }
-
-        function exportAttendeesExcel() {
-            sendLog("Export Attendees", `ดาวน์โหลดรายชื่อคอร์ส ${currentSearchedCourse} (Excel)`);
-            
-            let dataToExport = [ ["วันที่เวลา", "รหัสพนักงาน", "ชื่อ-สกุล", "สถานะ"] ];
-            currentAttendeesData.forEach(a => { dataToExport.push([a.date, a.empId, a.name, a.status]); });
-            
-            const ws = XLSX.utils.aoa_to_sheet(dataToExport);
-            ws['!cols'] = [{wch: 20}, {wch: 15}, {wch: 30}, {wch: 25}]; 
-            const wb = XLSX.utils.book_new();
-            
-            XLSX.utils.book_append_sheet(wb, ws, "Attendees");
-            XLSX.writeFile(wb, `Attendees_${currentSearchedCourse}.xlsx`);
         }
     </script>
 </body>
