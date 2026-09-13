@@ -200,7 +200,7 @@
             rawData = await res.json();
             processFilters();
         } catch (e) {
-            alert("ดึงข้อมูลไม่สำเร็จ กรุณาลองใหม่ครับ");
+            alert("ดึงข้อมูลไม่สำเร็จ ลองใหม่ครับ");
         }
         hideLoading();
     }
@@ -237,7 +237,7 @@
         } else if (viewType === 'equip') {
             options = Array.from(equipments).sort();
         } else if (viewType === 'group') {
-            options = ["อุณหภูมิห้องทั้งหมด", "ความชื้นห้องทั้งหมด", "ตู้เย็น (2-8 °C)", "ตู้เย็น -20 °C", "ตู้เย็น -30 °C", "ตู้เย็น -70 °C"];
+            options = ["อุณหภูมิห้องทั้งหมด", "ความชื้นห้องทั้งหมด", "ตู้เย็น", "ตู้เย็น -20 °C", "ตู้เย็น -30 °C", "ตู้เย็น -70 °C"];
         }
 
         options.forEach(opt => {
@@ -403,7 +403,7 @@
                             if (selectedTarget === "ตู้เย็น -20 °C" && eqName.includes("-20")) isMatch = true;
                             else if (selectedTarget === "ตู้เย็น -30 °C" && eqName.includes("-30")) isMatch = true;
                             else if (selectedTarget === "ตู้เย็น -70 °C" && eqName.includes("-70")) isMatch = true;
-                            else if (selectedTarget === "ตู้เย็น (2-8 °C)" && eqName.includes("ตู้เย็น") && !eqName.includes("-")) isMatch = true;
+                            else if (selectedTarget === "ตู้เย็น" && eqName.includes("ตู้เย็น") && !eqName.includes("-")) isMatch = true;
 
                             if (isMatch && !isNaN(val)) {
                                 tempTimestamps.add(tsKey);
