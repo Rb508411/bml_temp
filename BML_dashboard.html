@@ -403,7 +403,10 @@
                             if (selectedTarget === "ตู้เย็น -20 °C" && eqName.includes("-20")) isMatch = true;
                             else if (selectedTarget === "ตู้เย็น -30 °C" && eqName.includes("-30")) isMatch = true;
                             else if (selectedTarget === "ตู้เย็น -70 °C" && eqName.includes("-70")) isMatch = true;
-                            else if (selectedTarget === "ตู้เย็น" && eqName.includes("ตู้เย็น")) isMatch = true;
+                            else if (selectedTarget === "ตู้เย็น" && eqName.includes("ตู้เย็น") && 
+                                                                !eqName.includes("-20") &&
+                                                                !eqName.includes("-30") &&
+                                                                !eqName.includes("-70")) isMatch = true;
 
                             if (isMatch && !isNaN(val)) {
                                 tempTimestamps.add(tsKey);
