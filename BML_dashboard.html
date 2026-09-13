@@ -403,7 +403,7 @@
                             if (selectedTarget === "ตู้เย็น -20 °C" && eqName.includes("-20")) isMatch = true;
                             else if (selectedTarget === "ตู้เย็น -30 °C" && eqName.includes("-30")) isMatch = true;
                             else if (selectedTarget === "ตู้เย็น -70 °C" && eqName.includes("-70")) isMatch = true;
-                            else if (selectedTarget === "ตู้เย็น" && eqName.includes("ตู้เย็น") && !eqName.includes("-")) isMatch = true;
+                            else if (selectedTarget === "ตู้เย็น" && eqName.includes("ตู้เย็น")) isMatch = true;
 
                             if (isMatch && !isNaN(val)) {
                                 tempTimestamps.add(tsKey);
@@ -537,7 +537,7 @@
             });
         });
 
-const aiContainer = document.getElementById('ai-prediction-container');
+    const aiContainer = document.getElementById('ai-prediction-container');
         const aiList = document.getElementById('ai-prediction-list');
         aiList.innerHTML = '';
         let hasWarnings = false;
