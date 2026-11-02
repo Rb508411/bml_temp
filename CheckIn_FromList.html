@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SmartLab Training - Course List</title>
     <style>
-        /* ธีม Console Gaming UI */
         body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; background-color: #0F172A; color: #1E293B; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
         .app-container { width: 100%; max-width: 600px; background-color: #FFFFFF; box-shadow: 0 0 40px rgba(56, 189, 248, 0.15); display: flex; flex-direction: column; position: relative; }
         
@@ -50,6 +49,24 @@
         tr.course-row:hover { background-color: #F0F9FF; }
         tr.course-row:hover td { color: #0EA5E9; }
 
+        /* Modal แจ้งเตือนลงชื่อซ้ำ */
+        .modal-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.8); display: none; justify-content: center;
+            align-items: center; z-index: 10000;
+        }
+        .modal-box {
+            background: #FFFFFF; padding: 30px 20px; border-radius: 12px; width: 80%;
+            text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-top: 5px solid #EF4444; 
+        }
+        .modal-title { color: #EF4444; font-weight: 800; font-size: 1.3rem; margin-bottom: 10px; }
+        .modal-text { color: #334155; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5; }
+        .modal-btn {
+            background: #EF4444; color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; font-weight: bold; cursor: pointer;
+        }
+
         #overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(255,255,255,0.92); display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 9999; border-radius: inherit;}
         .spinner { border: 5px solid #E2E8F0; border-top: 5px solid #38BDF8; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -60,16 +77,23 @@
     <div class="app-container">
         <div id="overlay"><div class="spinner"></div><h2 style="color:#1E4ED8; margin-top:15px; font-weight:800;" id="overlay-text">LOADING...</h2></div>
         
+        <!-- Modal แจ้งเตือนลงชื่อซ้ำ -->
+        <div id="duplicateModal" class="modal-overlay">
+            <div class="modal-box">
+                <div class="modal-title">⚠️ ข้อมูลซ้ำซ้อน</div>
+                <div class="modal-text" id="duplicateMsg">คุณได้ลงนามรับทราบการสื่อสารรหัสนี้ไปแล้ว ระบบไม่อนุญาตให้ลงชื่อซ้ำครับ</div>
+                <button class="modal-btn" onclick="closeModal()">ตกลง</button>
+            </div>
+        </div>
+
         <div class="logo-container">
             <img src="https://storage.googleapis.com/nh-uat-corp/2024/6/update_N_Health_d5a05fd0a9/update_N_Health_d5a05fd0a9.png" alt="N Health Logo">
         </div>
         <div class="header">
-            <h1>ระบบลงนามเข้ารับการสื่อสาร<br><small style="font-size:0.95rem; font-weight:normal; color:#38BDF8; letter-spacing: 2px;">BML/NNG Communiction CENTER</small></h1>
+            <h1>ระบบรับทราบการสื่อสาร<br><small style="font-size:0.95rem; font-weight:normal; color:#38BDF8; letter-spacing: 2px;">BML COMMUNICATION CENTER</small></h1>
         </div>
 
         <div class="content">
-            
-            <!-- User Profile Bar -->
             <div style="background-color: #FFFFFF; padding: 15px; border-radius: 10px; margin-bottom: 25px; overflow: hidden; border: 2px solid #E2E8F0; display:flex; justify-content:space-between; align-items:center;">
                 <div style="font-weight: 800; color: #1E293B; font-size:1.1rem;" id="user-name">กำลังโหลดข้อมูล...</div>
             </div>
@@ -77,12 +101,12 @@
             <!-- VIEW 1: COURSE LIST -->
             <div id="view-course-list" class="view-section active-view">
                 <button class="btn-secondary" style="width:auto;" onclick="goToMainMenu()">⬅️ กลับหน้าหลัก</button>
-                <h3 style="color:#0F172A; font-weight:800;">📅 รายการคลาส</h3>
-                <p style="font-size: 0.9rem; color: #64748B;">* คลิกที่คลาสที่คุณต้องการลงนาม</p>
+                <h3 style="color:#0F172A; font-weight:800;">📅 รายการการสื่อสาร / อบรม</h3>
+                <p style="font-size: 0.9rem; color: #64748B;">* คลิกที่หัวข้อที่คุณต้องการลงนามรับทราบ</p>
                 
                 <div style="overflow-x: auto;">
                     <table id="course-list-table">
-                        <thead><tr><th>วันที่-เวลา</th><th>รหัสคลาส</th><th>หัวข้อ</th><th>ผู้สอน</th></tr></thead>
+                        <thead><tr><th>วันที่-เวลา</th><th>รหัส</th><th>หัวข้อ</th><th>ผู้จัด/ผู้สอน</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -90,25 +114,25 @@
 
             <!-- VIEW 2: CONFIRM SIGN IN -->
             <div id="view-confirm-signin" class="view-section">
-                <button class="btn-secondary" style="width:auto;" onclick="switchView('view-course-list')">⬅️ กลับหน้ารายการคลาส</button>
+                <button class="btn-secondary" style="width:auto;" onclick="switchView('view-course-list')">⬅️ กลับหน้ารายการ</button>
                 <h3 style="color:#0F172A; font-weight:800;">✍️ ยืนยันการลงนาม</h3>
                 
                 <div class="form-group">
-                    <label>รหัสคอร์ส</label>
+                    <label>รหัสการสื่อสาร</label>
                     <input type="text" id="s-code" readonly style="font-weight:bold; font-size:1.2rem; text-align:center; letter-spacing: 2px;">
                 </div>
                 
                 <div class="form-group" style="background-color: #F8FAFC; padding: 15px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 20px;">
                     <label style="color: #64748B; font-size: 0.85rem; margin-bottom: 5px;">หัวข้อ:</label>
                     <div id="s-topic" style="font-weight:bold; color:#1E293B; margin-bottom: 10px;">-</div>
-                    <label style="color: #64748B; font-size: 0.85rem; margin-bottom: 5px;">ผู้บรรยาย:</label>
+                    <label style="color: #64748B; font-size: 0.85rem; margin-bottom: 5px;">ผู้จัด/ผู้สอน:</label>
                     <div id="s-instructor" style="font-weight:bold; color:#1E293B;">-</div>
                 </div>
 
                 <div class="form-group">
                     <label>สถานะการเข้าร่วมของคุณ</label>
                     <select id="s-status">
-                        <option value="เข้าร่วมแบบสด (Live)">เข้าร่วมแบบสด (Live)</option>
+                        <option value="รับทราบ (Acknowledge)">รับทราบ (Acknowledge)</option>
                         <option value="ติดตามย้อนหลัง (VOD)">ติดตามย้อนหลัง (VOD)</option>
                     </select>
                 </div>
@@ -119,7 +143,7 @@
     </div>
 
     <script>
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwqF92ZskKUgd398CIP0Np1yEYozv4_ew7wJ9IicnEtDCxefZb4zVTGAxo-7WB9zxIT/exec"; // นำ URL ของ Web App มาใส่ตรงนี้
+        const SCRIPT_URL = "ใส่_URL_WEB_APP_ตรงนี้"; 
         
         let currentUser = { id: "", name: "", role: "" };
 
@@ -129,7 +153,15 @@
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
             document.getElementById(viewId).classList.add('active-view');
         }
-        function goToMainMenu() { window.location.href = "https://rb508411.github.io/bml_temp/LongName_BML.html"; }
+        function goToMainMenu() { window.location.href = "LongName_BML.html"; }
+
+        function showModal(msg) {
+            document.getElementById('duplicateMsg').innerText = msg;
+            document.getElementById('duplicateModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('duplicateModal').style.display = 'none';
+        }
 
         function sendLog(actionName, detailsStr) {
             if(!currentUser.id) return;
@@ -137,26 +169,24 @@
         }
 
         window.onload = function() {
-            // เช็กข้อมูล Login จาก localStorage
             const empId = localStorage.getItem('bml_emp_id');
             const empName = localStorage.getItem('bml_emp_name');
             const empRole = localStorage.getItem('bml_emp_role');
             
             if(!empId) {
                 alert("กรุณาเข้าสู่ระบบก่อนใช้งาน");
-                window.location.href = "https://rb508411.github.io/bml_temp/LongName_BML.html"; // ถ้าไม่ได้ Login เด้งกลับหน้าแรก
+                window.location.href = "LongName_BML.html"; 
                 return;
             }
             
             currentUser = { id: empId, name: empName, role: empRole };
             document.getElementById('user-name').innerText = `${empName} (${empId})`;
             
-            // ดึงรายการคลาสทันทีที่โหลดหน้าเสร็จ
             fetchCourseList();
         };
 
         async function fetchCourseList() {
-            showOverlay("LOADING COURSES...");
+            showOverlay("LOADING DATA...");
             try {
                 const res = await fetch(`${SCRIPT_URL}?action=getCourseList`);
                 const data = await res.json();
@@ -164,7 +194,7 @@
                     const tbody = document.querySelector('#course-list-table tbody');
                     tbody.innerHTML = "";
                     if(data.courses.length === 0) {
-                        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding: 20px;'>ยังไม่มีรหัสการสื่อสารในระบบ</td></tr>";
+                        tbody.innerHTML = "<tr><td colspan='4' style='text-align:center; padding: 20px;'>ยังไม่มีข้อมูลการสื่อสารในระบบ</td></tr>";
                     } else {
                         data.courses.forEach(c => {
                             tbody.innerHTML += `
@@ -176,20 +206,18 @@
                             </tr>`;
                         });
                     }
-                } else { alert("เกิดข้อผิดพลาดในการดึงข้อมูลคลาส"); }
+                } else { alert("เกิดข้อผิดพลาดในการดึงข้อมูล"); }
             } catch(e) { alert("เชื่อมต่อล้มเหลว"); }
             hideOverlay();
         }
 
-        // เมื่อคลิกเลือกคลาส
         function selectCourse(code, topic, instructor) {
             document.getElementById('s-code').value = code;
             document.getElementById('s-topic').innerText = topic;
             document.getElementById('s-instructor').innerText = instructor;
-            switchView('view-confirm-signin'); // สลับไปหน้ายืนยัน
+            switchView('view-confirm-signin'); 
         }
 
-        // กดยืนยันลงนาม
         async function submitSignIn() {
             const payload = {
                 empId: currentUser.id,
@@ -202,10 +230,13 @@
                 const res = await fetch(`${SCRIPT_URL}?action=signIn&data=${encodeURIComponent(JSON.stringify(payload))}`);
                 const data = await res.json();
                 if(data.success) {
-                    alert("✅ ลงนามเข้ารับการสื่อสารเรียบร้อยแล้ว");
-                    sendLog("Sign In", `ลงนาม ${payload.courseCode} (จากรายการ)`);
-                    window.location.href = "https://rb508411.github.io/bml_temp/LongName_BML.html"; // กลับไปหน้าเมนูหลักอัตโนมัติ
-                } else alert("❌ ผิดพลาด: " + data.message);
+                    alert("✅ บันทึกการลงนามรับทราบเรียบร้อยแล้ว");
+                    sendLog("Sign In", `ลงนามรับทราบรหัส ${payload.courseCode} (จากรายการ)`);
+                    window.location.href = "LongName_BML.html"; 
+                } else {
+                    // ใช้ Modal แจ้งเตือนเมื่อเจอข้อมูลซ้ำ
+                    showModal(data.message);
+                }
             } catch(e) { alert("เกิดข้อผิดพลาดในการเชื่อมต่อ"); }
             hideOverlay();
         }
