@@ -219,6 +219,27 @@
                 if(data.success) {
                     currentAttendeesData = data.attendees;
                     currentSearchedCourse = courseCode;
+                    
+                    // นำข้อมูลชื่อหัวข้อและผู้สอน (ที่ Backend ส่งกลับมาเพิ่ม) มาเก็บไว้ใน UI ที่มองไม่เห็น
+                    // (สร้างตัวแปรซ่อนเพื่อใช้ใน Excel)
+                    let hiddenTopic = document.getElementById('s-topic');
+                    if(!hiddenTopic) {
+                        hiddenTopic = document.createElement('div');
+                        hiddenTopic.id = 's-topic';
+                        hiddenTopic.style.display = 'none';
+                        document.body.appendChild(hiddenTopic);
+                    }
+                    hiddenTopic.innerText = data.courseInfo ? data.courseInfo.topic : "ข้อมูลคอร์ส";
+                    
+                    let hiddenInstructor = document.getElementById('s-instructor');
+                    if(!hiddenInstructor) {
+                        hiddenInstructor = document.createElement('div');
+                        hiddenInstructor.id = 's-instructor';
+                        hiddenInstructor.style.display = 'none';
+                        document.body.appendChild(hiddenInstructor);
+                    }
+                    hiddenInstructor.innerText = data.courseInfo ? data.courseInfo.instructor : "-";
+
                     document.getElementById('attendees-count').innerText = data.attendees.length;
                     const tbody = document.querySelector('#attendees-table tbody');
                     tbody.innerHTML = "";
@@ -258,18 +279,28 @@
         function exportAttendeesExcel() {
             sendLog("Export Attendees", `แอดมินดาวน์โหลดรายชื่อคอร์ส ${currentSearchedCourse} (Excel)`);
             
+            // ดึงชื่อหัวข้อและชื่อผู้สอนจากหน้าจอแสดงผล
+            const courseTopic = document.getElementById('s-topic') ? document.getElementById('s-topic').innerText : "ไม่ระบุ";
+            const courseInstructor = document.getElementById('s-instructor') ? document.getElementById('s-instructor').innerText : "ไม่ระบุ";
+            
             let dataToExport = [];
             
-            // แทรก Row 1: ชื่อหัวเรื่องรายงาน
+            // Row 1: ชื่อหัวเรื่องรายงาน
             dataToExport.push(["รายงานรายชื่อผู้เข้าร่วมอบรม / รับทราบการสื่อสาร (Attendance Record)"]);
             
-            // แทรก Row 2: รายละเอียดรหัสคอร์ส
+            // Row 2: รหัสคลาส
             dataToExport.push([`รหัสคลาส (Course Code): ${currentSearchedCourse}`]);
             
-            // เว้นบรรทัด 1 บรรทัด (Row 3)
+            // Row 3: ชื่อหัวข้อ (Topic) - *เพิ่มใหม่*
+            dataToExport.push([`หัวข้อการอบรม: ${courseTopic}`]);
+            
+            // Row 4: ชื่อผู้สอน (Instructor) - *เพิ่มใหม่*
+            dataToExport.push([`ผู้จัด/ผู้สอน: ${courseInstructor}`]);
+            
+            // Row 5: เว้นบรรทัด
             dataToExport.push([]);
             
-            // Row 4: หัวตาราง
+            // Row 6: หัวตาราง
             dataToExport.push(["วันที่เวลาที่ลงนาม", "รหัสพนักงาน", "ชื่อ-สกุล", "สถานะการเข้าร่วม"]);
             
             // ใส่ข้อมูลลงในตาราง
