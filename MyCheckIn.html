@@ -225,14 +225,33 @@
                     });
                 }
                 
-                // ใช้ SheetJS สร้างไฟล์ .xlsx
-                let dataToExport = [ ["วันที่ลงนาม", "รหัส", "หัวข้อ", "สถานะ", "ชั่วโมง"] ];
+                // --- สร้างข้อมูลสำหรับไฟล์ Excel ---
+                let dataToExport = [];
+                
+                // แทรก Row 1: ชื่อหัวเรื่องรายงาน
+                dataToExport.push(["รายงานประวัติการเข้าร่วมอบรม/รับทราบการสื่อสาร"]);
+                
+                // แทรก Row 2: รายละเอียด (รหัสพนักงาน และ ช่วงเวลา)
+                let detailText = `พนักงาน: ${currentUser.name} (${currentUser.id})`;
+                if(startStr || endStr) detailText += ` | ช่วงเวลา: ${startStr || 'เริ่มต้น'} ถึง ${endStr || 'ปัจจุบัน'}`;
+                dataToExport.push([detailText]);
+                
+                // เว้นบรรทัด 1 บรรทัด (Row 3)
+                dataToExport.push([]);
+                
+                // Row 4: หัวตาราง
+                dataToExport.push(["วันที่ลงนาม", "รหัสคอร์ส", "หัวข้อ", "สถานะ", "ชั่วโมง"]);
+                
+                // ใส่ข้อมูลลงในตาราง
                 filteredRecords.forEach(r => { 
                     dataToExport.push([r.date, r.code, r.topic, r.status, r.period]); 
                 });
                 
                 const ws = XLSX.utils.aoa_to_sheet(dataToExport);
+                
+                // ปรับขนาดคอลัมน์ให้อ่านง่าย
                 ws['!cols'] = [{wch: 20}, {wch: 15}, {wch: 40}, {wch: 20}, {wch: 10}];
+                
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "MyTraining");
                 

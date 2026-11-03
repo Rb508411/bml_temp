@@ -254,16 +254,35 @@
             hideOverlay();
         }
 
+        //เพิ่มหัวตาราง
         function exportAttendeesExcel() {
             sendLog("Export Attendees", `แอดมินดาวน์โหลดรายชื่อคอร์ส ${currentSearchedCourse} (Excel)`);
             
-            let dataToExport = [ ["วันที่เวลา", "รหัสพนักงาน", "ชื่อ-สกุล", "สถานะ"] ];
-            currentAttendeesData.forEach(a => { dataToExport.push([a.date, a.empId, a.name, a.status]); });
+            let dataToExport = [];
+            
+            // แทรก Row 1: ชื่อหัวเรื่องรายงาน
+            dataToExport.push(["รายงานรายชื่อผู้เข้าร่วมอบรม / รับทราบการสื่อสาร (Attendance Record)"]);
+            
+            // แทรก Row 2: รายละเอียดรหัสคอร์ส
+            dataToExport.push([`รหัสคลาส (Course Code): ${currentSearchedCourse}`]);
+            
+            // เว้นบรรทัด 1 บรรทัด (Row 3)
+            dataToExport.push([]);
+            
+            // Row 4: หัวตาราง
+            dataToExport.push(["วันที่เวลาที่ลงนาม", "รหัสพนักงาน", "ชื่อ-สกุล", "สถานะการเข้าร่วม"]);
+            
+            // ใส่ข้อมูลลงในตาราง
+            currentAttendeesData.forEach(a => { 
+                dataToExport.push([a.date, a.empId, a.name, a.status]); 
+            });
             
             const ws = XLSX.utils.aoa_to_sheet(dataToExport);
-            ws['!cols'] = [{wch: 20}, {wch: 15}, {wch: 30}, {wch: 25}]; 
-            const wb = XLSX.utils.book_new();
             
+            // ปรับขนาดคอลัมน์
+            ws['!cols'] = [{wch: 20}, {wch: 15}, {wch: 30}, {wch: 25}]; 
+            
+            const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Attendees");
             XLSX.writeFile(wb, `Attendees_${currentSearchedCourse}.xlsx`);
         }
